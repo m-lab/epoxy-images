@@ -1,0 +1,114 @@
+#!/bin/bash
+#
+# Generate a basic isolinux ISO boot image from vmlinuz & initramfs
+
+set -x
+set -e
+
+# Optional parameters.
+INITRD=
+BOOT_PARAMS=
+
+# There should either be mkisofs or the compatible genisoimage program
+MKISOFS=/usr/bin/mkisofs
+MKISOFS_FLAGS="-quiet -l -volid 'ePoxyISO' -preparer 'ePoxy-images'"
+MKISOFS_FLAGS="$MKISOFS_FLAGS -appid 'ePoxy' -publisher 'M-Lab'"
+MKISOFS_FLAGS="$MKISOFS_FLAGS -eltorito-catalog boot.cat"
+
+# From the isolinux package.
+ISOLINUX_BIN=/usr/lib/ISOLINUX/isolinux.bin
+# From the syslinux-common package.
+LDLINUX_C32=/usr/lib/syslinux/modules/bios/ldlinux.c32
+
+
+function help() {
+  echo "usage: ${0} [OPTIONS] vmlinuz initramfs"
+  echo
+  echo "where OPTIONS are:"
+  echo " -h       show this help"
+  echo " -o FILE  save iso image to file"
+  echo " -x ARGS  extra kernel command line args"
+}
+
+
+# Check for required binaries.
+if [ ! -f "${MKISOFS}" ]; then
+  echo "Error: mkisofs not found, please install or update PATH"
+  exit 1
+fi
+
+# Parse command line parameters.
+while getopts "ho:x:" opt; do
+  case ${opt} in
+    h)
+      help
+      exit 0
+      ;;
+    i)
+      INITRD="${OPTARG}"
+      ;;
+    x)
+      BOOT_PARAMS="${OPTARG}"
+      ;;
+  esac
+done
+
+# Adjust positional parameters after processing with getopts.
+shift $((OPTIND - 1))
+
+# Assign positional parameters.
+VMLINUZ=${1:?Error: Please provide a vmlinuz image}
+ISO_NAME=${2:?Error: Please provide an ISO output file name}
+
+
+function setup_isofs() {
+  local isofs_dir=$1
+  local vmlinuz=$2
+  local initramfs=$3
+  local boot_parms=$4
+
+  local cfg=${isofs_dir}/isolinux.cfg
+  local initrd_config=
+
+  # Setup the mkisofs filesystem.
+  cp $vmlinuz ${isofs_dir}/vmlinuz
+  if test -f "$initramfs" ; then
+      cp $initramfs ${isofs_dir}/initrd
+      initrd_config="INITRD initrd"
+  fi
+
+  # Generate isolinux.cfg
+  cat > ${cfg} <<EOF
+SAY ePoxy ISO boot image: $ISO_NAME
+SAY Kernel parameters: $boot_parms
+TIMEOUT 30
+DEFAULT linux
+
+LABEL linux
+ KERNEL vmlinuz
+ $initrd_config
+ APPEND $BOOT_PARAMS
+EOF
+
+  # Copy isolinux bootloader.
+  cp ${ISOLINUX_BIN} ${isofs_dir}
+
+  # Syslinux 6.x requires the LDLINUX_C32 file.
+  cp ${LDLINUX_C32} ${isofs_dir}
+}
+
+
+function main() {
+  local isodir=$( mktemp -d /tmp/iso.dir.XXXXXX )
+
+  setup_isofs $isodir $VMLINUZ "$INITRD" "${BOOT_PARAMS}"
+
+  # Generate the ISO image.
+  $MKISOFS $MKISOFS_FLAGS -eltorito-boot isolinux.bin -no-emul-boot \
+      -boot-load-size 4 -boot-info-table -output ${ISO_NAME} ${isodir}
+
+  # Clean up temporary directory.
+  rm -fr ${isodir}
+}
+
+main
