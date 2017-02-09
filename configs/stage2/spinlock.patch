@@ -1,0 +1,14 @@
+diff --git a/arch/x86/kernel/x8664_ksyms_64.c b/arch/x86/kernel/x8664_ksyms_64.c
+index f6d30fedcc03..95e49f6e4fc3 100644
+--- a/arch/x86/kernel/x8664_ksyms_64.c
++++ b/arch/x86/kernel/x8664_ksyms_64.c
+@@ -2,6 +2,7 @@ 
+    All C exports should go in the respective C files. */
+ 
+ #include <linux/export.h>
++#include <linux/spinlock_types.h>
+ #include <linux/smp.h>
+ 
+ #include <net/checksum.h>
+
+
