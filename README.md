@@ -2,9 +2,9 @@
 
 Support for building Linux kernels, rootfs images, and ROMs for ePoxy
 
-An ePoxy manged system depends on several image types:
+An ePoxy managed system depends on several image types:
 
- * stage1 images that are either flashed to NICs, or burned to ISOs.
+ * stage1 images that are either flashed to NICs, or burned to CDs.
  * stage2 Linux images that provide a minimal network boot environment.
  * stage3 Linux ROM update images, that (re)flash iPXE ROMs to NICs.
 
