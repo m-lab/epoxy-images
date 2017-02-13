@@ -65,7 +65,7 @@ function setup_isofs() {
   local isofs_dir=$1
   local vmlinuz=$2
   local initramfs=$3
-  local boot_parms=$4
+  local boot_params=$4
 
   local cfg=${isofs_dir}/isolinux.cfg
   local initramfs_config=
@@ -80,14 +80,14 @@ function setup_isofs() {
   # Generate isolinux.cfg
   cat > ${cfg} <<EOF
 SAY ePoxy ISO boot image: $ISO_NAME
-SAY Kernel parameters: $boot_parms
+SAY Kernel parameters: $boot_params
 TIMEOUT 30
 DEFAULT linux
 
 LABEL linux
  KERNEL vmlinuz
  $initramfs_config
- APPEND $boot_parms
+ APPEND $boot_params
 EOF
 
   # Copy isolinux bootloader.
