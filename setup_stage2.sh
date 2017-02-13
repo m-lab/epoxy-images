@@ -44,7 +44,7 @@ function unpack () {
       echo "Error: no such file: $tgz" 1>&2
       exit 1
     fi
-    tar xvf $tgz
+    tar xf $tgz
   fi
 }
 
@@ -56,14 +56,15 @@ function unpack () {
 #   vendor: absolute path to a vendor directory with tar archives.
 #   config: absolute path to a configuration directory.
 function build_busybox() {
-  local build=$1
-  local vendor=$2
-  local config=$3
+  local busybox_version=$1
+  local build=$2
+  local vendor=$3
+  local config=$4
 
   if ! test -f $build/local/bin/busybox ; then
     pushd $build
-      unpack busybox-1.25.0 $vendor/busybox-1.25.0.tar.bz2
-      pushd busybox-1.25.0
+      unpack ${busybox_version} $vendor/${busybox_version}.tar.bz2
+      pushd ${busybox_version}
         # Copy busybox configuration, updating the install directory.
         sed -e "s|BUSYBOX_INSTALL_DIR|$build/local|g" \
                 $config/busybox_config > .config
@@ -82,15 +83,21 @@ function build_busybox() {
 #   vendor: absolute path to a vendor directory with tar archives.
 #   config: absolute path to a configuration directory.
 function build_dropbear() {
-  local build=$1
-  local vendor=$2
-  local config=$3
+  local dropbear_version=$1
+  local build=$2
+  local vendor=$3
+  local config=$4
 
   if ! test -f $build/local/sbin/dropbear ; then
     pushd $build
-      unpack dropbear-2016.74 $vendor/dropbear-2016.74.tar.bz2
-      pushd dropbear-2016.74
+      unpack ${dropbear_version} $vendor/${dropbear_version}.tar.bz2
+      pushd ${dropbear_version}
         STATIC=1 ./configure --prefix=$build/local
+
+        # The MULTI=1 option creates a single binary named "dropbearmulti"
+        # that contains the logic for all of the named PROGRAMS. On
+        # installation, use symlinks to name and invoke the dropbearmulti
+        # binary as an individual program.
         make PROGRAMS="dropbear dropbearkey dbclient scp" \
             MULTI=1 STATIC=1 SCPPROGRESS=1
         make PROGRAMS="dropbear dropbearkey dbclient scp" \
@@ -109,14 +116,15 @@ function build_dropbear() {
 #   vendor: absolute path to a vendor directory with tar archives.
 #   config: absolute path to a configuration directory.
 function build_kexec() {
-  local build=$1
-  local vendor=$2
-  local config=$3
+  local kexec_version=$1
+  local build=$2
+  local vendor=$3
+  local config=$4
 
   if ! test -f $build/local/sbin/kexec ; then
     pushd $build
-      unpack kexec-tools-2.0.13 $vendor/kexec-tools-2.0.13.tar.xz
-      pushd kexec-tools-2.0.13
+      unpack ${kexec_version} $vendor/${kexec_version}.tar.xz
+      pushd ${kexec_version}
         LDFLAGS=-static ./configure --prefix $build/local
         make
         make install
@@ -133,14 +141,15 @@ function build_kexec() {
 #   vendor: absolute path to a vendor directory with tar archives.
 #   config: absolute path to a configuration directory.
 function build_rngd() {
-  local build=$1
-  local vendor=$2
-  local config=$3
+  local rngd_version=$1
+  local build=$2
+  local vendor=$3
+  local config=$4
 
   if ! test -f $build/local/sbin/rngd ; then
     pushd $build
-      unpack rng-tools-5 $vendor/rng-tools-5.tar.gz
-      pushd rng-tools-5
+      unpack ${rngd_version} $vendor/${rngd_version}.tar.gz
+      pushd ${rngd_version}
         LDFLAGS=-static ./configure --prefix=$build/local
         make
         make install
@@ -157,14 +166,15 @@ function build_rngd() {
 #   vendor: absolute path to a vendor directory with tar archives.
 #   config: absolute path to a configuration directory.
 function build_haveged() {
-  local build=$1
-  local vendor=$2
-  local config=$3
+  local haveged_version=$1
+  local build=$2
+  local vendor=$3
+  local config=$4
 
   if ! test -f $build/local/sbin/haveged ; then
     pushd $build
-      unpack haveged-1.9.1 $vendor/haveged-1.9.1.tar.gz
-      pushd haveged-1.9.1
+      unpack ${haveged_version} $vendor/${haveged_version}.tar.gz
+      pushd ${haveged_version}
         ./configure --prefix=$build/local --enable-static LDFLAGS=-static
         make
         pushd src
@@ -197,15 +207,15 @@ function compress_binaries() {
   shift
 
   echo "Compressing binaries"
-  mkdir -p $build_prefix/upx
+  mkdir -p $install_prefix/upx
 
   while [[ $# -gt 0 ]] ; do
-    file=$build_prefix/$1
+    file=$install_prefix/$1
     name=$(basename $file)
     # Compress if upx file is missing, or if the source binary is newer.
-    if ! test -f $build_prefix/upx/$name || \
-        test $file -nt $build_prefix/upx/$name ; then
-      upx -f --brute -o$build_prefix/upx/$name $file
+    if ! test -f $install_prefix/upx/$name || \
+        test $file -nt $install_prefix/upx/$name ; then
+      upx -f --brute -o$install_prefix/upx/$name $file
     fi
 
     shift
@@ -350,14 +360,18 @@ function build_kernel() {
   local initramfs=$4
   local kernel=$5
 
-  # TODO: is there a better way to extract the base kernel version?
-  local version=$( ls /usr/src/linux-source-* | head -1 )
-  version=${version%%.tar.*}
-  version=${version##*-}
+  # Extract the linux source version.
+  local linux_source_version=$(
+      dpkg-query --show --showformat='${Depends}\n' linux-source )
+  if test -z "${linux_source_version}" || \
+      ! test -f /usr/src/${linux_source_version}.tar.bz2 ; then
+      echo "Error: failed to find linux source from linux-source package" 1>&2
+      exit 1
+  fi
 
   pushd $build
-    unpack linux-source-${version} /usr/src/linux-source-${version}.tar.bz2
-    pushd linux-source-${version}
+    unpack ${linux_source_version} /usr/src/${linux_source_version}.tar.bz2
+    pushd ${linux_source_version}
       if test "${initramfs}" -nt "${kernel}" ; then
         # Remove build artifacts to force re-generation.
         rm -f arch/x86/boot/bzImage
@@ -399,11 +413,11 @@ function main() {
   # Make build directory if it does not already exist.
   mkdir -p $BUILD_DIR
 
-  build_busybox $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_dropbear $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_kexec $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_rngd $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_haveged $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_busybox busybox-1.25.0 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_dropbear dropbear-2016.74 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_kexec kexec-tools-2.0.13 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_rngd rng-tools-5 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_haveged haveged-1.9.1 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
   build_epoxyclient $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
 
   compress_binaries $BUILD_DIR/local \
