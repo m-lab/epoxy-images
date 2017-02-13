@@ -11,10 +11,10 @@ set -e
 
 # Define positional parameters.
 BUILD_DIR=${1:?Error: Please specify output directory for all build artifacts}
-VENDOR_DIR=${2:?Error: Please specify absolute path to vendor package directory}
-CONFIG_DIR=${3:?Error: Please specify absolute path to configuration directory}
-INITRAM_NAME=${4:?Error: Please specify absolute path of initramfs output file}
-KERNEL_NAME=${5:?Error: Please specify absolute path to vmlinuz output file}
+VENDOR_DIR=${2:?Error: Please specify path to vendor package directory}
+CONFIG_DIR=${3:?Error: Please specify path to configuration directory}
+INITRAM_NAME=${4:?Error: Please specify path of initramfs output file}
+KERNEL_NAME=${5:?Error: Please specify path to vmlinuz output file}
 
 
 # Get canonical paths for each argument.
