@@ -6,7 +6,7 @@ set -x
 set -e
 
 # Optional parameters.
-INITRD=
+INITRAMFS=
 BOOT_PARAMS=
 
 # There should either be mkisofs or the compatible genisoimage program
@@ -22,11 +22,11 @@ LDLINUX_C32=/usr/lib/syslinux/modules/bios/ldlinux.c32
 
 
 function help() {
-  echo "usage: ${0} [OPTIONS] vmlinuz initramfs"
+  echo "usage: ${0} [OPTIONS] vmlinuz isoname"
   echo
   echo "where OPTIONS are:"
   echo " -h       show this help"
-  echo " -o FILE  save iso image to file"
+  echo " -i FILE  initramfs filesystem image for kernel"
   echo " -x ARGS  extra kernel command line args"
 }
 
@@ -45,7 +45,7 @@ while getopts "ho:x:" opt; do
       exit 0
       ;;
     i)
-      INITRD="${OPTARG}"
+      INITRAMFS="${OPTARG}"
       ;;
     x)
       BOOT_PARAMS="${OPTARG}"
@@ -68,13 +68,13 @@ function setup_isofs() {
   local boot_parms=$4
 
   local cfg=${isofs_dir}/isolinux.cfg
-  local initrd_config=
+  local initramfs_config=
 
   # Setup the mkisofs filesystem.
   cp $vmlinuz ${isofs_dir}/vmlinuz
   if test -f "$initramfs" ; then
-      cp $initramfs ${isofs_dir}/initrd
-      initrd_config="INITRD initrd"
+      cp $initramfs ${isofs_dir}/initramfs
+      initramfs_config="INITRD initramfs"
   fi
 
   # Generate isolinux.cfg
@@ -86,8 +86,8 @@ DEFAULT linux
 
 LABEL linux
  KERNEL vmlinuz
- $initrd_config
- APPEND $BOOT_PARAMS
+ $initramfs_config
+ APPEND $boot_parms
 EOF
 
   # Copy isolinux bootloader.
@@ -101,7 +101,7 @@ EOF
 function main() {
   local isodir=$( mktemp -d /tmp/iso.dir.XXXXXX )
 
-  setup_isofs $isodir $VMLINUZ "$INITRD" "${BOOT_PARAMS}"
+  setup_isofs $isodir $VMLINUZ "$INITRAMFS" "${BOOT_PARAMS}"
 
   # Generate the ISO image.
   $MKISOFS $MKISOFS_FLAGS -eltorito-boot isolinux.bin -no-emul-boot \
