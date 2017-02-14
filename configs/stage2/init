@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# A minimal busybox init script, that ultimately invokes /sbin/init.
+
+# Create all the symlinks to /bin/busybox
+/bin/busybox --install -s
+
+# Mount things needed by this script
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t devpts /dev/pts /dev/pts
+
+# Create device nodes
+/bin/mknod /dev/null c 1 3
+/bin/mknod /dev/tty c 5 0
+/sbin/mdev -s
+
+echo "Passing control to busybox init."
+exec /sbin/init
+
+# This should not be reached. If /sbin/init fails, we're having a bad day. Try
+# falling back to a shell.
+echo "Dropping to a shell with job control."
+setsid /bin/sh -c 'exec /bin/sh </dev/tty1 >/dev/tty1 2>&1'
+
+echo "Trying to drop to a shell without job control..."
+exec /bin/sh
+
+echo "Sleeping for an hour to avoid an immediate panic."
+sleep 3600
