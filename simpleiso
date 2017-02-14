@@ -38,7 +38,7 @@ if [ ! -f "${MKISOFS}" ]; then
 fi
 
 # Parse command line parameters.
-while getopts "ho:x:" opt; do
+while getopts "hi:x:" opt; do
   case ${opt} in
     h)
       help
