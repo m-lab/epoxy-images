@@ -31,7 +31,7 @@ cache:
 
 script:
 - docker build -t epoxy-images-builder .
-- docker run -v $PWD:/images epoxy-images-builder
+- docker run -t -v $PWD:/images epoxy-images-builder
       /images/setup_stage2.sh /buildtmp /images/vendor
       /images/configs/stage2
       /images/output/stage2_initramfs.cpio.gz
