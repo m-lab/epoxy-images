@@ -339,6 +339,8 @@ function write_initramfs() {
   local initramfs=$1
   local output=$2
 
+  # Guarantee that all directories exist in output path.
+  mkdir -p $( dirname "${output}" )
   pushd $initramfs
     find . | cpio -H newc -o | gzip -c > "${output}"
   popd
