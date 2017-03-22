@@ -1,14 +1,15 @@
-# Travis configuration for <repo>
+# Travis configuration for epoxy-images
 #
-# <repo> support release automation to M-Lab GCP projects for branches in the
-# m-lab/<repo> repository. To achieve this, the build takes the following steps:
+# epoxy-images supports release automation to Cloud Storage buckets for branches
+# in the m-lab/epoxy-images repository. To achieve this, the build takes the
+# following steps:
 #
 #  * decrypt service account credentials, under keys/*.tar.enc
 #  * install the Google Cloud SDK command line tools (gcloud)
 #  * cache the gcloud installation and setup
-#  * test and build the project code
-#  * on success, deploy the result when the origin branch matches a supported
-#    deployment target.
+#  * build all epoxy-images
+#  * on success, deploy the result to the correct Cloud Storage bucket when
+#    the target branch matches a supported deployment target.
 
 services:
 - docker
