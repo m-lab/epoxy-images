@@ -21,8 +21,8 @@ KERNEL_NAME=${5:?Error: Please specify path to vmlinuz output file}
 BUILD_DIR=$( readlink --canonicalize $BUILD_DIR )
 VENDOR_DIR=$( readlink --canonicalize $VENDOR_DIR )
 CONFIG_DIR=$( readlink --canonicalize $CONFIG_DIR )
-INITRAM_NAME=$( readlink --canonicalize $INITRAM_NAME )
-KERNEL_NAME=$( readlink --canonicalize $KERNEL_NAME )
+INITRAM_NAME=$( readlink --canonicalize-missing $INITRAM_NAME )
+KERNEL_NAME=$( readlink --canonicalize-missing $KERNEL_NAME )
 
 
 # Setup environmental and derived values.
@@ -339,6 +339,8 @@ function write_initramfs() {
   local initramfs=$1
   local output=$2
 
+  # Guarantee that all directories exist in output path.
+  mkdir -p $( dirname "${output}" )
   pushd $initramfs
     find . | cpio -H newc -o | gzip -c > "${output}"
   popd
