@@ -1,9 +1,10 @@
 ## Customize CoreOS images
 
 The `customize_coreos_pxe_image.sh` script will download the latest stable
-CoreOS images and generate a customized version by adding the provide cloud
+CoreOS images and generate a customized version by adding the provided cloud
 config file to /usr/share/oem/cloud-config.yml
 
+You must specify absolute paths.
 ```
 $ ./customize_coreos_pxe_image.sh \
     $PWD/cloud-config-mlab1-lga0t.yml \
