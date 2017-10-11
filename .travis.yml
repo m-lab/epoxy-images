@@ -21,7 +21,7 @@ before_install:
 # After unpacking, there should be one service account key file for every GCP
 # project referenced in the "deploy" section. These keys authenticate the
 # gcloud deploy operations.
-- travis/decrypt.sh $encrypted_af2ac69618ed_iv $encrypted_af2ac69618ed_key
+- travis/decrypt.sh "$encrypted_af2ac69618ed_key" "$encrypted_af2ac69618ed_iv"
   keys/service-accounts.tar.enc /tmp/service-accounts.tar /tmp
 
 # These directories will be cached on successful "script" builds, and restored,
