@@ -33,12 +33,11 @@ pushd $IMAGEDIR
       gzip -d --to-stdout ${ORIGINAL} | cpio -i
   popd
 
-  # Copy resources to the "/usr/share/oem" directory.
-  mkdir -p fake-usr/share/oem
-  cp -ar ${SCRIPTDIR}/resources/* fake-usr/share/oem/
-
+  # Note: 'resources' has a dir structure for the "/usr/share/oem" directory.
   # Append the files to the squashfs and re-cpio image.
-  mksquashfs fake-usr initrd-contents/usr.squashfs -always-use-fragments
+  mksquashfs ${SCRIPTDIR}/resources initrd-contents/usr.squashfs \
+      -always-use-fragments
+
   pushd initrd-contents
     find . | cpio -o -H newc | gzip > "${CUSTOM}"
   popd
