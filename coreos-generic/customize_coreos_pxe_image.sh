@@ -7,42 +7,42 @@
 
 set -e
 set -x
-OUTPUT=${1:?Please provide the name of the output image}
-BASEDIR=$( dirname "${BASH_SOURCE[0]}" )
+VMLINUZ_URL=${1:?Please provide the URL for a coreos vmlinuz image}
+INITRAM_URL=${2:?Please provide the URL for a coreos initram image}
+CUSTOM=${3:?Please provide the name for writing a customized initram image}
+
+SCRIPTDIR=$( dirname "${BASH_SOURCE[0]}" )
 
 # Convert relative path to an absolute path.
-BASEDIR=$( readlink -f $BASEDIR )
-OUTPUT=$( readlink -f $OUTPUT )
+SCRIPTDIR=$( readlink -f $SCRIPTDIR )
+CUSTOM=$( readlink -f $CUSTOM )
+IMAGEDIR=$( dirname $CUSTOM )
 
-# Download CoreOS images.
-URL=http://stable.release.core-os.net/amd64-usr/current
-pushd build
-  for file in coreos_production_pxe.vmlinuz \
-              coreos_production_pxe_image.cpio.gz ; do
-    test -f $file || curl -O ${URL}/${file}
+mkdir -p $IMAGEDIR
+pushd $IMAGEDIR
+  # Download CoreOS images.
+  for url in $VMLINUZ_URL $INITRAM_URL ; do
+    file=$( basename $url )
+    test -f $file || curl -O ${url}
   done
-popd
 
-
-pushd build
-  # Unpack the cpio and squashfs image.
-  ORIGINAL=${PWD}/coreos_production_pxe_image.cpio.gz
-  mkdir -p initrd
-  pushd initrd
+  # Uncompress and unpack the cpio image.
+  ORIGINAL=${PWD}/$( basename $INITRAM_URL )
+  mkdir -p initrd-contents
+  pushd initrd-contents
       gzip -d --to-stdout ${ORIGINAL} | cpio -i
   popd
-  unsquashfs initrd/usr.squashfs
 
-  # Copy resources to the "/usr/share/oem" directory.
-  cp -ar ${BASEDIR}/resources/* squashfs-root/share/oem/
+  # Note: 'resources' has a dir structure for the "/usr/share/oem" directory.
+  # Append the files to the squashfs and re-cpio image.
+  mksquashfs ${SCRIPTDIR}/resources initrd-contents/usr.squashfs \
+      -always-use-fragments
 
-  # Rebuild the squashfs and cpio image.
-  mksquashfs squashfs-root initrd/usr.squashfs -noappend -always-use-fragments
-  pushd initrd
-    find . | cpio -o -H newc | gzip > "${OUTPUT}"
+  pushd initrd-contents
+    find . | cpio -o -H newc | gzip > "${CUSTOM}"
   popd
 
   # Cleanup
-  rm -rf squashfs-root
-  rm -rf initrd
+  rm -rf initrd-contents
+  rm -rf fake-usr
 popd
