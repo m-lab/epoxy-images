@@ -35,13 +35,14 @@ pushd $IMAGEDIR
 
   # Extract the squashfs into a default dir name 'squashfs-root'
   # Note: xattrs do not work within a docker image, they are not necessary.
-  unsquashfs -no-xattrs initrd/usr.squashfs
+  unsquashfs -no-xattrs initrd-contents/usr.squashfs
 
   # Copy resources to the "/usr/share/oem" directory.
   cp -a ${SCRIPTDIR}/resources/* squashfs-root/share/oem/
 
   # Rebuild the squashfs and cpio image.
-  mksquashfs squashfs-root initrd/usr.squashfs -noappend -always-use-fragments
+  mksquashfs squashfs-root initrd-contents/usr.squashfs \
+      -noappend -always-use-fragments
 
   pushd initrd-contents
     find . | cpio -o -H newc | gzip > "${CUSTOM}"
