@@ -50,5 +50,5 @@ pushd $IMAGEDIR
 
   # Cleanup
   rm -rf initrd-contents
-  rm -rf fake-usr
+  rm -rf squashfs-root
 popd
