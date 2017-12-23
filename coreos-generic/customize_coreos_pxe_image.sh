@@ -33,10 +33,16 @@ pushd $IMAGEDIR
       gzip -d --to-stdout ${ORIGINAL} | cpio -i
   popd
 
-  # Note: 'resources' has a dir structure for the "/usr/share/oem" directory.
-  # Append the files to the squashfs and re-cpio image.
-  mksquashfs ${SCRIPTDIR}/resources initrd-contents/usr.squashfs \
-      -always-use-fragments
+  # Extract the squashfs into a default dir name 'squashfs-root'
+  # Note: xattrs do not work within a docker image, they are not necessary.
+  unsquashfs -no-xattrs initrd-contents/usr.squashfs
+
+  # Copy resources to the "/usr/share/oem" directory.
+  cp -a ${SCRIPTDIR}/resources/* squashfs-root/share/oem/
+
+  # Rebuild the squashfs and cpio image.
+  mksquashfs squashfs-root initrd-contents/usr.squashfs \
+      -noappend -always-use-fragments
 
   pushd initrd-contents
     find . | cpio -o -H newc | gzip > "${CUSTOM}"
@@ -44,5 +50,5 @@ pushd $IMAGEDIR
 
   # Cleanup
   rm -rf initrd-contents
-  rm -rf fake-usr
+  rm -rf squashfs-root
 popd
