@@ -56,7 +56,7 @@ func main() {
 	flag.Parse()
 	err := buildCustomImage(*vmlinuz, *initram, absPath(*resources), absPath(*customInitram))
 	if err != nil {
-		log.Fatal("Error: " + err)
+		log.Fatalf("Error: %v", err)
 	}
 	log.Println("Success")
 }
