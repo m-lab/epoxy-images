@@ -29,7 +29,7 @@ script:
 # Build stage2 vmlinuz image.
 # TODO: clean up args to setup_stage2.sh script.
 # NOTE: use travis_wait to allow build with no output for longer than 10m.
-- travis_wait time docker run -v $PWD:/images epoxy-images-builder
+- time docker run -v $PWD:/images epoxy-images-builder
       bash -c "/images/setup_stage2.sh
          /buildtmp
          /images/vendor
