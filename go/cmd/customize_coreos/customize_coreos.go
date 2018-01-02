@@ -1,12 +1,12 @@
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 	"log"
 	"path"
 	"path/filepath"
 
-	flag "github.com/spf13/pflag"
 	"github.com/stephen-soltesz/epoxy-images/go/shext"
 	pipe "gopkg.in/stephen-soltesz/pipe.v3"
 )
