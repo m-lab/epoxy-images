@@ -52,8 +52,8 @@ function prepare_flexboot_source() {
       # Add the 'driver_version' definition to flexboot source.
       git apply ${config_dir}/romprefix.S.diff
 
-      # Copy pre-defined configuration to enable TLS and other options.
-      cp ${config_dir}/config_general.h config/general.h
+      # Enable TLS configuration and any other non-standard options.
+      git apply ${config_dir}/config_general.h.diff
     popd
 
     # Move the working directory to the canonical name to signal we're done.
