@@ -24,21 +24,18 @@ ROMs because they are so space limited.
 Since ePoxy needs to interact with only two Google services (GAE for the server,
 and GCS to download images), at most we need to embed two trusted CA certs.
 
-As a first iteration, we are embedding two Issuing CAs. The first is the "Google
-Internet Authority G2": https://pki.google.com/GIAG2.crt used to sign addresses
-under:
+As a first iteration -- not the final solution -- we are embedding one Issuing
+CA for the "Google Internet Authority G2" https://pki.google.com/GIAG2.crt used
+to sign addresses under:
 
  - `*.appspot.com`
  - `*.storage.googleapis.com`
-
-The second Issuing CA is the "Google Internet Authority G3": https://pki.goog/
-
 
 To inspect these certifiates, download them and use `openssl` to make them
 human readable.
 
 ```
-openssl x509 -in ./gtsgiag3.pem -text -noout
+openssl x509 -in ./giag2.pem -text -noout
 ```
 
 This is a short-term solution suitable or testing but unsuitable for wider
@@ -65,8 +62,10 @@ for the Mellanox ConnectX3 models.
 At time of writing it was last updated 2016-07-05 as version "3.4.821". These
 sources are more up to date than the branded "FlexBoot" sources published by
 Mellanox on their website, last published 2015-05-05 as version "3.4.521".
+Version 3.4.521 includes a bug that prevents reliable downloads of TLS
+connections, so it is not suitable for our use case.
 
-The flexboot branch of that repo has ipxe sources up to that date.
+The flexboot branch includes ipxe sources up to 2016-07-05.
 
 The `src/arch/x86/prefix/romprefix.S` is missing a critical driver version
 definition with magic constants (i.e. "mlxsign:" in hex) required to recognize
