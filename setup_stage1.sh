@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # setup_stage1.sh generates Mellanox ROMs with per-machine configuration
-# embedded in the ROM image (e.g. ipv4 address, gageway, hostname), references
+# embedded in the ROM image (e.g. ipv4 address, gateway, hostname), references
 # to the ePoxy server (e.g. boot-api-dot-mlab-staging.appspot.com), and a
 # minimal iPXE script to load stage2 of the boot process.
 

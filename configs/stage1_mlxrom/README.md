@@ -31,7 +31,7 @@ to sign addresses under:
  - `*.appspot.com`
  - `*.storage.googleapis.com`
 
-To inspect these certifiates, download them and use `openssl` to make them
+To inspect these certificates, download them and use `openssl` to make them
 human readable.
 
 ```
