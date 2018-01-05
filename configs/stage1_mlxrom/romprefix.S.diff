@@ -1,0 +1,16 @@
+diff --git a/src/arch/x86/prefix/romprefix.S b/src/arch/x86/prefix/romprefix.S
+index 24803a7..3287de5 100644
+--- a/src/arch/x86/prefix/romprefix.S
++++ b/src/arch/x86/prefix/romprefix.S
+@@ -2753,3 +2753,11 @@ REQUIRING_SYMBOL ( _rom_start )
+ 
+ /* Drag in ROM configuration */
+ REQUIRE_OBJECT ( config_romprefix )
++
++driver_version:
++ .align 16
++ .long 0x73786c6d
++ .long 0x3a6e6769
++ .long __MLX_0001_MAJOR_VER_
++ .long __MLX_MIN_SUB_MIN_VER_
++ .long __MLX_DEV_ID_00ff
