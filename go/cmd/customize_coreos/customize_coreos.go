@@ -19,6 +19,8 @@ var (
 )
 
 func init() {
+	// Default logging flags use `log.LstdFlags`. This disables all log
+	// prefixes to emulate bash `set -x`.
 	log.SetFlags(0)
 }
 
