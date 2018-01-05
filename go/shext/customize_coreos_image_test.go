@@ -78,6 +78,7 @@ func TestUnpackInitram(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		// TODO: make this a single-case test or add a failing case.
 		{
 			name: "working",
 			args: args{
@@ -117,6 +118,7 @@ func TestPackInitram(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		// TODO: make this a single-case test or add a failing case.
 		{
 			name: "working",
 			args: args{
@@ -159,6 +161,7 @@ func TestRebuildSquashFS(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
+		// TODO: make this a single-case test or add a failing case.
 		{
 			name: "working",
 			args: args{
