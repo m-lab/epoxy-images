@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# setup_stage3_mlxupdate.sh builds an initram filesystem based on the ubuntu
+# xenial OS, that includes the Mellanox Firmware Tools and requisite kernel
+# modules. With this image it is possible to flash a new ROM to a Mellanox NIC.
+#
+# Example:
+#   ./setup_stage3_mlxupdate.sh /build config/stage3_mlxupdate
 
 set -x
 set -e
