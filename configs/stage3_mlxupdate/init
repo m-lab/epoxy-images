@@ -1,0 +1,23 @@
+#!/bin/bash
+
+/bin/mount -t proc proc /proc
+/bin/mount -t sysfs sysfs /sys
+/bin/mount -t devpts /dev/pts /dev/pts
+
+/sbin/modprobe e1000
+/sbin/modprobe mlx4_en
+
+/etc/rc.local
+
+/sbin/dropbear
+mkdir -p /var/log
+/usr/sbin/rsyslogd
+
+echo "Dropping to a shell with job control. -- 3"
+/usr/bin/setsid /bin/bash -c 'exec /bin/bash </dev/tty1 >/dev/tty1 2>&1'
+
+echo "Sleeping for 6000"
+sleep 6000
+
+echo "Shell without job control."
+exec /bin/bash

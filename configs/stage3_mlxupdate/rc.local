@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+# TODO: epoxyclient should interpret this command line parameter instead.
+function setup_network() {
+  # Set a default local network configuration.
+  ipcfg=192.168.0.2::192.168.0.1:255.255.255.0:default-net:eth0::8.8.8.8:
+
+  # Note: while using a generic kernel, we must wait for the modules to load
+  # automatically before the network configuration commands will work.  This
+  # delay could be avoided by explicitly loading the modules here (fragile) or
+  # using a custom kernel that embeds the mellanox drivers.
+  until ifconfig eth0 2> /dev/null ; do
+      echo "Waiting 1 second for eth0 to initialize.."
+      sleep 1
+  done
+
+  # Extract the epoxy.ip= boot parameter.
+  for field in $( cat /proc/cmdline ) ; do
+    if [[ "epoxy.ip" == "${field%%=*}" ]] ; then
+      ipcfg=${field##epoxy.ip=}
+      break
+    fi
+  done
+
+  echo "Applying network configuration: $ipcfg"
+  echo $ipcfg | tr ':' ' ' | (
+      read addr gateway netmask hostname device _
+      ifconfig $device $addr netmask $netmask
+      route add default gw $gateway
+      hostname $hostname
+  )
+  ifconfig eth0
+
+}
+
+
+echo "Starting mellanox tools."
+mst start
+
+
+echo "Configuring network..."
+setup_network
+
+
+# TODO(soltesz): enable automatic rom update.
+echo "WARNING: the ROM update is not yet complete."
+echo "WARNING: to complete update, run: /usr/local/util/updaterom.sh"

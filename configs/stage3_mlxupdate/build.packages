@@ -1,0 +1,5 @@
+gcc
+make
+dkms
+linux-headers-generic
+linux-generic
