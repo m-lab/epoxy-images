@@ -28,6 +28,8 @@ script:
 - mkdir $TRAVIS_BUILD_DIR/output
 # Build stage2 vmlinuz image.
 # TODO: clean up args to setup_stage2.sh script.
+# TODO: use alternative to travis_wait to allow build with no output for longer
+#       than 10m.
 - time docker run -v $PWD:/images epoxy-images-builder
       bash -c "/images/setup_stage2.sh
          /buildtmp
