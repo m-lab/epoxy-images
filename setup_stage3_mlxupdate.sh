@@ -11,16 +11,20 @@ set -x
 set -e
 set -u
 
-BUILDDIR=${1:?Specify build directory}
+BUILDDIR=${1:?Name of build directory}
 BUILDDIR=$( realpath $BUILDDIR )
 
-CONFIGDIR=${2:?Name of configuration}
+CONFIGDIR=${2:?Name of directory containing configuration files}
 CONFIGDIR=$( realpath $CONFIGDIR )
 
 CONFIG_NAME=$( basename $CONFIGDIR )
 BOOTSTRAP=$BUILDDIR/initramfs_${CONFIG_NAME}
 
-function unpack () {
+##############################################################################
+# Functions
+##############################################################################
+
+function unpack_url () {
   dir=$1
   url=$2
   tgz=$( basename $url )
@@ -33,18 +37,22 @@ function unpack () {
 }
 
 
-function enter_with_proc() {
+function mount_proc_and_sys() {
     local bootstrap=$1
     mount -t proc proc $bootstrap/proc
     mount -t sysfs sysfs $bootstrap/sys
 }
 
 
-function exit_with_proc() {
+function umount_proc_and_sys() {
     local bootstrap=$1
     umount $bootstrap/proc
     umount $bootstrap/sys
 }
+
+##############################################################################
+# Main script
+##############################################################################
 
 # Note: this step cannot be performed by docker build because it requires
 # --privileged mode to mount /proc.
@@ -70,10 +78,10 @@ fi
 
 # Unmount the proc & sys dirs if we encounter a problem within the following
 # block.
-trap "exit_with_proc $BOOTSTRAP" EXIT
+trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 # Install extra packages and
-enter_with_proc $BOOTSTRAP
+mount_proc_and_sys $BOOTSTRAP
 
     # Extra packages needed for correct operation.
     PACKAGES=`cat ${CONFIGDIR}/extra.packages ${CONFIGDIR}/build.packages`
@@ -148,7 +156,8 @@ enter_with_proc $BOOTSTRAP
     mv $BOOTSTRAP/lib/modules/${KERNEL_VERSION}.orig \
         $BOOTSTRAP/lib/modules/${KERNEL_VERSION}
 
-exit_with_proc $BOOTSTRAP
+umount_proc_and_sys $BOOTSTRAP
+trap '' EXIT
 
 
 ################################################################################
@@ -156,11 +165,11 @@ exit_with_proc $BOOTSTRAP
 ################################################################################
 # Kernel panics unless /init is defined. Use systemd for init.
 ln --force --symbolic sbin/init $BOOTSTRAP/init
-cp $CONFIGDIR/fstab       $BOOTSTRAP/etc/fstab
+cp $CONFIGDIR/fstab $BOOTSTRAP/etc/fstab
 
 # Enable simple rc.local script for post-setup processing.
 # rc.local.service runs after networking.service
-cp $CONFIGDIR/rc.local    $BOOTSTRAP/etc/rc.local
+cp $CONFIGDIR/rc.local $BOOTSTRAP/etc/rc.local
 chroot $BOOTSTRAP systemctl enable rc.local.service
 
 ################################################################################
@@ -210,5 +219,3 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 pushd $BOOTSTRAP
     find . | cpio -H newc -o | gzip -c > ${BOOTSTRAP}.cpio.gz
 popd
-
-trap '' EXIT
