@@ -1,0 +1,8 @@
+usbutils
+pciutils
+perl-modules
+systemd-sysv
+wget
+curl
+vim
+openssh-server
