@@ -6,10 +6,12 @@
 # configuration for the kernel command line, which allows standard network
 # scripts to setup the network at boot time.
 
-USAGE="$0 <hostname> <ipv4-address> <ipv4-gateway>"
+USAGE="$0 <hostname> <ipv4-address>/<mask> <ipv4-gateway> [<dns1>][, <dns2>]"
 HOSTNAME=${1:?Error: please specify the server FQDN: $USAGE}
-IPV4_ADDR=${2:?Error: please specify the server IPv4 address with mask, e.g. 192.168.0.1/24: $USAGE}
-GW=${3:?Error: please specify the server IPv4 gateway address: $USAGE}
+IPV4_ADDR=${2:?Error: please specify the server IPv4 address with mask: $USAGE}
+IPV4_GATEWAY=${3:?Error: please specify the server IPv4 gateway address: $USAGE}
+DNS1=${4:-8.8.8.8}
+DNS2=${5:-8.8.4.4}
 
 if [[ ! -f $PWD/build/initramfs_stage3_mlxupdate.cpio.gz || \
       ! -f $PWD/build/vmlinuz_stage3_mlxupdate ]] ; then
@@ -18,17 +20,19 @@ if [[ ! -f $PWD/build/initramfs_stage3_mlxupdate.cpio.gz || \
     echo "Expected: $PWD/build/vmlinuz_stage3_mlxupdate"
     exit 1
 fi
+
 # Disable interface naming by the kernel. Preserves the use of `eth0`, etc.
 ARGS="net.ifnames=0 "
 
 # TODO: Legacy epoxy.ip= format. Remove once canonical form is supported.
-# Note: Strip the netmask and hard code it instead.
-ARGS+="epoxy.ip=${IPV4_ADDR%%/*}::${GW}:255.255.255.192:${HOSTNAME}:eth0:false:8.8.8.8:8.8.4.4 "
+# Note: Strip the netmask and hard code it to /26 instead.
+ARGS+="epoxy.ip=${IPV4_ADDR%%/*}::${IPV4_GATEWAY}:255.255.255.192:${HOSTNAME}:"
+ARGS+="eth0:false:8.8.8.8:8.8.4.4 "
 
 # Canonical epoxy network configuration.
 ARGS+="epoxy.hostname=${HOSTNAME} "
 ARGS+="epoxy.interface=eth0 "
-ARGS+="epoxy.ipv4=${IPV4_ADDR},${GW},8.8.8.8,8.8.4.4 "
+ARGS+="epoxy.ipv4=${IPV4_ADDR},${IPV4_GATEWAY},${DNS1},${DNS2} "
 
 # Add URL to the epoxy ROM image.
 URL=https://storage.googleapis.com/epoxy-mlab-staging
