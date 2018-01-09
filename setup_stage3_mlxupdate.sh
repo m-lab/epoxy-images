@@ -207,12 +207,12 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 # chmod 700 $BOOTSTRAP/root/
 
 
+mkdir -p $BOOTSTRAP/usr/local/util
+cp $CONFIGDIR/flashrom.sh $BOOTSTRAP/usr/local/util
+cp $CONFIGDIR/updaterom.sh $BOOTSTRAP/usr/local/util
 ################################################################################
 # TODO:
 ################################################################################
-# mkdir -p $BOOTSTRAP/usr/local/util
-# cp $CONFIGDIR/flashrom.sh $BOOTSTRAP/usr/local/util
-# cp $CONFIGDIR/updaterom.sh $BOOTSTRAP/usr/local/util
 # Make updaterom run automatically after start up.
 
 # Build the initramfs from the bootstrap filesystem.
