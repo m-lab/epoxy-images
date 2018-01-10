@@ -27,7 +27,7 @@ ARGS="net.ifnames=0 "
 # TODO: Legacy epoxy.ip= format. Remove once canonical form is supported.
 # Note: Strip the netmask and hard code it to /26 instead.
 ARGS+="epoxy.ip=${IPV4_ADDR%%/*}::${IPV4_GATEWAY}:255.255.255.192:${HOSTNAME}:"
-ARGS+="eth0:false:8.8.8.8:8.8.4.4 "
+ARGS+="eth0:false:${DNS1}:${DNS2} "
 
 # Canonical epoxy network configuration.
 ARGS+="epoxy.hostname=${HOSTNAME} "
