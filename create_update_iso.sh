@@ -21,6 +21,11 @@ if [[ ! -f $PWD/build/initramfs_stage3_mlxupdate.cpio.gz || \
     exit 1
 fi
 
+# ARGS are kernel command line parameters included in the isolinux.cfg. During
+# boot, parameters prefixed with "epoxy." are interpreted by the epoxy-client or
+# other epoxy related network configuration scripts. All other parameters are
+# interpreted by the kernel itself.
+#
 # Disable interface naming by the kernel. Preserves the use of `eth0`, etc.
 ARGS="net.ifnames=0 "
 
