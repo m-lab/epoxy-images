@@ -7,15 +7,18 @@
 
 set -e
 set -x
-VMLINUZ_URL=${1:?Please provide the URL for a coreos vmlinuz image}
-INITRAM_URL=${2:?Please provide the URL for a coreos initram image}
-CUSTOM=${3:?Please provide the name for writing a customized initram image}
+USAGE="USAGE: $0 <config dir> <vmlinuz-url> <initram-url> <custom-initram-name>"
+CONFIG_DIR=${1:?Please specify path to configuration directory: $USAGE}
+VMLINUZ_URL=${2:?Please provide the URL for a coreos vmlinuz image: $USAGE}
+INITRAM_URL=${3:?Please provide the URL for a coreos initram image: $USAGE}
+CUSTOM=${4:?Please provide the name for a customized initram image: $USAGE}
 
 SCRIPTDIR=$( dirname "${BASH_SOURCE[0]}" )
 
 # Convert relative path to an absolute path.
 SCRIPTDIR=$( readlink -f $SCRIPTDIR )
 CUSTOM=$( readlink -f $CUSTOM )
+CONFIG_DIR=$( readlink -f $CONFIG_DIR )
 IMAGEDIR=$( dirname $CUSTOM )
 
 mkdir -p $IMAGEDIR
@@ -38,7 +41,7 @@ pushd $IMAGEDIR
   unsquashfs -no-xattrs initrd-contents/usr.squashfs
 
   # Copy resources to the "/usr/share/oem" directory.
-  cp -a ${SCRIPTDIR}/resources/* squashfs-root/share/oem/
+  cp -a ${CONFIG_DIR}/resources/* squashfs-root/share/oem/
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
