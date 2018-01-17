@@ -60,10 +60,11 @@ script:
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
 # TODO: add support for create_update_iso.sh. Possibly call from setup_stage1.sh
-- time docker run -it --privileged -v $PWD:/images epoxy-images-builder
-      bash -c "install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
+- time docker run --privileged -v $PWD:/images epoxy-images-builder
+      bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
-        && cp /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz /images/output/"
+        && cp /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz /images/output/ &> /images/stage3_mlxupdate.log" || (cat stage3_mlxupdate.log && false)
+- ls -l $TRAVIS_BUILD_DIR/output
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
 # after a merge with matching "on:" conditions.
