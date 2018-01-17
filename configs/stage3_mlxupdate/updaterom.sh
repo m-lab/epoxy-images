@@ -11,21 +11,35 @@
 set -x
 set -e
 
-romurl=
+baseurl=
 for field in $( cat /proc/cmdline ) ; do
   if [[ "epoxy.mrom" == "${field%%=*}" ]] ; then
-    romurl=${field##epoxy.mrom=}
+    baseurl=${field##epoxy.mrom=}
     break
   fi
 done
 
-if test -z "$romurl" ; then
-  echo "WARNING: no ROM URL found. Giving up."
+if test -z "$baseurl" ; then
+  echo "ERROR: no ROM URL found. Giving up."
   exit 1
 fi
 
-# TODO: discover the device type, and download the appropriate rom image from a
-# base URL.
+# Detect the device to identify the model name.
+# Note: Model names are derived from ipxe build targets, so should not change.
+# TODO: can this be simpler?
+if [[ -e /dev/mst/mt4099_pci_cr0 ]] ; then
+    # ConnectX3, model 4099/0x1003
+    MODEL=ConnectX-3
+elif [[ -e /dev/mst/mt4103_pci_cr0 ]] ; then
+    # ConnectX3-Pro, model 4103/0x1007
+    MODEL=ConnectX-3Pro
+else
+    echo 'ERROR: failed to identify the device model!'
+    exit 1
+fi
+
+# Construct the full ROM URL using the model and hostname.
+romurl=${baseurl}/${MODEL}/$( hostname ).mrom
 echo "Downloading ROM"
 wget -O epoxy.mrom "${romurl}"
 if ! test -f epoxy.mrom || ! test -s epoxy.mrom ; then
