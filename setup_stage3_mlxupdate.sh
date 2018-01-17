@@ -71,7 +71,7 @@ fi
 #     http://www.mellanox.com/downloads/MFT/mft-4.8.0-26-x86_64-deb.tgz
 if ! test -d $BOOTSTRAP/root/mft-4.4.0-44 ; then
     pushd $BUILDDIR
-        unpack mft-4.4.0-44 http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz
+        unpack_url mft-4.4.0-44 http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz
         cp -ar mft-4.4.0-44 $BOOTSTRAP/root
     popd
 fi
