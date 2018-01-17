@@ -6,18 +6,21 @@
 # configuration for the kernel command line, which allows standard network
 # scripts to setup the network at boot time.
 
-USAGE="$0 <hostname> <ipv4-address>/<mask> <ipv4-gateway> [<dns1>][, <dns2>]"
-HOSTNAME=${1:?Error: please specify the server FQDN: $USAGE}
-IPV4_ADDR=${2:?Error: please specify the server IPv4 address with mask: $USAGE}
-IPV4_GATEWAY=${3:?Error: please specify the server IPv4 gateway address: $USAGE}
-DNS1=${4:-8.8.8.8}
-DNS2=${5:-8.8.4.4}
+USAGE="$0 <image-dir> <rom-version> <hostname> <ipv4-address>/<mask> <ipv4-gateway> [<dns1>][, <dns2>]"
+IMAGE_DIR=${1:?Error: specify input directory with vmlinuz and initram: $USAGE}
+OUTPUT_DIR=${2:?Error: specify directory for output ISO: $USAGE}
+ROM_VERSION=${3:?Error: please specify the ROM version as "3.4.800": $USAGE}
+HOSTNAME=${4:?Error: please specify the server FQDN: $USAGE}
+IPV4_ADDR=${5:?Error: please specify the server IPv4 address with mask: $USAGE}
+IPV4_GATEWAY=${6:?Error: please specify the server IPv4 gateway address: $USAGE}
+DNS1=${7:-8.8.8.8}
+DNS2=${8:-8.8.4.4}
 
-if [[ ! -f $PWD/build/initramfs_stage3_mlxupdate.cpio.gz || \
-      ! -f $PWD/build/vmlinuz_stage3_mlxupdate ]] ; then
+if [[ ! -f ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz || \
+      ! -f ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate ]] ; then
     echo 'Error: vmlinuz and initramfs images not found!'
-    echo "Expected: $PWD/build/initramfs_stage3_mlxupdate.cpio.gz"
-    echo "Expected: $PWD/build/vmlinuz_stage3_mlxupdate"
+    echo "Expected: ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz"
+    echo "Expected: ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate"
     exit 1
 fi
 
@@ -40,14 +43,15 @@ ARGS+="epoxy.interface=eth0 "
 ARGS+="epoxy.ipv4=${IPV4_ADDR},${IPV4_GATEWAY},${DNS1},${DNS2} "
 
 # Add URL to the epoxy ROM image.
+# TODO: how to optionally change this between sandbox, staging, and oti?
 URL=https://storage.googleapis.com/epoxy-mlab-staging
-# TODO: Only encode the base URL. The download script should detect the device
-# model and construct the full path based on the system hostname.
-ARGS+="epoxy.mrom=$URL/mellanox-roms/3.4.800/ConnectX-3.mrom/${HOSTNAME}.mrom "
+# Note: Only encode the base URL. The download script detects the device
+# model and constructs the full path ROM based on the system hostname.
+ARGS+="epoxy.mrom=$URL/mellanox-roms/${ROM_VERSION} "
 
 
-SCRIPTDIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
-${SCRIPTDIR}/simpleiso -x "$ARGS" \
-    -i $PWD/build/initramfs_stage3_mlxupdate.cpio.gz \
-    $PWD/build/vmlinuz_stage3_mlxupdate \
-    $PWD/build/${HOSTNAME}_mlxupdate.iso
+SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
+${SOURCE_DIR}/simpleiso -x "$ARGS" \
+    -i ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz \
+    ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate \
+    ${OUTPUT_DIR}/${HOSTNAME}_mlxupdate.iso
