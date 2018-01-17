@@ -25,6 +25,10 @@ script:
 
 - time docker build -t epoxy-images-builder . &> build.log || (cat build.log && false)
 
+# Enable gsutil downloads from private GCS buckets, using the mlab-sandbox SA.
+- $TRAVIS_BUILD_DIR/travis/install_gcloud.sh
+- $TRAVIS_BUILD_DIR/travis/activate_service_account.sh SERVICE_ACCOUNT_mlab_sandbox
+
 - mkdir $TRAVIS_BUILD_DIR/output
 # Build stage2 vmlinuz image.
 # TODO: clean up args to setup_stage2.sh script.
@@ -46,7 +50,20 @@ script:
         http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe_image.cpio.gz
         /images/output/coreos_custom_pxe_image.cpio.gz &> /images/coreos.log" || (cat coreos.log && false)
 
-- $TRAVIS_BUILD_DIR/travis/install_gcloud.sh
+# Build stage3 mlxupdate image.
+#
+# Note: download the mellanox firmware tools from a faster private bucket.
+- gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz .
+
+# Note: build must be privilged to mount /proc & /sys during debootstrap build.
+#
+# Note: when /build location is internal to container fs, i/o is more efficient.
+#
+# TODO: add support for create_update_iso.sh. Possibly call from setup_stage1.sh
+- time docker run --privileged -v $PWD:/images epoxy-images-builder
+      bash -c "install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
+        && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
+        && cp /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz output/"
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
 # after a merge with matching "on:" conditions.
