@@ -34,21 +34,21 @@ script:
 # TODO: clean up args to setup_stage2.sh script.
 # TODO: use alternative to travis_wait to allow build with no output for longer
 #       than 10m.
-#- time docker run -v $PWD:/images epoxy-images-builder
-#      bash -c "/images/setup_stage2.sh
-#         /buildtmp
-#         /images/vendor
-#         /images/configs/stage2
-#         /images/output/stage2_initramfs.cpio.gz
-#         /images/output/stage2_vmlinuz &> /images/stage2.log" || (cat stage2.log && false)
+- time docker run -v $PWD:/images epoxy-images-builder
+      bash -c "/images/setup_stage2.sh
+         /buildtmp
+         /images/vendor
+         /images/configs/stage2
+         /images/output/stage2_initramfs.cpio.gz
+         /images/output/stage2_vmlinuz &> /images/stage2.log" || (cat stage2.log && false)
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-#- time docker run -v $PWD:/images -w /images epoxy-images-builder
-#      bash -c "umask 0022; /images/setup_stage3_coreos.sh /images/configs/stage3_coreos
-#        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe.vmlinuz
-#        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe_image.cpio.gz
-#        /images/output/coreos_custom_pxe_image.cpio.gz &> /images/coreos.log" || (cat coreos.log && false)
+- time docker run -v $PWD:/images -w /images epoxy-images-builder
+      bash -c "umask 0022; /images/setup_stage3_coreos.sh /images/configs/stage3_coreos
+        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe.vmlinuz
+        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe_image.cpio.gz
+        /images/output/coreos_custom_pxe_image.cpio.gz &> /images/coreos.log" || (cat coreos.log && false)
 
 # Build stage3 mlxupdate image.
 #
