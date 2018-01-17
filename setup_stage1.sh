@@ -191,6 +191,8 @@ function build_roms() {
         cp bin/${device} ${rom_output_dir}/${version}/${device%%.mrom}/${hostname}.mrom
       done
     popd
+    # Remove old files to prevent regenerating ROMs during multiple builds.
+    rm -f ${stage1}
   done
 }
 
