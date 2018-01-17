@@ -186,8 +186,8 @@ function build_roms() {
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.
-        mkdir -p ${rom_output_dir}/${device}/${version}
-        cp bin/${device} ${rom_output_dir}/${device}/${version}/${hostname}.mrom
+        mkdir -p ${rom_output_dir}/${version}/${device%%.mrom}/
+        cp bin/${device} ${rom_output_dir}/${version}/${device%%.mrom}/${hostname}.mrom
       done
     popd
   done
