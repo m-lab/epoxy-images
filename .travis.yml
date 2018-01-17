@@ -34,7 +34,7 @@ script:
 # TODO: clean up args to setup_stage2.sh script.
 # TODO: use alternative to travis_wait to allow build with no output for longer
 #       than 10m.
-- time docker run -v $PWD:/images epoxy-images-builder
+- time docker run -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
       bash -c "/images/setup_stage2.sh
          /buildtmp
          /images/vendor
@@ -44,7 +44,7 @@ script:
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-- time docker run -v $PWD:/images -w /images epoxy-images-builder
+- time docker run -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; /images/setup_stage3_coreos.sh /images/configs/stage3_coreos
         http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe.vmlinuz
         http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe_image.cpio.gz
@@ -52,15 +52,17 @@ script:
 
 # Build stage3 mlxupdate image.
 #
-# Note: download the mellanox firmware tools from a faster private bucket.
+# Note: download the mellanox firmware tools from cache in private bucket,
+#       since origin (http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz)
+#       is sloooow.
 - gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz $TRAVIS_BUILD_DIR/
 
-# Note: build must be privilged to mount /proc & /sys during debootstrap build.
+# Note: build must be privileged to mount /proc & /sys during debootstrap build.
 #
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
 # TODO: add support for create_update_iso.sh. Possibly call from setup_stage1.sh
-- time docker run --privileged -v $PWD:/images epoxy-images-builder
+- time docker run --privileged -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
         && install -m 0644 /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz /images/output/ &> /images/stage3_mlxupdate.log" || (cat stage3_mlxupdate.log && false)
@@ -71,6 +73,13 @@ script:
 deploy:
 # SANDBOX: before code review for development code in a specific branch.
 # TODO: upload all support resources for a generic epoxy coreos boot.
+#
+# Deployment to gs://epoxy-mlab-sandbox/coreos-generic/
+#  * stage2 kernel (with embedded initram image)
+#  * customized coreos initramfs and stock kernel
+#
+# Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate/
+#  * stage3 mlxupdate image and stock kernel
 - provider: script
   script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
@@ -88,6 +97,13 @@ deploy:
     condition: $TRAVIS_BRANCH == sandbox-*
 
 # STAGING: after code review and before QA testing.
+#
+# Deployment to gs://epoxy-mlab-staging/coreos-generic/
+#  * stage2 kernel (with embedded initram image)
+#  * customized coreos initramfs and stock kernel
+#
+# Deployment to gs://epoxy-mlab-staging/stage3_mlxupdate/
+#  * stage3 mlxupdate image and stock kernel
 - provider: script
   script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
