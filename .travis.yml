@@ -64,7 +64,6 @@ script:
       bash -c "install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
         && cp /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz /images/output/"
-- ls -l $TRAVIS_BUILD_DIR/output
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
 # after a merge with matching "on:" conditions.
@@ -77,6 +76,10 @@ deploy:
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
       gs://epoxy-mlab-sandbox/coreos-generic/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
+      $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      gs://epoxy-mlab-sandbox/stage3_mlxupdate/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
@@ -90,6 +93,10 @@ deploy:
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
       gs://epoxy-mlab-staging/coreos-generic/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
+      $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      gs://epoxy-mlab-sandbox/stage3_mlxupdate/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
