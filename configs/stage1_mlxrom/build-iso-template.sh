@@ -1,6 +1,12 @@
 #!/bin/bash
 #
+# build-iso-template.sh is a template bash script used by
+# setup_stage3_mlxupdate_isos.sh to build per-machine Mellanox stage1 ROMs and
+# stage3 mlxupdate ISO images, suitable for flashing the ROM during initial
+# machine setup.
+#
 # Note: this script should execute within the epoxy-image builer docker image.
+# Note: this script depends on the availability of the stage3_mlxupdate images.
 
 BUILD_DIR=${1:?Please specify a build directory}
 OUTPUT_DIR=${2:?Please provide an output directory}
