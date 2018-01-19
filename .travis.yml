@@ -63,12 +63,12 @@ script:
 #
 # Note: setup_stage3_mlxupdate_isos.sh must run immediately after
 # setup_stage3_mlxupdate.sh so that build artifacts are still present in /build.
-#
-# TODO: add support for create_update_iso.sh. Possibly call from setup_stage1.sh
 - time docker run --privileged -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
+        && echo 'Starting stage3_mlxupdate build'
         && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
           &> /images/stage3_mlxupdate.log
+        && echo 'Starting ROM & ISO build'
         && /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802
           &> /images/stage3_mlxupdate_iso.log" || (cat stage3_mlxupdate.log stage3_mlxupdate_iso.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
