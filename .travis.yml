@@ -72,9 +72,9 @@ script:
 
 
 # Note: the stage3_mlxupdate build must have already completed successfully.
-- time docker run -it -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
+- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022;
-        ./setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802"
+        /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802"
 #        # &> /images/stage3_mlxupdate_iso.log" || (cat stage3_mlxupdate_iso.log && false)
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
