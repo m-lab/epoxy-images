@@ -70,7 +70,7 @@ script:
           &> /images/stage3_mlxupdate.log
         && echo 'Starting ROM & ISO build'
         && /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802
-          &> /images/stage3_mlxupdate_iso.log" || (cat stage3_mlxupdate.log stage3_mlxupdate_iso.log && false)
+          &> /images/stage3_mlxupdate_iso.log" || (tail -40 stage3_mlxupdate.log stage3_mlxupdate_iso.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
