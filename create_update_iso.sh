@@ -47,7 +47,7 @@ ARGS+="epoxy.ipv4=${IPV4_ADDR},${IPV4_GATEWAY},${DNS1},${DNS2} "
 URL=https://storage.googleapis.com/epoxy-mlab-staging
 # Note: Only encode the base URL. The download script detects the device
 # model and constructs the full path ROM based on the system hostname.
-ARGS+="epoxy.mrom=$URL/mellanox-roms/${ROM_VERSION} "
+ARGS+="epoxy.mrom=$URL/stage1_mlxrom/${ROM_VERSION} "
 
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
