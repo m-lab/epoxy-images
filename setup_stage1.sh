@@ -241,8 +241,8 @@ build_roms \
     "${ROM_VERSION}" \
     "${DEBUG}" \
     "${CERTS}" \
-    ${BUILD_DIR}/mellanox-roms
+    ${BUILD_DIR}/stage1_mlxrom
 
 copy_roms_to_output \
-    ${BUILD_DIR}/mellanox-roms/ \
-    ${OUTPUT_DIR}/mellanox-roms
+    ${BUILD_DIR}/stage1_mlxrom/ \
+    ${OUTPUT_DIR}/stage1_mlxrom
