@@ -223,4 +223,5 @@ cp $CONFIG_DIR/updaterom.sh $BOOTSTRAP/usr/local/util
 pushd $BOOTSTRAP
     find . | cpio -H newc -o | gzip -c > ${OUTPUT_INITRAM}
 popd
-cp ${OUTPUT_KERNEL} ${OUTPUT_INITRAM} ${OUTPUT_DIR}
+# Copy file to output with all read permissions.
+install -m 0644 ${OUTPUT_KERNEL} ${OUTPUT_INITRAM} ${OUTPUT_DIR}
