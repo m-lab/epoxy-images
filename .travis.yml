@@ -66,7 +66,7 @@ script:
 - time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && echo 'Starting stage3_mlxupdate build'
-        && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
+        && /images/setup_stage3_mlxupdate.sh /build /images/output /images/configs/stage3_mlxupdate
           &> /images/stage3_mlxupdate.log
         && echo 'Starting ROM & ISO build'
         && /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802
@@ -79,27 +79,34 @@ deploy:
 # SANDBOX: before code review for development code in a specific branch.
 # TODO: upload all support resources for a generic epoxy coreos boot.
 #
-# Deployment to gs://epoxy-mlab-sandbox/coreos-generic/
+# Deployment to gs://epoxy-mlab-sandbox/stage3_coreos/
 #  * stage2 kernel (with embedded initram image)
 #  * customized coreos initramfs and stock kernel
 #
-# Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate_iso/
-#  * stage3 mlxupdate ISOs
+# Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate/
+#  * stage3 mlxupdate images
 #
-# Deployment to gs://epoxy-mlab-sandbox/mellanox-roms/
+# Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate_iso/
+#  * stage3 mlxupdate bootable ISOs for first-time setup.
+#
+# Deployment to gs://epoxy-mlab-sandbox/stage1_mlxrom/
 #  * stage1 mellanox ROMs
 - provider: script
   script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
-      gs://epoxy-mlab-sandbox/coreos-generic/
+      gs://epoxy-mlab-sandbox/stage3_coreos/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
+      $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      gs://epoxy-mlab-sandbox/stage3_mlxupdate/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/*.iso
       gs://epoxy-mlab-sandbox/stage3_mlxupdate_iso/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
-      $TRAVIS_BUILD_DIR/output/mellanox-roms
-      gs://epoxy-mlab-sandbox/
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
+      gs://epoxy-mlab-sandbox/stage1_mlxrom/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
@@ -108,27 +115,34 @@ deploy:
 
 # STAGING: after code review and before QA testing.
 #
-# Deployment to gs://epoxy-mlab-staging/coreos-generic/
+# Deployment to gs://epoxy-mlab-staging/stage3_coreos/
 #  * stage2 kernel (with embedded initram image)
 #  * customized coreos initramfs and stock kernel
+#
+# Deployment to gs://epoxy-mlab-staging/stage3_mlxupdate/
+#  * stage3 mlxupdate images
 #
 # Deployment to gs://epoxy-mlab-staging/stage3_mlxupdate_iso/
 #  * stage3 mlxupdate ISOs
 #
-# Deployment to gs://epoxy-mlab-staging/mellanox-roms/
+# Deployment to gs://epoxy-mlab-staging/stage1_mlxrom/
 #  * stage1 mellanox ROMs
 - provider: script
   script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
-      gs://epoxy-mlab-staging/coreos-generic/
+      gs://epoxy-mlab-staging/stage3_coreos/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
+      $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      gs://epoxy-mlab-staging/stage3_mlxupdate/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/*.iso
       gs://epoxy-mlab-staging/stage3_mlxupdate_iso/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
-      $TRAVIS_BUILD_DIR/output/mellanox-roms
-      gs://epoxy-mlab-staging/
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
+      gs://epoxy-mlab-staging/stage1_mlxrom/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
