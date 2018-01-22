@@ -61,8 +61,9 @@ script:
 #
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
-# Note: setup_stage3_mlxupdate_isos.sh must run immediately after
-# setup_stage3_mlxupdate.sh so that build artifacts are still present in /build.
+# Note: setup_stage3_mlxupdate_isos.sh depends on build artifacts from
+# setup_stage3_mlxupdate.sh in /build. If these are not present,
+# setup_stage3_mlxupdate_isos.sh will fail to generate ISOs.
 - time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && echo 'Starting stage3_mlxupdate build'
@@ -92,7 +93,8 @@ deploy:
 # Deployment to gs://epoxy-mlab-sandbox/stage1_mlxrom/
 #  * stage1 mellanox ROMs
 - provider: script
-  script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+  script:
+      $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
@@ -128,7 +130,8 @@ deploy:
 # Deployment to gs://epoxy-mlab-staging/stage1_mlxrom/
 #  * stage1 mellanox ROMs
 - provider: script
-  script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+  script:
+      $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
