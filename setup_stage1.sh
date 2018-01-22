@@ -8,14 +8,15 @@
 set -x
 set -e
 
-SCRIPTDIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
+SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
-USAGE="$0 <builddir> <mlx-rom-config> <hostname-pattern> <rom-version> <embed-cert1,embed-cert2>"
+USAGE="$0 <builddir> <output dir> <mlxrom-config> <hostname-pattern> <rom-version> <embed-cert1,embed-cert2>"
 BUILD_DIR=${1:?Please specify a build directory: $USAGE}
-CONFIG_DIR=${2:?Please specify a configuration directory: $USAGE}
-HOSTNAMES=${3:?Please specify a hostname pattern: $USAGE}
-VERSION=${4:?Please specify the ROM version as "3.4.800": $USAGE}
-CERTS=${5:?Please specify trusted certs to embed: $USAGE}
+OUTPUT_DIR=${2:?Please specify an output directory: $USAGE}
+CONFIG_DIR=${3:?Please specify a configuration directory: $USAGE}
+HOSTNAMES=${4:?Please specify a hostname pattern: $USAGE}
+ROM_VERSION=${5:?Please specify the ROM version as "3.4.800": $USAGE}
+CERTS=${6:?Please specify trusted certs to embed in ROM: $USAGE}
 
 # unpack checks whether the given directory exists and if it does not unpacks
 # the given tar archive (which should create the directory).
@@ -186,12 +187,26 @@ function build_roms() {
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.
-        mkdir -p ${rom_output_dir}/${device}/${version}
-        cp bin/${device} ${rom_output_dir}/${device}/${version}/${hostname}.mrom
+        mkdir -p ${rom_output_dir}/${version}/${device%%.mrom}/
+        cp bin/${device} ${rom_output_dir}/${version}/${device%%.mrom}/${hostname}.mrom
       done
     popd
+    # Remove old files to prevent regenerating ROMs during multiple builds.
+    rm -f ${stage1}
   done
 }
+
+
+function copy_roms_to_output() {
+  local build_dir=$1
+  local output_dir=$2
+
+  # Copy files to output.
+  rsync -ar "${build_dir}" "${output_dir}"
+  # Assure that the output files are readable.
+  chmod -R go+r "${output_dir}"
+}
+
 
 # Extra debug symbols.
 #
@@ -211,7 +226,7 @@ DEBUG=
 prepare_flexboot_source \
     ${BUILD_DIR} \
     ${CONFIG_DIR} \
-    $SCRIPTDIR/vendor/flexboot-20160705.tar.gz \
+    ${SOURCE_DIR}/vendor/flexboot-20160705.tar.gz \
     flexboot
 
 generate_stage1_ipxe_scripts \
@@ -223,7 +238,11 @@ generate_stage1_ipxe_scripts \
 build_roms \
     ${BUILD_DIR}/flexboot/src \
     ${BUILD_DIR}/stage1_scripts \
-    "${VERSION}" \
+    "${ROM_VERSION}" \
     "${DEBUG}" \
     "${CERTS}" \
-    ${BUILD_DIR}/mellanox-roms
+    ${BUILD_DIR}/stage1_mlxrom
+
+copy_roms_to_output \
+    ${BUILD_DIR}/stage1_mlxrom/ \
+    ${OUTPUT_DIR}/stage1_mlxrom

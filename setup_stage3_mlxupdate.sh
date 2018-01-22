@@ -11,14 +11,19 @@ set -x
 set -e
 set -u
 
-BUILDDIR=${1:?Name of build directory}
-BUILDDIR=$( realpath $BUILDDIR )
+BUILD_DIR=${1:?Name of build directory}
+BUILD_DIR=$( realpath $BUILD_DIR )
 
-CONFIGDIR=${2:?Name of directory containing configuration files}
-CONFIGDIR=$( realpath $CONFIGDIR )
+OUTPUT_DIR=${2:?Name of directory to copy output files}
+OUTPUT_DIR=$( realpath $OUTPUT_DIR )
 
-CONFIG_NAME=$( basename $CONFIGDIR )
-BOOTSTRAP=$BUILDDIR/initramfs_${CONFIG_NAME}
+CONFIG_DIR=${3:?Name of directory containing configuration files}
+CONFIG_DIR=$( realpath $CONFIG_DIR )
+
+CONFIG_NAME=$( basename $CONFIG_DIR )
+BOOTSTRAP=${BUILD_DIR}/initramfs_${CONFIG_NAME}
+OUTPUT_KERNEL=${BUILD_DIR}/vmlinuz_${CONFIG_NAME}
+OUTPUT_INITRAM=${BOOTSTRAP}.cpio.gz
 
 ##############################################################################
 # Functions
@@ -70,7 +75,7 @@ fi
 # smaller and includes pre-built deb files. For example:
 #     http://www.mellanox.com/downloads/MFT/mft-4.8.0-26-x86_64-deb.tgz
 if ! test -d $BOOTSTRAP/root/mft-4.4.0-44 ; then
-    pushd $BUILDDIR
+    pushd $BUILD_DIR
         unpack_url mft-4.4.0-44 http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz
         cp -ar mft-4.4.0-44 $BOOTSTRAP/root
     popd
@@ -84,7 +89,7 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 mount_proc_and_sys $BOOTSTRAP
 
     # Extra packages needed for correct operation.
-    PACKAGES=`cat ${CONFIGDIR}/extra.packages ${CONFIGDIR}/build.packages`
+    PACKAGES=`cat ${CONFIG_DIR}/extra.packages ${CONFIG_DIR}/build.packages`
 
     # Add extra apt sources to install latest kernel image and headers.
     # TODO: only append the source once.
@@ -140,8 +145,7 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get clean -y
 
     # Copy kernel image to output directory before removing it.
-    cp $BOOTSTRAP/boot/vmlinuz-${KERNEL_VERSION} \
-        ${BUILDDIR}/vmlinuz_${CONFIG_NAME}
+    cp $BOOTSTRAP/boot/vmlinuz-${KERNEL_VERSION} ${OUTPUT_KERNEL}
 
     # Backup the kernel modules with the dkms module.
     cp -ar $BOOTSTRAP/lib/modules/${KERNEL_VERSION} \
@@ -165,11 +169,11 @@ trap '' EXIT
 ################################################################################
 # Kernel panics unless /init is defined. Use systemd for init.
 ln --force --symbolic sbin/init $BOOTSTRAP/init
-cp $CONFIGDIR/fstab $BOOTSTRAP/etc/fstab
+cp $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
 # Enable simple rc.local script for post-setup processing.
 # rc.local.service runs after networking.service
-cp $CONFIGDIR/rc.local $BOOTSTRAP/etc/rc.local
+cp $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
 chroot $BOOTSTRAP systemctl enable rc.local.service
 
 ################################################################################
@@ -178,7 +182,7 @@ chroot $BOOTSTRAP systemctl enable rc.local.service
 # Enable static resolv.conf
 # TODO: use systemd for network configuration entirely.
 rm -f $BOOTSTRAP/etc/resolv.conf
-cp $CONFIGDIR/resolv.conf $BOOTSTRAP/etc/resolv.conf
+cp $CONFIG_DIR/resolv.conf $BOOTSTRAP/etc/resolv.conf
 # If permissions are incorrect, apt-get will fail to read contents.
 chmod 644 $BOOTSTRAP/etc/resolv.conf
 
@@ -202,14 +206,14 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
 # echo "Adding SSH authorized keys"
 # mkdir -p $BOOTSTRAP/root/.ssh
-# cp $CONFIGDIR/authorized_keys  $BOOTSTRAP/root/.ssh/authorized_keys
+# cp $CONFIG_DIR/authorized_keys  $BOOTSTRAP/root/.ssh/authorized_keys
 # chown root:root $BOOTSTRAP/root/.ssh/authorized_keys
 # chmod 700 $BOOTSTRAP/root/
 
 
 mkdir -p $BOOTSTRAP/usr/local/util
-cp $CONFIGDIR/flashrom.sh $BOOTSTRAP/usr/local/util
-cp $CONFIGDIR/updaterom.sh $BOOTSTRAP/usr/local/util
+cp $CONFIG_DIR/flashrom.sh $BOOTSTRAP/usr/local/util
+cp $CONFIG_DIR/updaterom.sh $BOOTSTRAP/usr/local/util
 ################################################################################
 # TODO:
 ################################################################################
@@ -217,5 +221,7 @@ cp $CONFIGDIR/updaterom.sh $BOOTSTRAP/usr/local/util
 
 # Build the initramfs from the bootstrap filesystem.
 pushd $BOOTSTRAP
-    find . | cpio -H newc -o | gzip -c > ${BOOTSTRAP}.cpio.gz
+    find . | cpio -H newc -o | gzip -c > ${OUTPUT_INITRAM}
 popd
+# Copy file to output with all read permissions.
+install -m 0644 ${OUTPUT_KERNEL} ${OUTPUT_INITRAM} ${OUTPUT_DIR}

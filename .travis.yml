@@ -61,11 +61,17 @@ script:
 #
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
-# TODO: add support for create_update_iso.sh. Possibly call from setup_stage1.sh
-- time docker run --privileged -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
+# Note: setup_stage3_mlxupdate_isos.sh depends on build artifacts from
+# setup_stage3_mlxupdate.sh in /build. If these are not present,
+# setup_stage3_mlxupdate_isos.sh will fail to generate ISOs.
+- time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
-        && /images/setup_stage3_mlxupdate.sh /build /images/configs/stage3_mlxupdate
-        && install -m 0644 /build/vmlinuz_stage3_mlxupdate /build/initramfs_stage3_mlxupdate.cpio.gz /images/output/ &> /images/stage3_mlxupdate.log" || (cat stage3_mlxupdate.log && false)
+        && echo 'Starting stage3_mlxupdate build'
+        && /images/setup_stage3_mlxupdate.sh /build /images/output /images/configs/stage3_mlxupdate
+          &> /images/stage3_mlxupdate.log
+        && echo 'Starting ROM & ISO build'
+        && /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.802
+          &> /images/stage3_mlxupdate_iso.log" || (tail -40 stage3_mlxupdate.log && tail -40 stage3_mlxupdate_iso.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
@@ -74,22 +80,35 @@ deploy:
 # SANDBOX: before code review for development code in a specific branch.
 # TODO: upload all support resources for a generic epoxy coreos boot.
 #
-# Deployment to gs://epoxy-mlab-sandbox/coreos-generic/
+# Deployment to gs://epoxy-mlab-sandbox/stage3_coreos/
 #  * stage2 kernel (with embedded initram image)
 #  * customized coreos initramfs and stock kernel
 #
 # Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate/
-#  * stage3 mlxupdate image and stock kernel
+#  * stage3 mlxupdate images
+#
+# Deployment to gs://epoxy-mlab-sandbox/stage3_mlxupdate_iso/
+#  * stage3 mlxupdate bootable ISOs for first-time setup.
+#
+# Deployment to gs://epoxy-mlab-sandbox/stage1_mlxrom/
+#  * stage1 mellanox ROMs
 - provider: script
-  script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+  script:
+      $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
-      gs://epoxy-mlab-sandbox/coreos-generic/
+      gs://epoxy-mlab-sandbox/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
       $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
       gs://epoxy-mlab-sandbox/stage3_mlxupdate/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/*.iso
+      gs://epoxy-mlab-sandbox/stage3_mlxupdate_iso/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
+      gs://epoxy-mlab-sandbox/stage1_mlxrom/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
@@ -98,22 +117,35 @@ deploy:
 
 # STAGING: after code review and before QA testing.
 #
-# Deployment to gs://epoxy-mlab-staging/coreos-generic/
+# Deployment to gs://epoxy-mlab-staging/stage3_coreos/
 #  * stage2 kernel (with embedded initram image)
 #  * customized coreos initramfs and stock kernel
 #
 # Deployment to gs://epoxy-mlab-staging/stage3_mlxupdate/
-#  * stage3 mlxupdate image and stock kernel
+#  * stage3 mlxupdate images
+#
+# Deployment to gs://epoxy-mlab-staging/stage3_mlxupdate_iso/
+#  * stage3 mlxupdate ISOs
+#
+# Deployment to gs://epoxy-mlab-staging/stage1_mlxrom/
+#  * stage1 mellanox ROMs
 - provider: script
-  script: $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+  script:
+      $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
-      gs://epoxy-mlab-staging/coreos-generic/
+      gs://epoxy-mlab-staging/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
       $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
-      gs://epoxy-mlab-sandbox/stage3_mlxupdate/
+      gs://epoxy-mlab-staging/stage3_mlxupdate/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/*.iso
+      gs://epoxy-mlab-staging/stage3_mlxupdate_iso/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
+      gs://epoxy-mlab-staging/stage1_mlxrom/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
