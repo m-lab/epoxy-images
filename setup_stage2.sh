@@ -190,9 +190,22 @@ function build_haveged() {
 }
 
 
-# TODO(soltesz): build epoxyclient.
-function build_epoxyclient() {
-  echo "TODO: build epoxyclient"
+# Builds the epoxy_client command line tool.
+function build_epoxy_client() {
+  local build=$1
+  local vendor=$2
+  local config=$3
+  echo "TODO: build epoxy_client"
+  pushd $build
+    export PATH=$PATH:/usr/lib/go-1.9/bin
+    export GOROOT=/usr/lib/go-1.9
+    export GOPATH=$build
+    # The -ldflags drop another 2.5MB from the binary size.
+    # -w 	Omit the DWARF symbol table.
+    # -s 	Omit the symbol table and debug information.
+    CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/epoxy/cmd/epoxy_client
+    cp $build/bin/epoxy_client $build/local/bin/
+  popd
 }
 
 
@@ -266,8 +279,8 @@ function setup_initramfs() {
     cp $build/local/upx/rngd          sbin
     cp $build/local/upx/haveged       sbin
 
-    # TODO(soltesz): install epoxyclient
-    # cp $build/local/upx/epoxyclient   bin
+    # Install epoxy_client
+    cp $build/local/upx/epoxy_client   bin
 
     ##
     # Install libraries.
@@ -420,14 +433,15 @@ function main() {
   build_kexec kexec-tools-2.0.13 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
   build_rngd rng-tools-5 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
   build_haveged haveged-1.9.1 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_epoxyclient $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  build_epoxy_client $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
 
   compress_binaries $BUILD_DIR/local \
       bin/busybox \
       bin/dropbearmulti \
       sbin/kexec \
       sbin/haveged \
-      sbin/rngd
+      sbin/rngd \
+      bin/epoxy_client
 
   setup_initramfs $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR
   write_initramfs $INITRAMFS_DIR $INITRAM_NAME

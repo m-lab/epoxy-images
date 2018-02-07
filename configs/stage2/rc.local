@@ -78,7 +78,8 @@ echo "Starting dropbear sshd..."
 dropbear -g
 
 # TODO(soltesz): Publish ssh key.
+# Publish ssh host key before running epoxy_client:
 #    --public_ssh_host_key=/etc/dropbear/dropbear_rsa_host_key.pub
 
-echo "TODO: Downloading next stage from ePoxy"
-# epoxyclient --nextstage
+echo "Downloading next stage from ePoxy"
+epoxy_client --action epoxy.stage2
