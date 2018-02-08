@@ -30,6 +30,7 @@ script:
 - $TRAVIS_BUILD_DIR/travis/activate_service_account.sh SERVICE_ACCOUNT_mlab_sandbox
 
 - mkdir $TRAVIS_BUILD_DIR/output
+
 # Build stage2 vmlinuz image.
 # TODO: clean up args to setup_stage2.sh script.
 # TODO: use alternative to travis_wait to allow build with no output for longer
