@@ -35,7 +35,7 @@ script:
 # TODO: use alternative to travis_wait to allow build with no output for longer
 #       than 10m.
 - time docker run -t -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
-      bash -c "/images/setup_stage2.sh
+      bash -c "set -e; set -o pipefail; /images/setup_stage2.sh
          /buildtmp
          /images/vendor
          /images/configs/stage2
