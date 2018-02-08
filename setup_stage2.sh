@@ -3,9 +3,6 @@
 # Builds a stage2 ePoxy image, including all binary dependencies for a minimal
 # initramfs and stand-alone kernel.
 
-# Report all commands.
-set -x
-
 # Exit on any error.
 set -e
 
@@ -16,6 +13,10 @@ CONFIG_DIR=${3:?Error: Please specify path to configuration directory}
 INITRAM_NAME=${4:?Error: Please specify path of initramfs output file}
 KERNEL_NAME=${5:?Error: Please specify path to vmlinuz output file}
 LOGFILE=${6:?Error: Please specify a path to write build log output}
+
+# Report all commands to log file (set -x writes to stderr).
+exec 2> $LOGFILE
+set -x
 
 
 # Get canonical paths for each argument.
@@ -423,6 +424,8 @@ function build_kernel() {
   popd
 }
 
+
+# Echoes all parameters to stdout, prefixed with the current timestamp.
 function report() {
   echo `date --iso-8601=seconds` $@
 }
