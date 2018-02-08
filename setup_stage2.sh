@@ -15,6 +15,7 @@ VENDOR_DIR=${2:?Error: Please specify path to vendor package directory}
 CONFIG_DIR=${3:?Error: Please specify path to configuration directory}
 INITRAM_NAME=${4:?Error: Please specify path of initramfs output file}
 KERNEL_NAME=${5:?Error: Please specify path to vmlinuz output file}
+LOGFILE=${6:?Error: Please specify a path to write build log output}
 
 
 # Get canonical paths for each argument.
@@ -422,31 +423,38 @@ function build_kernel() {
   popd
 }
 
+function report() {
+  echo `date --iso-8601=seconds` $@
+}
 
 function main() {
 
   # Make build directory if it does not already exist.
   mkdir -p $BUILD_DIR
 
-  build_busybox busybox-1.25.0 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_dropbear dropbear-2016.74 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_kexec kexec-tools-2.0.13 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_rngd rng-tools-5 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_haveged haveged-1.9.1 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
-  build_epoxy_client $BUILD_DIR $VENDOR_DIR $CONFIG_DIR
+  report "Building initramfs dependencies"
+  build_busybox busybox-1.25.0 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
+  build_dropbear dropbear-2016.74 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
+  build_kexec kexec-tools-2.0.13 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
+  build_rngd rng-tools-5 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
+  build_haveged haveged-1.9.1 $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
+  build_epoxy_client $BUILD_DIR $VENDOR_DIR $CONFIG_DIR &>> $LOGFILE
 
+  report "Compressing binaries before building initramfs"
   compress_binaries $BUILD_DIR/local \
       bin/busybox \
       bin/dropbearmulti \
       sbin/kexec \
       sbin/haveged \
       sbin/rngd \
-      bin/epoxy_client
+      bin/epoxy_client &>> $LOGFILE
 
-  setup_initramfs $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR
-  write_initramfs $INITRAMFS_DIR $INITRAM_NAME
+  report "Building stage2 initramfs"
+  setup_initramfs $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR &>> $LOGFILE
+  write_initramfs $INITRAMFS_DIR $INITRAM_NAME &>> $LOGFILE
 
-  build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME
+  report "Building stage2 kernel"
+  build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME &>> $LOGFILE
 }
 
 main
