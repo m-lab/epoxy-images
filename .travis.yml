@@ -34,13 +34,13 @@ script:
 # TODO: clean up args to setup_stage2.sh script.
 # TODO: use alternative to travis_wait to allow build with no output for longer
 #       than 10m.
-- time docker run -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
+- time docker run -t -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
       bash -c "/images/setup_stage2.sh
          /buildtmp
          /images/vendor
          /images/configs/stage2
          /images/output/stage2_initramfs.cpio.gz
-         /images/output/stage2_vmlinuz &> /images/stage2.log" || (cat stage2.log && false)
+         /images/output/stage2_vmlinuz | tee /images/stage2.log" || (cat stage2.log && false)
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
