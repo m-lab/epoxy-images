@@ -259,7 +259,7 @@ function setup_initramfs() {
     # Create top level directories.
     for dir in bin sbin usr/bin usr/sbin proc sys dev/pts \
         etc/ssl etc/dropbear lib/${ARCH}-linux-gnu lib64 \
-        var/run var/log root/.ssh newroot ; do
+        var/run var/log root/.ssh newroot tmp ; do
       mkdir -p $dir
     done
 
