@@ -9,7 +9,7 @@ An example command that will be integrated into the travis build.
     $PWD/configs/stage1_mlxrom \
     ".*lga0t.*" \
     3.4.800 \
-    "$PWD/configs/stage1_mlxrom/giag2new.pem"
+    "$PWD/configs/stage1_mlxrom/gtsgiag3.pem"
 ```
 
 Certificates
@@ -25,7 +25,7 @@ Since ePoxy needs to interact with only two Google services (GAE for the server,
 and GCS to download images), at most we need to embed two trusted CA certs.
 
 As a first iteration -- not the final solution -- we are embedding one Issuing
-CA for the "Google Internet Authority G2" https://pki.google.com/GIAG2.crt used
+CA for the "Google Internet Authority G3" https://pki.goog/ used
 to sign addresses under:
 
  - `*.appspot.com`
@@ -35,7 +35,23 @@ To inspect these certificates, download them and use `openssl` to make them
 human readable.
 
 ```
-openssl x509 -in ./giag2.pem -text -noout
+openssl x509 -in ./gtsgiag3.pem -text -noout
+```
+
+Or directly from GCS and AppEngine servers:
+```
+echo | openssl s_client \
+    -servername storage.googleapis.com \
+    -connect storage.googleapis.com:443 2>/dev/null | openssl x509 -text
+
+echo | openssl s_client \
+    -servername boot-api-dot-mlab-staging.appspot.com \
+    -connect boot-api-dot-mlab-staging.appspot.com:443 2>/dev/null | openssl x509 -text
+```
+
+Both certificates report:
+```
+CA Issuers - URI:http://pki.goog/gsr2/GTSGIAG3.crt
 ```
 
 This is a short-term solution suitable or testing but unsuitable for wider
