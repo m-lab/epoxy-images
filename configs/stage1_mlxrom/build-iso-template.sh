@@ -15,7 +15,7 @@ ROM_VERSION=${4:?Please provide the ROM version as "3.4.800"}
 
 ${SOURCE_DIR}/setup_stage1.sh \
     "${BUILD_DIR}" "${OUTPUT_DIR}" ${SOURCE_DIR}/configs/stage1_mlxrom \
-    "{{hostname}}" "${ROM_VERSION}" "${SOURCE_DIR}/configs/stage1_mlxrom/giag2.pem"
+    "{{hostname}}" "${ROM_VERSION}" "${SOURCE_DIR}/configs/stage1_mlxrom/gtsgiag3.pem"
 
 if [[ {{netmask}} != "255.255.255.192" ]] ; then
   echo 'Error: Sorry, unsupported netmask: {{netmask}}'
