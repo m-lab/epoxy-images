@@ -220,7 +220,6 @@ cp $CONFIG_DIR/updaterom.sh $BOOTSTRAP/usr/local/util
 ################################################################################
 # Add epoxy client to initramfs
 ################################################################################
-# Make updaterom run automatically after start up.
 install -D -m 755 $EPOXY_CLIENT $BOOTSTRAP/usr/bin/epoxy_client
 
 # Build the initramfs from the bootstrap filesystem.
