@@ -43,6 +43,9 @@ echo "Configuring network..."
 setup_network
 
 
-# TODO(soltesz): enable automatic rom update.
-echo "WARNING: the ROM update is not yet complete."
-echo "WARNING: to complete update, run: /usr/local/util/updaterom.sh"
+# Note: the stage3 action should be configured in the epoxy server. The nextboot
+# config returned should probably run /usr/local/util/updaterom.sh
+/usr/bin/epoxy_client -action epoxy.stage3
+
+# TODO: automate reboot on success.
+echo "WARNING: if the update was successful, reboot machine."
