@@ -12,7 +12,8 @@ VENDOR_DIR=${2:?Error: Please specify path to vendor package directory}
 CONFIG_DIR=${3:?Error: Please specify path to configuration directory}
 INITRAM_NAME=${4:?Error: Please specify path of initramfs output file}
 KERNEL_NAME=${5:?Error: Please specify path to vmlinuz output file}
-LOGFILE=${6:?Error: Please specify a path to write build log output}
+EPOXY_CLIENT=${6:?Error: Please specify path of epoxy_client output file}
+LOGFILE=${7:?Error: Please specify a path to write build log output}
 
 # Report all commands to log file (set -x writes to stderr).
 exec 2> $LOGFILE
@@ -458,6 +459,9 @@ function main() {
 
   report "Building stage2 kernel"
   build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME &>> $LOGFILE
+
+  report "Copying epoxy_client"
+  install -D -m 644 $BUILD_DIR/local/upx/epoxy_client $EPOXY_CLIENT
 }
 
 main

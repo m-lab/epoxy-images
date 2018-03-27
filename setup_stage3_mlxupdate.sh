@@ -20,6 +20,9 @@ OUTPUT_DIR=$( realpath $OUTPUT_DIR )
 CONFIG_DIR=${3:?Name of directory containing configuration files}
 CONFIG_DIR=$( realpath $CONFIG_DIR )
 
+EPOXY_CLIENT=${4:?Name of epoxy client binary to include in output initram}
+EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
+
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP=${BUILD_DIR}/initramfs_${CONFIG_NAME}
 OUTPUT_KERNEL=${BUILD_DIR}/vmlinuz_${CONFIG_NAME}
@@ -215,9 +218,9 @@ mkdir -p $BOOTSTRAP/usr/local/util
 cp $CONFIG_DIR/flashrom.sh $BOOTSTRAP/usr/local/util
 cp $CONFIG_DIR/updaterom.sh $BOOTSTRAP/usr/local/util
 ################################################################################
-# TODO:
+# Add epoxy client to initramfs
 ################################################################################
-# Make updaterom run automatically after start up.
+install -D -m 755 $EPOXY_CLIENT $BOOTSTRAP/usr/bin/epoxy_client
 
 # Build the initramfs from the bootstrap filesystem.
 pushd $BOOTSTRAP

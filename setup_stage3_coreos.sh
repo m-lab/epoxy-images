@@ -7,11 +7,12 @@
 
 set -e
 set -x
-USAGE="USAGE: $0 <config dir> <vmlinuz-url> <initram-url> <custom-initram-name>"
+USAGE="USAGE: $0 <config dir> <epoxy-client> <vmlinuz-url> <initram-url> <custom-initram-name>"
 CONFIG_DIR=${1:?Please specify path to configuration directory: $USAGE}
-VMLINUZ_URL=${2:?Please provide the URL for a coreos vmlinuz image: $USAGE}
-INITRAM_URL=${3:?Please provide the URL for a coreos initram image: $USAGE}
-CUSTOM=${4:?Please provide the name for a customized initram image: $USAGE}
+EPOXY_CLIENT=${2:?Please specify the path to the epoxy client binary: $USAGE}
+VMLINUZ_URL=${3:?Please provide the URL for a coreos vmlinuz image: $USAGE}
+INITRAM_URL=${4:?Please provide the URL for a coreos initram image: $USAGE}
+CUSTOM=${5:?Please provide the name for a customized initram image: $USAGE}
 
 SCRIPTDIR=$( dirname "${BASH_SOURCE[0]}" )
 
@@ -42,6 +43,9 @@ pushd $IMAGEDIR
 
   # Copy resources to the "/usr/share/oem" directory.
   cp -a ${CONFIG_DIR}/resources/* squashfs-root/share/oem/
+
+  # Copy epoxy client to squashfs bin.
+  cp -a ${EPOXY_CLIENT} squashfs-root/bin
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
