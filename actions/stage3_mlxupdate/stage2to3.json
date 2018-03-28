@@ -1,0 +1,36 @@
+{
+   "v1" : {
+      "env" : {
+         "PATH" : "/bin:/usr/bin:/usr/local/bin"
+      },
+      "files" : {
+         "vmlinuz" : {
+            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_mlxupdate/vmlinuz_stage3_mlxupdate"
+         },
+         "initram" : {
+            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_mlxupdate/initramfs_stage3_mlxupdate.cpio.gz"
+         }
+      },
+      "vars" : {
+         "kargs" : [
+            "epoxy.ip={{kargs `epoxy.ip`}}",
+            "epoxy.stage3={{kargs `epoxy.stage3`}}",
+            "epoxy.report={{kargs `epoxy.report`}}",
+            "epoxy.server={{kargs `epoxy.server`}}",
+            "epoxy.mrom=https://storage.googleapis.com/epoxy-mlab-staging/stage1_mlxrom/3.4.804"
+         ],
+         "cmdline" : "net.ifnames=0 coreos.autologin=tty1"
+      },
+      "commands" : [
+         "# Run kexec using the downloaded initram and vmlinuz files.",
+         [
+            "/sbin/kexec",
+            "--force",
+            "--command-line={{.vars.kargs}} {{.vars.cmdline}}",
+            "--initrd",
+            "{{.files.initram.name}}",
+            "{{.files.vmlinuz.name}}"
+         ]
+      ]
+   }
+}
