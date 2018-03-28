@@ -45,7 +45,7 @@ pushd $IMAGEDIR
   cp -a ${CONFIG_DIR}/resources/* squashfs-root/share/oem/
 
   # Copy epoxy client to squashfs bin.
-  cp -a ${EPOXY_CLIENT} squashfs-root/bin
+  install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
