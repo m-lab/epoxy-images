@@ -49,6 +49,10 @@ URL=https://storage.googleapis.com/epoxy-mlab-staging
 # model and constructs the full path ROM based on the system hostname.
 ARGS+="epoxy.mrom=$URL/stage1_mlxrom/${ROM_VERSION} "
 
+# Note: Add a epoxy.stage3 action so the mlxupdate can automatically run
+# updaterom.sh after boot.
+ARGS+="epoxy.stage3=$URL/stage3_mlxupdate/stage3post.json "
+
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 ${SOURCE_DIR}/simpleiso -x "$ARGS" \
