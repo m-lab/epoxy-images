@@ -6,15 +6,18 @@
 # configuration for the kernel command line, which allows standard network
 # scripts to setup the network at boot time.
 
-USAGE="$0 <image-dir> <rom-version> <hostname> <ipv4-address>/<mask> <ipv4-gateway> [<dns1>][, <dns2>]"
-IMAGE_DIR=${1:?Error: specify input directory with vmlinuz and initram: $USAGE}
-OUTPUT_DIR=${2:?Error: specify directory for output ISO: $USAGE}
-ROM_VERSION=${3:?Error: please specify the ROM version as "3.4.800": $USAGE}
-HOSTNAME=${4:?Error: please specify the server FQDN: $USAGE}
-IPV4_ADDR=${5:?Error: please specify the server IPv4 address with mask: $USAGE}
-IPV4_GATEWAY=${6:?Error: please specify the server IPv4 gateway address: $USAGE}
-DNS1=${7:-8.8.8.8}
-DNS2=${8:-8.8.4.4}
+set -x
+
+USAGE="$0 <project> <image-dir> <rom-version> <hostname> <ipv4-address>/<mask> <ipv4-gateway> [<dns1>][, <dns2>]"
+PROJECT=${1:?Please provide the GCP Project}
+IMAGE_DIR=${2:?Error: specify input directory with vmlinuz and initram: $USAGE}
+OUTPUT_DIR=${3:?Error: specify directory for output ISO: $USAGE}
+ROM_VERSION=${4:?Error: please specify the ROM version as "3.4.800": $USAGE}
+HOSTNAME=${5:?Error: please specify the server FQDN: $USAGE}
+IPV4_ADDR=${6:?Error: please specify the server IPv4 address with mask: $USAGE}
+IPV4_GATEWAY=${7:?Error: please specify the server IPv4 gateway address: $USAGE}
+DNS1=${8:-8.8.8.8}
+DNS2=${9:-8.8.4.4}
 
 if [[ ! -f ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz || \
       ! -f ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate ]] ; then
@@ -43,8 +46,7 @@ ARGS+="epoxy.interface=eth0 "
 ARGS+="epoxy.ipv4=${IPV4_ADDR},${IPV4_GATEWAY},${DNS1},${DNS2} "
 
 # Add URL to the epoxy ROM image.
-# TODO: how to optionally change this between sandbox, staging, and oti?
-URL=https://storage.googleapis.com/epoxy-mlab-staging
+URL=https://storage.googleapis.com/epoxy-${PROJECT}
 # Note: Only encode the base URL. The download script detects the device
 # model and constructs the full path ROM based on the system hostname.
 ARGS+="epoxy.mrom=$URL/stage1_mlxrom/${ROM_VERSION} "
