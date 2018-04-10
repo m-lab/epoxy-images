@@ -67,6 +67,9 @@ script:
 # Note: setup_stage3_mlxupdate_isos.sh depends on build artifacts from
 # setup_stage3_mlxupdate.sh in /build. If these are not present,
 # setup_stage3_mlxupdate_isos.sh will fail to generate ISOs.
+#
+# Note: reserve mlab4.lga0t for mlab-sandbox and mlab1-3.lga0t for mlab-staging.
+# TODO: larger sets of per-project images must be built outside of travis.
 - time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && echo 'Starting stage3_mlxupdate build'
@@ -75,8 +78,11 @@ script:
                 /images/output/epoxy_client
           &> /images/stage3_mlxupdate.log
         && echo 'Starting ROM & ISO build'
-        && /images/setup_stage3_mlxupdate_isos.sh /build /images/output '.*lga0t.*' 3.4.804
-          &> /images/stage3_mlxupdate_iso.log" || (tail -40 stage3_mlxupdate.log && tail -40 stage3_mlxupdate_iso.log && false)
+        && /images/setup_stage3_mlxupdate_isos.sh
+            mlab-sandbox /build /images/output 'mlab4.lga0t.*' 3.4.805 &> /images/stage3_mlxupdate_iso.log
+        && /images/setup_stage3_mlxupdate_isos.sh
+            mlab-staging /build /images/output 'mlab[1-3].lga0t.*' 3.4.805 &>> /images/stage3_mlxupdate_iso.log"
+        || (tail -40 stage3_mlxupdate.log && tail -40 stage3_mlxupdate_iso.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
