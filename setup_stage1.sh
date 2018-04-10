@@ -10,13 +10,14 @@ set -e
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
-USAGE="$0 <builddir> <output dir> <mlxrom-config> <hostname-pattern> <rom-version> <embed-cert1,embed-cert2>"
-BUILD_DIR=${1:?Please specify a build directory: $USAGE}
-OUTPUT_DIR=${2:?Please specify an output directory: $USAGE}
-CONFIG_DIR=${3:?Please specify a configuration directory: $USAGE}
-HOSTNAMES=${4:?Please specify a hostname pattern: $USAGE}
-ROM_VERSION=${5:?Please specify the ROM version as "3.4.800": $USAGE}
-CERTS=${6:?Please specify trusted certs to embed in ROM: $USAGE}
+USAGE="$0 <project> <builddir> <output dir> <mlxrom-config> <hostname-pattern> <rom-version> <embed-cert1,embed-cert2>"
+PROJECT=${1:?Please specify the GCP project to contact: $USAGE}
+BUILD_DIR=${2:?Please specify a build directory: $USAGE}
+OUTPUT_DIR=${3:?Please specify an output directory: $USAGE}
+CONFIG_DIR=${4:?Please specify a configuration directory: $USAGE}
+HOSTNAMES=${5:?Please specify a hostname pattern: $USAGE}
+ROM_VERSION=${6:?Please specify the ROM version as "3.4.800": $USAGE}
+CERTS=${7:?Please specify trusted certs to embed in ROM: $USAGE}
 
 # unpack checks whether the given directory exists and if it does not unpacks
 # the given tar archive (which should create the directory).
@@ -77,6 +78,7 @@ function generate_stage1_ipxe_scripts() {
       mkdir -p ${output_dir}
       ./mlabconfig.py --format=server-network-config \
           --select "${hostname_pattern}" \
+          --label "project=${PROJECT}" \
           --template_input "${config_dir}/stage1-template.ipxe" \
           --template_output "${output_dir}/stage1-{{hostname}}.ipxe"
     popd

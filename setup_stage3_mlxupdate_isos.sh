@@ -13,10 +13,11 @@ set -e
 set -x
 
 USAGE="$0 <builddir> <outputdir> <hostname-pattern> <version>"
-BUILD_DIR=${1:?Please specify a build directory: $USAGE}
-OUTPUT_DIR=${2:?Please provide an output directory}
-HOSTNAMES=${3:?Please specify a hostname pattern: $USAGE}
-ROM_VERSION=${4:?Please provide the ROM version as "3.4.800"}
+PROJECT=${1:?Please provide the GCP Project}
+BUILD_DIR=${2:?Please specify a build directory: $USAGE}
+OUTPUT_DIR=${3:?Please provide an output directory}
+HOSTNAMES=${4:?Please specify a hostname pattern: $USAGE}
+ROM_VERSION=${5:?Please provide the ROM version as "3.4.800"}
 
 # Use mlabconfig and the build-iso-template.sh to generate per-machine ROM and
 # ISO build scripts.
@@ -26,6 +27,7 @@ pushd ${BUILD_DIR}
     mkdir -p ${OUTPUT_DIR}/scripts
     ./mlabconfig.py --format=server-network-config \
         --select "${HOSTNAMES}" \
+        --label "project=${PROJECT}" \
         --template_input "${SOURCE_DIR}/configs/stage1_mlxrom/build-iso-template.sh" \
         --template_output "${OUTPUT_DIR}/scripts/build-iso-{{hostname}}.sh"
   popd

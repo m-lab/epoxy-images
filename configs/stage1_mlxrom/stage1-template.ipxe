@@ -1,8 +1,7 @@
 #!ipxe
 
 # Global settings.
-# TODO(soltesz): how to make this address configurable?
-set epoxyaddress boot-api-dot-mlab-staging.appspot.com
+set epoxyaddress boot-api-dot-{{project}}.appspot.com
 
 set menu_timeout_ms:int32 5000
 set fetch_timeout_ms 10000
