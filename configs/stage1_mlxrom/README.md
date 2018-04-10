@@ -5,6 +5,7 @@ An example command that will be integrated into the travis build.
 
 ```
 ./setup_stage1.sh \
+    mlab-sandbox \
     /build \
     $PWD/configs/stage1_mlxrom \
     ".*lga0t.*" \
@@ -45,8 +46,8 @@ echo | openssl s_client \
     -connect storage.googleapis.com:443 2>/dev/null | openssl x509 -text
 
 echo | openssl s_client \
-    -servername boot-api-dot-mlab-staging.appspot.com \
-    -connect boot-api-dot-mlab-staging.appspot.com:443 2>/dev/null | openssl x509 -text
+    -servername boot-api-dot-mlab-sandbox.appspot.com \
+    -connect boot-api-dot-mlab-sandbox.appspot.com:443 2>/dev/null | openssl x509 -text
 ```
 
 Both certificates report:
