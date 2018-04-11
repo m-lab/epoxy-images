@@ -45,6 +45,65 @@ coreos:
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
 
+    - name: "docker.service"
+      drop-ins:
+        - name: "10-data-root.conf"
+          content: |
+            [Service]
+            Environment=DOCKER_OPTS=--data-root=/cache/docker
+
+write_files:
+  - path: "/etc/systemd/system/cache-data.mount"
+    permissions: "0644"
+    owner: "root"
+    content: |
+        [Unit]
+        Description=Mount Experiment Data Volume
+        After=setup-after-boot.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-data
+        Where=/cache/data
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        WantedBy=multi-user.target
+
+  - path: "/etc/systemd/system/cache-core.mount"
+    permissions: "0644"
+    owner: "root"
+    content: |
+        [Unit]
+        Description=Mount Core Data Volume
+        After=setup-after-boot.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-core
+        Where=/cache/core
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        WantedBy=multi-user.target
+
+  - path: "/etc/systemd/system/cache-docker.mount"
+    permissions: "0644"
+    owner: "root"
+    content: |
+        [Unit]
+        Description=Mount Docker Data Volume
+        After=setup-after-boot.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-docker
+        Where=/cache/docker
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        WantedBy=multi-user.target
+
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvIKeMHcEO1xnTmEdMY6E9Y4pBdGBCDXZnuQC5ZPjNQr9IG3ytw0OxwyCObAzSr+WOymYv6Cwm4Ckz2jc/bWygzWJH+DMdldZe7HVQu4YxuegqahIkB0D1OzaZGNctBgTp9bmpWGxyek7U8ff7GTiFqhcms4Oer4rdd0gqUhmv3LnRWQqrIDblrBosHBED/zXgjbOj3beWCA3xHDCaui/gkbmp0J2jzCnlsc7eSI0d6Jro2UhbiS2ssxVQsLViLh5okJJeb2JyzbLbcpselUg9DSwSk0pFH/wHL0usjvBisF/fEP8eQ1svq6N6gncvPlgoJaSvtACmDvIFkU4baA2v pboothe@pboothe3.nyc.corp.google.com"
