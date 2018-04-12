@@ -45,6 +45,7 @@ coreos:
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
 
+    # TODO: try - https://coreos.com/os/docs/latest/mounting-storage.html#creating-and-mounting-a-btrfs-volume-file
     # Docker volume mount unit definition.
     - name: cache-docker.mount
       enable: true
