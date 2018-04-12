@@ -45,12 +45,35 @@ coreos:
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
 
+    # Docker volume mount unit definition.
+    - name: cache-docker.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Docker Data Volume
+        After=setup-after-boot.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-docker
+        Where=/cache/docker
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        WantedBy=multi-user.target
+
+    # Configs to move the Docker data volume.
     - name: "docker.service"
       drop-ins:
         - name: "10-data-root.conf"
           content: |
             [Service]
             Environment=DOCKER_OPTS=--data-root=/cache/docker
+
+            [Unit]
+            # The docker service depends on the /cache/docker volume.
+            Requires=cache-docker.mount
+            After=cache-docker.mount
 
 write_files:
   - path: "/etc/systemd/system/cache-data.mount"
@@ -87,22 +110,22 @@ write_files:
         [Install]
         WantedBy=multi-user.target
 
-  - path: "/etc/systemd/system/cache-docker.mount"
-    permissions: "0644"
-    owner: "root"
-    content: |
-        [Unit]
-        Description=Mount Docker Data Volume
-        After=setup-after-boot.service
-
-        [Mount]
-        What=/dev/disk/by-label/cache-docker
-        Where=/cache/docker
-        Type=ext4
-        Options=defaults
-
-        [Install]
-        WantedBy=multi-user.target
+#  - path: "/etc/systemd/system/cache-docker.mount"
+#    permissions: "0644"
+#    owner: "root"
+#    content: |
+#        [Unit]
+#        Description=Mount Docker Data Volume
+#        After=setup-after-boot.service
+#
+#        [Mount]
+#        What=/dev/disk/by-label/cache-docker
+#        Where=/cache/docker
+#        Type=ext4
+#        Options=defaults
+#
+#        [Install]
+#        WantedBy=multi-user.target
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:

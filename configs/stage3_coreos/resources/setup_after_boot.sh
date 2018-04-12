@@ -37,9 +37,9 @@ date
 /usr/sbin/mke2fs -t ext4 -F -L cache-docker /dev/sda3
 
 # Actually mount.
-systemctl start cache-data.mount
-systemctl start cache-core.mount
-systemctl start cache-docker.mount
+#systemctl enable cache-docker.mount
+systemctl enable cache-data.mount
+systemctl enable cache-core.mount
 
 # Report end format time.
 date
