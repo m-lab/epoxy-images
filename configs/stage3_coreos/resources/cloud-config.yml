@@ -75,7 +75,7 @@ coreos:
 
     - name: cache-docker.mount
       enable: true
-      contents: |
+      content: |
         [Unit]
         Description=Mount Docker Data Volume
         Before=docker.service
