@@ -44,7 +44,7 @@ coreos:
 
     - name: format-cache.service
       command: start
-      contents: |
+      content: |
         [Unit]
         Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
         RequiresMountsFor=/cache
@@ -137,7 +137,7 @@ coreos:
         # Both directives are required.
         # It is unclear why Requires= alone is not sufficient (but it isn't).
         Requires=network-online.target
-        After=systemd-networkd-wait-online.service
+        After=systemd-networkd-wait-online.service format-cache.service
 
         [Service]
         Type=oneshot
