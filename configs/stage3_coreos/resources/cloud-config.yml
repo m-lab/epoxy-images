@@ -29,12 +29,13 @@ coreos:
     - name: systemd-networkd.service
       command: restart
 
-    # Configs to move the Docker data volume.
+    # Move the Docker data volume and add requirements on /cache/docker volume.
     - name: "docker.service"
       drop-ins:
         - name: "10-data-root.conf"
           content: |
             [Service]
+            # docker.service uses DOCKER_OPTS for extra drop-in options.
             Environment=DOCKER_OPTS="--data-root=/cache/docker --exec-root=/cache/docker/exec"
 
             [Unit]
@@ -42,6 +43,7 @@ coreos:
             Requires=cache-docker.mount
             After=cache-docker.mount
 
+    # Format the /cache volumes using /dev/sda.
     - name: format-cache.service
       command: start
       content: |
@@ -74,6 +76,7 @@ coreos:
         ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-core /dev/sda2
         ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-docker /dev/sda3
 
+    # Mount /cache/docker.
     - name: cache-docker.mount
       enable: true
       content: |
@@ -92,6 +95,7 @@ coreos:
         [Install]
         RequiredBy=docker.service
 
+    # Mount /cache/data.
     - name: cache-data.mount
       enable: true
       content: |
@@ -110,6 +114,7 @@ coreos:
         [Install]
         RequiredBy=docker.service
 
+    # Mount /cache/core.
     - name: cache-core.mount
       enable: true
       content: |
