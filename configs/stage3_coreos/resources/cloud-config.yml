@@ -29,6 +29,104 @@ coreos:
     - name: systemd-networkd.service
       command: restart
 
+    # Configs to move the Docker data volume.
+    - name: "docker.service"
+      drop-ins:
+        - name: "10-data-root.conf"
+          content: |
+            [Service]
+            Environment=DOCKER_OPTS=--data-root=/cache/docker
+
+            [Unit]
+            # The docker service depends on the /cache/docker volume.
+            Requires=cache-docker.mount
+            After=cache-docker.mount
+
+    - name: format-cache.service
+      command: start
+      contents: |
+        [Unit]
+        Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
+        RequiresMountsFor=/cache
+        ConditionPathExists=!/cache/docker
+        [Service]
+        Type=oneshot
+        # Create cache directory in root filesystem.
+        ExecStart=/usr/bin/mkdir -p /cache
+
+        # Clear any remaining LVM configs from prior installations.
+        ExecStart=/usr/sbin/dmsetup remove_all --force
+
+        # For a 500GB disk, this is roughly:
+        #  * 250G for experiment data.
+        #  * 150G for core experiment data.
+        #  * 100G for docker image cache.
+        ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
+            mklabel gpt \
+            mkpart data ext4 0% 50% \
+            mkpart core ext4 50% 80% \
+            mkpart docker ext4 80% 100%
+
+        # Format and label each partition.
+        # Note: the labels could make the formatting conditional in the future.
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-data /dev/sda1
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-core /dev/sda2
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-docker /dev/sda3
+
+    - name: cache-docker.mount
+      enable: true
+      contents: |
+        [Unit]
+        Description=Mount Docker Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-docker
+        Where=/cache/docker
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
+    - name: cache-data.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Experiment Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-data
+        Where=/cache/data
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
+    - name: cache-core.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Core Experiment Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-core
+        Where=/cache/core
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
     # Add a new unit to run the post-boot script after the network is online.
     - name: setup-after-boot.service
       command: start
@@ -45,88 +143,6 @@ coreos:
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
 
-    # TODO: try - https://coreos.com/os/docs/latest/mounting-storage.html#creating-and-mounting-a-btrfs-volume-file
-    # Docker volume mount unit definition.
-    - name: cache-docker.mount
-      enable: true
-      content: |
-        [Unit]
-        Description=Mount Docker Data Volume
-        After=setup-after-boot.service
-
-        [Mount]
-        What=/dev/disk/by-label/cache-docker
-        Where=/cache/docker
-        Type=ext4
-        Options=defaults
-
-        [Install]
-        WantedBy=multi-user.target
-
-    # Configs to move the Docker data volume.
-    - name: "docker.service"
-      drop-ins:
-        - name: "10-data-root.conf"
-          content: |
-            [Service]
-            Environment=DOCKER_OPTS=--data-root=/cache/docker
-
-            [Unit]
-            # The docker service depends on the /cache/docker volume.
-            Requires=cache-docker.mount
-            After=cache-docker.mount
-
-write_files:
-  - path: "/etc/systemd/system/cache-data.mount"
-    permissions: "0644"
-    owner: "root"
-    content: |
-        [Unit]
-        Description=Mount Experiment Data Volume
-        After=setup-after-boot.service
-
-        [Mount]
-        What=/dev/disk/by-label/cache-data
-        Where=/cache/data
-        Type=ext4
-        Options=defaults
-
-        [Install]
-        WantedBy=multi-user.target
-
-  - path: "/etc/systemd/system/cache-core.mount"
-    permissions: "0644"
-    owner: "root"
-    content: |
-        [Unit]
-        Description=Mount Core Data Volume
-        After=setup-after-boot.service
-
-        [Mount]
-        What=/dev/disk/by-label/cache-core
-        Where=/cache/core
-        Type=ext4
-        Options=defaults
-
-        [Install]
-        WantedBy=multi-user.target
-
-#  - path: "/etc/systemd/system/cache-docker.mount"
-#    permissions: "0644"
-#    owner: "root"
-#    content: |
-#        [Unit]
-#        Description=Mount Docker Data Volume
-#        After=setup-after-boot.service
-#
-#        [Mount]
-#        What=/dev/disk/by-label/cache-docker
-#        Where=/cache/docker
-#        Type=ext4
-#        Options=defaults
-#
-#        [Install]
-#        WantedBy=multi-user.target
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
