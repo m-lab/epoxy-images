@@ -35,7 +35,7 @@ coreos:
         - name: "10-data-root.conf"
           content: |
             [Service]
-            Environment=DOCKER_OPTS=--data-root=/cache/docker
+            Environment=DOCKER_OPTS="--data-root=/cache/docker --exec-root=/cache/docker/exec"
 
             [Unit]
             # The docker service depends on the /cache/docker volume.
