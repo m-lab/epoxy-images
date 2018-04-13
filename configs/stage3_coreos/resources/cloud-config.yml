@@ -29,6 +29,110 @@ coreos:
     - name: systemd-networkd.service
       command: restart
 
+    # Move the Docker data volume and add requirements on /cache/docker volume.
+    - name: "docker.service"
+      drop-ins:
+        - name: "10-data-root.conf"
+          content: |
+            [Service]
+            # docker.service uses DOCKER_OPTS for extra drop-in options.
+            Environment=DOCKER_OPTS="--data-root=/cache/docker --exec-root=/cache/docker/exec"
+
+            [Unit]
+            # The docker service depends on the /cache/docker volume.
+            Requires=cache-docker.mount
+            After=cache-docker.mount
+
+    # Format the /cache volumes using /dev/sda.
+    - name: format-cache.service
+      command: start
+      content: |
+        [Unit]
+        Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
+        RequiresMountsFor=/cache
+        ConditionPathExists=!/cache/docker
+        [Service]
+        Type=oneshot
+        # Create cache directory in root filesystem.
+        ExecStart=/usr/bin/mkdir -p /cache
+
+        # Clear any remaining LVM configs from prior installations.
+        ExecStart=/usr/sbin/dmsetup remove_all --force
+
+        # For a 500GB disk, this is roughly:
+        #  * 250G for experiment data.
+        #  * 150G for core experiment data.
+        #  * 100G for docker image cache.
+        # Note: systemd translates double percent (%%) to a single percent.
+        ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
+            mklabel gpt \
+            mkpart data ext4 0%% 50%% \
+            mkpart core ext4 50%% 80%% \
+            mkpart docker ext4 80%% 100%%
+
+        # Format and label each partition.
+        # Note: the labels could make the formatting conditional in the future.
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-data /dev/sda1
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-core /dev/sda2
+        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-docker /dev/sda3
+
+    # Mount /cache/docker.
+    - name: cache-docker.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Docker Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-docker
+        Where=/cache/docker
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
+    # Mount /cache/data.
+    - name: cache-data.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Experiment Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-data
+        Where=/cache/data
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
+    # Mount /cache/core.
+    - name: cache-core.mount
+      enable: true
+      content: |
+        [Unit]
+        Description=Mount Core Experiment Data Volume
+        Before=docker.service
+        After=format-cache.service
+        Requires=format-cache.service
+
+        [Mount]
+        What=/dev/disk/by-label/cache-core
+        Where=/cache/core
+        Type=ext4
+        Options=defaults
+
+        [Install]
+        RequiredBy=docker.service
+
     # Add a new unit to run the post-boot script after the network is online.
     - name: setup-after-boot.service
       command: start
@@ -39,11 +143,12 @@ coreos:
         # Both directives are required.
         # It is unclear why Requires= alone is not sufficient (but it isn't).
         Requires=network-online.target
-        After=systemd-networkd-wait-online.service
+        After=systemd-networkd-wait-online.service format-cache.service
 
         [Service]
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
+
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
