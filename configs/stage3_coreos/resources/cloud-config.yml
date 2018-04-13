@@ -51,6 +51,8 @@ coreos:
         Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
         RequiresMountsFor=/cache
         ConditionPathExists=!/cache/docker
+        ConditionPathExists=!/cache/data
+        ConditionPathExists=!/cache/core
         [Service]
         Type=oneshot
         # Create cache directory in root filesystem.
