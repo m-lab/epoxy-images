@@ -109,6 +109,8 @@ deploy:
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
+      $TRAVIS_BUILD_DIR/actions/stage2/stage1to2.ipxe
+      $TRAVIS_BUILD_DIR/actions/stage3_coreos/*.json
       gs://epoxy-mlab-sandbox/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
@@ -146,6 +148,8 @@ deploy:
       $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/coreos_custom_pxe_image.cpio.gz
       $TRAVIS_BUILD_DIR/output/coreos_production_pxe.vmlinuz
+      $TRAVIS_BUILD_DIR/actions/stage2/stage1to2.ipxe
+      $TRAVIS_BUILD_DIR/actions/stage3_coreos/*.json
       gs://epoxy-mlab-staging/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
