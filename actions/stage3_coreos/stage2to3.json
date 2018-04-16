@@ -5,18 +5,23 @@
       },
       "files" : {
          "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_coreos/coreos_production_pxe.vmlinuz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/coreos_production_pxe.vmlinuz"
          },
          "initram" : {
-            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_coreos/coreos_custom_pxe_image.cpio.gz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/coreos_custom_pxe_image.cpio.gz"
          }
       },
       "vars" : {
          "kargs" : [
             "epoxy.ip={{kargs `epoxy.ip`}}",
+            "epoxy.ipv4={{kargs `epoxy.ipv4`}}",
+            "epoxy.ipv6={{kargs `epoxy.ipv6`}}",
+            "epoxy.interface={{kargs `epoxy.interface`}}",
+            "epoxy.hostname={{kargs `epoxy.hostname`}}",
             "epoxy.stage3={{kargs `epoxy.stage3`}}",
             "epoxy.report={{kargs `epoxy.report`}}",
-            "epoxy.server={{kargs `epoxy.server`}}"
+            "epoxy.server={{kargs `epoxy.server`}}",
+            "epoxy.project={{kargs `epoxy.project`}}"
          ],
          "cmdline" : "net.ifnames=0 coreos.autologin=tty1"
       },

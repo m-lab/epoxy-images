@@ -1,0 +1,59 @@
+#!ipxe
+
+# Use a relative URL for the vmlinuz image.
+# NOTE: the image must be in the same directory as this iPXE script.
+set vmlinuz_url stage2_vmlinuz
+
+echo Starting stage1to2 script
+
+echo -- Downloading stage2 image from ${vmlinuz_url}
+
+# Initialize retry counters.
+set retry_count:int32 1
+set max_retry_count 20
+
+goto firstfetch
+
+:loop
+  inc retry_count 1
+  echo -- Retries ${retry_count} ${max_retry_count}
+  echo Failed ${retry_count} times... Retrying after ${retry_count} seconds
+  # This doesn't work?
+  # iseq ${retry_count} ${max_retry_count} && goto fetch_timeout
+  sleep ${retry_count}
+
+:firstfetch
+  echo -- Retries ${retry_count} ${max_retry_count}
+  kernel --name vmlinuz ${vmlinuz_url} || goto loop
+
+imgstat
+
+# TODO: use a canonical form defined by epoxy and supporing IPv6.
+set network ${ip}::${gateway}:${netmask}:${hostname}:eth0:off:${dns}:8.8.4.4
+
+echo -- Booting stage2: vmlinuz ip=${network}
+sleep 2
+
+set kargs
+# Network settings
+# TODO: remove epoxy.ip= once epoxy-images support canonical network format.
+set kargs ${kargs} epoxy.ip=${network}
+set kargs ${kargs} epoxy.ipv4=${ip}/26,${gateway},${dns},8.8.4.4
+set kargs ${kargs} epoxy.ipv6=
+set kargs ${kargs} epoxy.interface=eth0
+set kargs ${kargs} epoxy.hostname=${hostname}
+
+# Pass through the stage URLs.
+set kargs ${kargs} epoxy.stage2=${stage2_url}
+set kargs ${kargs} epoxy.stage3=${stage3_url}
+set kargs ${kargs} epoxy.report=${report_url}
+set kargs ${kargs} epoxy.server=${epoxyaddress}
+set kargs ${kargs} epoxy.project=${project}
+
+boot vmlinuz ${kargs} || shell
+
+:fetch_timeout
+  echo -- Retries ${retry_count} ${max_retry_count}
+  echo Failed too many times..
+  # Reboot?
+  shell

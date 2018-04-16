@@ -17,6 +17,9 @@ set net0/netmask {{netmask}}
 set net0/dns {{dns1}}
 set hostname {{hostname}}
 
+# Save the GCP project name.
+set project {{project}}
+
 # The ePoxy stage1 URL.
 set stage1_url https://${epoxyaddress}/v1/boot/${hostname}/stage1.ipxe
 
