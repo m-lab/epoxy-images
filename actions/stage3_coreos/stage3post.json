@@ -5,7 +5,7 @@
       },
       "files" : {
          "setup_k8s" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project}}/stage3_coreos/setup_k8s.sh"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/setup_k8s.sh"
          }
       },
       "commands" : [
