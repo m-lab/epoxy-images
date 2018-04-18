@@ -5,19 +5,24 @@
       },
       "files" : {
          "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_mlxupdate/vmlinuz_stage3_mlxupdate"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/vmlinuz_stage3_mlxupdate"
          },
          "initram" : {
-            "url" : "https://storage.googleapis.com/epoxy-mlab-staging/stage3_mlxupdate/initramfs_stage3_mlxupdate.cpio.gz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/initramfs_stage3_mlxupdate.cpio.gz"
          }
       },
       "vars" : {
          "kargs" : [
             "epoxy.ip={{kargs `epoxy.ip`}}",
+            "epoxy.ipv4={{kargs `epoxy.ipv4`}}",
+            "epoxy.ipv6={{kargs `epoxy.ipv6`}}",
+            "epoxy.interface={{kargs `epoxy.interface`}}",
+            "epoxy.hostname={{kargs `epoxy.hostname`}}",
             "epoxy.stage3={{kargs `epoxy.stage3`}}",
             "epoxy.report={{kargs `epoxy.report`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
-            "epoxy.mrom=https://storage.googleapis.com/epoxy-mlab-staging/stage1_mlxrom/3.4.804"
+            "epoxy.project={{kargs `epoxy.project`}}",
+            "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest"
          ],
          "cmdline" : "net.ifnames=0 coreos.autologin=tty1"
       },
