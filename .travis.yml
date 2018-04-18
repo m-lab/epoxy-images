@@ -115,6 +115,8 @@ deploy:
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
       $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      $TRAVIS_BUILD_DIR/actions/stage2/stage1to2.ipxe
+      $TRAVIS_BUILD_DIR/actions/stage3_mlxupdate/*.json
       gs://epoxy-mlab-sandbox/stage3_mlxupdate/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/*.iso
