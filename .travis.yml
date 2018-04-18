@@ -122,6 +122,9 @@ deploy:
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
       gs://epoxy-mlab-sandbox/stage1_mlxrom/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*/*
+      gs://epoxy-mlab-sandbox/stage1_mlxrom/latest/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
@@ -161,6 +164,9 @@ deploy:
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
       gs://epoxy-mlab-staging/stage1_mlxrom/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*/*
+      gs://epoxy-mlab-staging/stage1_mlxrom/latest/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
