@@ -34,7 +34,7 @@
 
 set -eux
 
-SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
+SOURCE_DIR=$( dirname "${BASH_SOURCE[0]}" )
 
 USAGE="Usage: $0 <keyname> <gs://bucket>"
 KEYNAME=${1:?Please provide the service account keyname: $USAGE}
