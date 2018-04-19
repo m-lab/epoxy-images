@@ -91,7 +91,7 @@ deploy:
 # SANDBOX: before code review for development code in a specific branch.
 - provider: script
   script:
-      $TRAVIS_BUILD_DIR/deploy.sh
+      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
         SERVICE_ACCOUNT_mlab_sandbox gs://epoxy-mlab-sandbox
   skip_cleanup: true
   on:
@@ -102,7 +102,7 @@ deploy:
 # STAGING: after code review and before QA testing.
 - provider: script
   script:
-      $TRAVIS_BUILD_DIR/deploy.sh
+      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
         SERVICE_ACCOUNT_mlab_staging gs://epoxy-mlab-staging
   skip_cleanup: true
   on:
