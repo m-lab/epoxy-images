@@ -32,6 +32,8 @@
 #   # After a successful build phase:
 #   ./deploy.sh SERVICE_ACCOUNT_mlab_sandbox gs://epoxy-mlab-sandbox
 
+set -eux
+
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
 USAGE="Usage: $0 <keyname> <gs://bucket>"
