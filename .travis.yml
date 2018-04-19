@@ -79,7 +79,7 @@ script:
           &> /images/stage3_mlxupdate.log
         && echo 'Starting ROM & ISO build'
         && /images/setup_stage3_mlxupdate_isos.sh
-            mlab-sandbox /build /images/output 'mlab4.lga0t.*' 3.4.806 &> /images/stage3_mlxupdate_iso.log
+            mlab-sandbox /build /images/output 'mlab4.lga0t.*' 3.4.807 &> /images/stage3_mlxupdate_iso.log
         && /images/setup_stage3_mlxupdate_isos.sh
             mlab-staging /build /images/output 'mlab[1-3].lga0t.*' 3.4.806 &>> /images/stage3_mlxupdate_iso.log"
         || (tail -40 stage3_mlxupdate.log && tail -40 stage3_mlxupdate_iso.log && false)
@@ -113,8 +113,11 @@ deploy:
       $TRAVIS_BUILD_DIR/actions/stage3_coreos/*.json
       gs://epoxy-mlab-sandbox/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
       $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      $TRAVIS_BUILD_DIR/actions/stage2/stage1to2.ipxe
+      $TRAVIS_BUILD_DIR/actions/stage3_mlxupdate/*.json
       gs://epoxy-mlab-sandbox/stage3_mlxupdate/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/*.iso
@@ -122,6 +125,9 @@ deploy:
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
       $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
       gs://epoxy-mlab-sandbox/stage1_mlxrom/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_sandbox
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*/*
+      gs://epoxy-mlab-sandbox/stage1_mlxrom/latest/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
@@ -152,8 +158,11 @@ deploy:
       $TRAVIS_BUILD_DIR/actions/stage3_coreos/*.json
       gs://epoxy-mlab-staging/stage3_coreos/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/stage2_vmlinuz
       $TRAVIS_BUILD_DIR/output/vmlinuz_stage3_mlxupdate
       $TRAVIS_BUILD_DIR/output/initramfs_stage3_mlxupdate.cpio.gz
+      $TRAVIS_BUILD_DIR/actions/stage2/stage1to2.ipxe
+      $TRAVIS_BUILD_DIR/actions/stage3_mlxupdate/*.json
       gs://epoxy-mlab-staging/stage3_mlxupdate/
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/*.iso
@@ -161,6 +170,9 @@ deploy:
       && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
       $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*
       gs://epoxy-mlab-staging/stage1_mlxrom/
+      && $TRAVIS_BUILD_DIR/travis/deploy_gcs.sh SERVICE_ACCOUNT_mlab_staging
+      $TRAVIS_BUILD_DIR/output/stage1_mlxrom/*/*
+      gs://epoxy-mlab-staging/stage1_mlxrom/latest/
   skip_cleanup: true
   on:
     repo: m-lab/epoxy-images
