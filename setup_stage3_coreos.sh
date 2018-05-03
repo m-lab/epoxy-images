@@ -56,10 +56,11 @@ pushd $IMAGEDIR
   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar -C squashfs-root/cni/bin -xz
   chmod 755 squashfs-root/cni/bin/*
 
-  # kube* expect to be in /usr/bin
+  # kube* 
+  # Commands adapted from:
+  #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
   RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
-  mkdir -p squashfs-root/usr/bin
-  pushd squashfs-root/usr/bin
+  pushd squashfs-root/bin
     curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
