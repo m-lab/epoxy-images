@@ -47,6 +47,29 @@ pushd $IMAGEDIR
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
+  # Install calico, cni, kubeadm, kubelet, and kubectl
+  # TODO: calico
+
+  # Container networking interface
+  mkdir -p squashfs-root/cni/bin
+  CNI_VERSION="v0.6.0"
+  curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar -C squashfs-root/cni/bin -xz
+  chmod 755 squashfs-root/cni/bin/*
+
+  # kube* expect to be in /usr/bin
+  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+  mkdir -p squashfs-root/usr/bin
+  pushd squashfs-root/usr/bin
+    curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    chmod 755 {kubeadm,kubelet,kubectl}
+  popd
+
+  # Startup configs
+  mkdir -p squashfs-root/etc/systemd/system
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" > squashfs-root/etc/systemd/system/kubelet.service
+  mkdir -p squashfs-root/etc/systemd/system/kubelet.service.d
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" > squashfs-root/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
       -noappend -always-use-fragments
