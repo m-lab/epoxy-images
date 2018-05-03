@@ -65,11 +65,12 @@ pushd $IMAGEDIR
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
 
-  # Startup configs
-  mkdir -p squashfs-root/etc/systemd/system
-  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" > squashfs-root/etc/systemd/system/kubelet.service
-  mkdir -p squashfs-root/etc/systemd/system/kubelet.service.d
-  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" > squashfs-root/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  # Startup configs for the kubelet
+  # /etc is in initrd-contents
+  mkdir -p initrd-contents/etc/systemd/system
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" > initrd-contents/etc/systemd/system/kubelet.service
+  mkdir -p initrd-contents/etc/systemd/system/kubelet.service.d
+  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" > initrd-contents/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
