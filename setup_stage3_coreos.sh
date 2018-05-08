@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# customize_coreos_pxe_image.sh downloads the current stable coreos pxe images
-# and generates a modified image that embeds custom scripts and static
-# cloud-config.yml. These custom scripts conigure the static network IP and
-# allow for running a post-boot setup script.
+# This script downloads the current stable coreos pxe images and generates a
+# modified image that embeds custom scripts and static cloud-config.yml. These
+# custom scripts conigure the static network IP and allow for running a
+# post-boot setup script.
 
 set -e
 set -x
@@ -56,21 +56,14 @@ pushd $IMAGEDIR
   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar -C squashfs-root/cni/bin -xz
   chmod 755 squashfs-root/cni/bin/*
 
-  # kube* 
+  # kube*
   # Commands adapted from:
   #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
   pushd squashfs-root/bin
     curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
-
-  # Startup configs for the kubelet
-  # /etc is in initrd-contents
-  mkdir -p initrd-contents/etc/systemd/system
-  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/kubelet.service" > initrd-contents/etc/systemd/system/kubelet.service
-  mkdir -p initrd-contents/etc/systemd/system/kubelet.service.d
-  curl -sSL "https://raw.githubusercontent.com/kubernetes/kubernetes/${RELEASE}/build/debs/10-kubeadm.conf" > initrd-contents/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
