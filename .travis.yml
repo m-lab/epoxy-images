@@ -42,7 +42,8 @@ script:
          /images/configs/stage2
          /images/output/stage2_initramfs.cpio.gz
          /images/output/stage2_vmlinuz
-         /images/output/epoxy_client /images/stage2.log" || (cat stage2.log && false)
+         /images/output/epoxy_client /images/stage2.log
+         /images/travis/one_line_per_minute.awk" || (cat stage2.log && false)
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
