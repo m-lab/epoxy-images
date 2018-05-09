@@ -17,7 +17,7 @@ LOGFILE=${7:?Error: Please specify a path to write build log output}
 
 # Report all commands to log file (set -x writes to stderr).
 exec 2> $LOGFILE
-set -x
+set -uxo pipefail
 
 
 # Get canonical paths for each argument.
@@ -451,14 +451,18 @@ function main() {
       sbin/kexec \
       sbin/haveged \
       sbin/rngd \
-      bin/epoxy_client &>> $LOGFILE
+      bin/epoxy_client 2>&1 \
+    | tee -a $LOGFILE \
+    | travis/one_line_per_minute.awk
 
   report "Building stage2 initramfs"
   setup_initramfs $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR &>> $LOGFILE
   write_initramfs $INITRAMFS_DIR $INITRAM_NAME &>> $LOGFILE
 
   report "Building stage2 kernel"
-  build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME &>> $LOGFILE
+  build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME 2>&1 \
+    | tee -a $LOGFILE \
+    | travis/one_line_per_minute.awk
 
   report "Copying epoxy_client"
   install -D -m 644 $BUILD_DIR/local/upx/epoxy_client $EPOXY_CLIENT
