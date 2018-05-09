@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # This script downloads the current stable coreos pxe images and generates a
-# modified image that embeds custom scripts and static cloud-config.yml. These
-# custom scripts conigure the static network IP and allow for running a
-# post-boot setup script.
+# modified image that embeds custom scripts, all the binaries required to run
+# kubernetes services, and static cloud-config.yml. These custom scripts
+# conigure the static network IP and allow for running a post-boot setup script.
 
-set -e
-set -x
+set -euxo pipefail
+
 USAGE="USAGE: $0 <config dir> <epoxy-client> <vmlinuz-url> <initram-url> <custom-initram-name>"
 CONFIG_DIR=${1:?Please specify path to configuration directory: $USAGE}
 EPOXY_CLIENT=${2:?Please specify the path to the epoxy client binary: $USAGE}
@@ -48,20 +48,20 @@ pushd $IMAGEDIR
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
   # Install calico, cni, kubeadm, kubelet, and kubectl
-  # TODO: calico
+  # TODO: install calico binary
 
-  # Container networking interface
+  # Install container networking interface binaries.
   mkdir -p squashfs-root/cni/bin
   CNI_VERSION="v0.6.0"
-  curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar -C squashfs-root/cni/bin -xz
+  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
   chmod 755 squashfs-root/cni/bin/*
 
   # kube*
   # Commands adapted from:
   #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-  RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
+  RELEASE="$(curl --location --show-error --silent https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
   pushd squashfs-root/bin
-    curl -L --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
 
