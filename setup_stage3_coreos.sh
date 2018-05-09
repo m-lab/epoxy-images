@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# customize_coreos_pxe_image.sh downloads the current stable coreos pxe images
-# and generates a modified image that embeds custom scripts and static
-# cloud-config.yml. These custom scripts conigure the static network IP and
-# allow for running a post-boot setup script.
+# This script downloads the current stable coreos pxe images and generates a
+# modified image that embeds custom scripts, all the binaries required to run
+# kubernetes services, and static cloud-config.yml. These custom scripts
+# conigure the static network IP and allow for running a post-boot setup script.
 
-set -e
-set -x
+set -euxo pipefail
+
 USAGE="USAGE: $0 <config dir> <epoxy-client> <vmlinuz-url> <initram-url> <custom-initram-name>"
 CONFIG_DIR=${1:?Please specify path to configuration directory: $USAGE}
 EPOXY_CLIENT=${2:?Please specify the path to the epoxy client binary: $USAGE}
@@ -46,6 +46,24 @@ pushd $IMAGEDIR
 
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
+
+  # Install calico, cni, kubeadm, kubelet, and kubectl
+  # TODO: install calico binary
+
+  # Install container networking interface binaries.
+  mkdir -p squashfs-root/cni/bin
+  CNI_VERSION="v0.6.0"
+  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
+  chmod 755 squashfs-root/cni/bin/*
+
+  # kube*
+  # Commands adapted from:
+  #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
+  RELEASE="$(curl --location --show-error --silent https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
+  pushd squashfs-root/bin
+    curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    chmod 755 {kubeadm,kubelet,kubectl}
+  popd
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
