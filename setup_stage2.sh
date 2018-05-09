@@ -453,7 +453,7 @@ function main() {
       sbin/rngd \
       bin/epoxy_client 2>&1 \
     | tee -a $LOGFILE \
-    | travis/one_line_per_minute.awk
+    | ./travis/one_line_per_minute.awk
 
   report "Building stage2 initramfs"
   setup_initramfs $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR &>> $LOGFILE
@@ -462,7 +462,7 @@ function main() {
   report "Building stage2 kernel"
   build_kernel $BUILD_DIR $CONFIG_DIR $INITRAMFS_DIR $INITRAM_NAME $KERNEL_NAME 2>&1 \
     | tee -a $LOGFILE \
-    | travis/one_line_per_minute.awk
+    | ./travis/one_line_per_minute.awk
 
   report "Copying epoxy_client"
   install -D -m 644 $BUILD_DIR/local/upx/epoxy_client $EPOXY_CLIENT
