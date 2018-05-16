@@ -6,7 +6,8 @@
       "commands" : [
          "# Run the updaterom utility.",
          [
-            "/usr/local/util/updaterom.sh"
+            "/usr/local/util/updaterom.sh",
+            "reboot"
          ]
       ]
    }
