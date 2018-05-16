@@ -47,13 +47,14 @@ pushd $IMAGEDIR
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
-  # Install calico, cni, kubeadm, kubelet, and kubectl
-  # TODO: install calico binary
-
-  # Install container networking interface binaries.
+  # Install multus, cni, kubeadm, kubelet, and kubectl
+  # Install container networking interface binaries, including multus.
   mkdir -p squashfs-root/cni/bin
   CNI_VERSION="v0.6.0"
   curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
+  pushd squashfs-root/cni/bin
+    curl --location https://storage.googleapis.com/k8s-platform-mlab-sandbox/bin/multus
+  popd
   chmod 755 squashfs-root/cni/bin/*
 
   # kube*
