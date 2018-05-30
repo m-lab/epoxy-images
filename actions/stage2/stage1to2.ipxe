@@ -47,6 +47,7 @@ set kargs ${kargs} epoxy.hostname=${hostname}
 set kargs ${kargs} epoxy.stage2=${stage2_url}
 set kargs ${kargs} epoxy.stage3=${stage3_url}
 set kargs ${kargs} epoxy.report=${report_url}
+set kargs ${kargs} epoxy.allocate_k8s_token=${allocate_k8s_token_url}
 set kargs ${kargs} epoxy.server=${epoxyaddress}
 set kargs ${kargs} epoxy.project=${project}
 
