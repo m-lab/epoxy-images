@@ -38,8 +38,8 @@ set kargs
 # Network settings
 # TODO: remove epoxy.ip= once epoxy-images support canonical network format.
 set kargs ${kargs} epoxy.ip=${network}
-set kargs ${kargs} epoxy.ipv4=${ip}/26,${gateway},${dns},8.8.4.4
-set kargs ${kargs} epoxy.ipv6=
+set kargs ${kargs} epoxy.ipv4=${ipv4_address}/${ipv4_subnet},${ipv4_gateway},${ipv4_dns1},${ipv4_dns2}
+set kargs ${kargs} epoxy.ipv6=${ipv6_address}/${ipv6_subnet},${ipv6_gateway},${ipv6_dns1},${ipv6_dns2}
 set kargs ${kargs} epoxy.interface=eth0
 set kargs ${kargs} epoxy.hostname=${hostname}
 
