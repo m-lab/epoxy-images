@@ -10,6 +10,9 @@ set retry_delay_s:int32 30
 set max_retry_delay_s 480
 
 # IPv6 network configuration.
+# ipv6_enabled will always be defined. When ipv6_enabled is "false", then other
+# ipv6 variables are undefined.
+set ipv6_enabled {{ipv6_enabled}}
 set ipv6_address {{ipv6_address}}
 set ipv6_gateway {{ipv6_gateway}}
 set ipv6_subnet  64
