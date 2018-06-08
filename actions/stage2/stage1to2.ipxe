@@ -39,7 +39,16 @@ set kargs
 # TODO: remove epoxy.ip= once epoxy-images support canonical network format.
 set kargs ${kargs} epoxy.ip=${network}
 set kargs ${kargs} epoxy.ipv4=${ipv4_address}/${ipv4_subnet},${ipv4_gateway},${ipv4_dns1},${ipv4_dns2}
-set kargs ${kargs} epoxy.ipv6=${ipv6_address}/${ipv6_subnet},${ipv6_gateway},${ipv6_dns1},${ipv6_dns2}
+
+# Set the epoxy.ipv6= karg appropriately based on the value in ipv6_enabled.
+iseq ${ipv6_enabled} true && goto v6_enabled || goto v6_disabled
+v6_enabled:
+  set kargs ${kargs} epoxy.ipv6=${ipv6_address}/${ipv6_subnet},${ipv6_gateway},${ipv6_dns1},${ipv6_dns2}
+  goto v6_done
+v6_disabled:
+  set kargs ${kargs} epoxy.ipv6=
+v6_done:
+
 set kargs ${kargs} epoxy.interface=eth0
 set kargs ${kargs} epoxy.hostname=${hostname}
 
