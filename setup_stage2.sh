@@ -201,8 +201,6 @@ function build_epoxy_client() {
   local config=$3
   echo "TODO: build epoxy_client"
   pushd $build
-    export PATH=$PATH:/usr/lib/go-1.9/bin
-    export GOROOT=/usr/lib/go-1.9
     export GOPATH=$build
     # The -ldflags drop another 2.5MB from the binary size.
     # -w 	Omit the DWARF symbol table.

@@ -47,17 +47,23 @@ pushd $IMAGEDIR
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
-  # Install calico, cni, kubeadm, kubelet, and kubectl
-  # TODO: install calico binary
+  # Install multus, other cni binaries, kubeadm, kubelet, and kubectl.
 
-  # Install container networking interface binaries.
+  # Install the cni binaries: bridge, flannel, host-local, ipvlan, loopback, and
+  # others.
   mkdir -p squashfs-root/cni/bin
   CNI_VERSION="v0.6.0"
   curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
-  chmod 755 squashfs-root/cni/bin/*
 
-  # kube*
-  # Commands adapted from:
+  # Install multus.
+  TMPDIR=$(mktemp -d)
+  GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
+  cp ${TMPDIR}/bin/multus squashfs-root/cni/bin
+  chmod 755 squashfs-root/cni/bin/*
+  rm -Rf ${TMPDIR}
+
+  # Install the kube* commands.
+  # Installation commands adapted from:
   #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
   RELEASE="$(curl --location --show-error --silent https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
   pushd squashfs-root/bin
