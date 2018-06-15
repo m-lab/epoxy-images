@@ -57,7 +57,7 @@ pushd $IMAGEDIR
 
   # Install multus.
   TMPDIR=$(mktemp -d)
-  GOPATH=${TMPDIR} CGO_ENABLED=0 /usr/lib/go-1.9/bin/go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
+  GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
   cp ${TMPDIR}/bin/multus squashfs-root/cni/bin
   chmod 755 squashfs-root/cni/bin/*
   rm -Rf ${TMPDIR}
