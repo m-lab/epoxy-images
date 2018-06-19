@@ -47,7 +47,7 @@ pushd $IMAGEDIR
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
 
-  # Install multus, other cni binaries, kubeadm, kubelet, and kubectl.
+  # Install multus, index2ip, other cni binaries, kubeadm, kubelet, and kubectl.
 
   # Install the cni binaries: bridge, flannel, host-local, ipvlan, loopback, and
   # others.
@@ -55,10 +55,12 @@ pushd $IMAGEDIR
   CNI_VERSION="v0.6.0"
   curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
 
-  # Install multus.
+  # Install multus and index2ip.
   TMPDIR=$(mktemp -d)
   GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
+  GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip
   cp ${TMPDIR}/bin/multus squashfs-root/cni/bin
+  cp ${TMPDIR}/bin/index2ip squashfs-root/cni/bin
   chmod 755 squashfs-root/cni/bin/*
   rm -Rf ${TMPDIR}
 
