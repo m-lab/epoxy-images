@@ -38,6 +38,9 @@ function setup_network() {
       echo ifconfig ${interface} ${addr}
       echo route add default gw ${gateway}
       echo hostname ${hostname}
+      ifconfig ${interface} ${addr}
+      route add default gw ${gateway}
+      hostname ${hostname}
   )
   ifconfig ${interface}
 }
