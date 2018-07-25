@@ -21,10 +21,10 @@ docker run -v ~/Downloads:/images -v $PWD:/scripts -it epoxy-racadm \
 ```
 
 It is possible to set the virtual console plugin type using:
-
 ```
-# HTML5
-racadm set idrac.virtualconsole.plugintype 2
+    # Set the default virtual console type to "HTML5".
+    idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
+        set idrac.virtualconsole.plugintype 2
 ```
 
 ## Run update
@@ -39,18 +39,32 @@ First-time updates are not yet automated. So, login in as `root` and run:
 
 ```
 # Power off the server.
-idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} serveraction powerdown
+idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} serveraction powerdown
 
 # Set the boot sequence to only include the NIC.
-idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
-    racadm get bios.biosbootsettings
-idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
-    racadm set bios.biosbootsettings.bootseq NIC.Slot.1-1-1
+idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
+    get bios.biosbootsettings
+idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
+    set bios.biosbootsettings.bootseq NIC.Slot.1-1-1
 
 # Create a job that will run on the next boot.
-idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
-    racadm jobqueue create BIOS.Setup.1-1
+idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} \
+    jobqueue create BIOS.Setup.1-1
 
-idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} serveraction powerup
+idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} serveraction powerup
 
 ```
+
+## Register Machine with ePoxy Server
+
+On first boot, the ipxe firmware will try to contact the ePoxy server but the
+request will be rejected with a "Not Found" error until the machine is
+registered with the ePoxy server.
+
+To add a new machine to the ePoxy data store using the default settings:
+```
+   go get github.com/m-lab/epoxy/cmd/epoxy_admin
+   epoxy_admin -project mlab-sandbox -hostname <fqdn> -address <ipv4-addr>
+```
+
+To add custom boot or update stage targets, see the help text.
