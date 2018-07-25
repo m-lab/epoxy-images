@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script to mount the ISO image via the DRAC using `vmcli` and `idracadm7`.
+# Script to mount the ISO image via the DRAC using `vmcli` and `idracadm`.
 
 DRAC_IP=${1:?Error provide drac IP}
 DRAC_PASSWORD=${2:?Error provide drac password}
@@ -12,11 +12,6 @@ function racadm() {
     shift 2
     idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} $@
 }
-
-export PATH=$PATH:/opt/dell/srvadmin/bin:/opt/dell/srvadmin/sbin
-
-echo "Updating dependencies"
-yum install -y openssl-devel &> /dev/null
 
 echo "NOTE: you may want to open the virtual console to watch the system boot"
 
