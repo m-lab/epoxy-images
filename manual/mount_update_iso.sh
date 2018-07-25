@@ -9,8 +9,8 @@ DRAC_ISO=${3:?Error provide ISO image}
 function racadm() {
     local ip=$1
     local passwd=$2
-	shift 2
-    idracadm7 -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} $@
+    shift 2
+    idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} $@
 }
 
 export PATH=$PATH:/opt/dell/srvadmin/bin:/opt/dell/srvadmin/sbin
@@ -19,7 +19,6 @@ echo "Updating dependencies"
 yum install -y openssl-devel &> /dev/null
 
 echo "NOTE: you may want to open the virtual console to watch the system boot"
-#sleep 10
 
 # Stop the server to quiet all systems.
 racadm ${DRAC_IP} ${DRAC_PASSWORD} serveraction powerdown
