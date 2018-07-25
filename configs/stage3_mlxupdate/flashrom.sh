@@ -36,14 +36,39 @@ echo "   Updating to:         $NEW_VERSION"
 
 # TODO: We must permit rollback or reset, in which case, "NEW_VERSION" could be
 # less than or equal to "CUR_VERSION".
-if [[ ! "${NEW_VERSION}" > "${CUR_VERSION}" ]] ; then
-    echo "Oops! Current ROM version already matches new ROM version."
-    echo "Taking no action."
-    echo "Sleeping $ERROR_DELAY seconds..."
-    # TODO(soltesz): log everything.
-    sleep $ERROR_DELAY
-    exit 0
-fi
+#
+# NOTE: there are two typical cases:
+#  * first ROM update
+#  * all subsequent updates
+#
+# For the first ROM update, the original ROM version will look something like:
+#
+#   "Rom Info: type=UEFI version=12.18.43 proto=ETH"
+#
+# In this case, we want to allow the update.
+#
+# For all other updates, we expect the ROM version to follow a convention like:
+#
+#   "Rom Info: type=PXE version=3.4.809 devid=4099"
+#
+# Where higher versions are lexically greater than the current version.
+case "${CUR_VERSION}" in
+    *type=UEFI*)
+        # Allow update unconditionally.
+        echo "First ROM update"
+    ;;
+    *type=PXE*)
+        if [[ ! "${NEW_VERSION}" > "${CUR_VERSION}" ]] ; then
+            echo "Warning: new ROM version is not greater than current version."
+            echo "Taking no action."
+            echo "Sleeping $ERROR_DELAY seconds..."
+            # TODO(soltesz): log everything.
+            sleep $ERROR_DELAY
+            exit 0
+        fi
+    ;;
+esac
+
 
 # NOTE: This is required for configuring systems for the first time. These will
 # be a no-ops for previously-updated machines.
