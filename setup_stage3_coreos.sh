@@ -65,10 +65,10 @@ pushd $IMAGEDIR
   rm -Rf ${TMPDIR}
 
   # Install crictl.
-  mkdir -p squashfs-root/cri/bin
+  mkdir -p squashfs-root/bin
   CRI_VERSION="v1.11.1"
   wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
-  tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C squashfs-root/cri/bin/
+  tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C squashfs-root/bin/
   rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
 
   # Install the kube* commands.
