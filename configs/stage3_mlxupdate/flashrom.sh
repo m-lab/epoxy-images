@@ -59,7 +59,7 @@ case "${CUR_VERSION}" in
     ;;
     *type=PXE*)
         if [[ ! "${NEW_VERSION}" > "${CUR_VERSION}" ]] ; then
-            echo "Oops! Current ROM version already matches new ROM version."
+            echo "Warning: new ROM version is not greater than current version."
             echo "Taking no action."
             echo "Sleeping $ERROR_DELAY seconds..."
             # TODO(soltesz): log everything.
