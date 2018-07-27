@@ -53,9 +53,7 @@ iDRAC with something like:
 /admin1-> racadm set idrac.ipblocking.rangeenable disabled
 ```
 
-There is also [a script in the m-lab/mlabops repository]
-(https://github.com/m-lab/mlabops/blob/master/drac_ipblock) which can assist in
-locking and ulocking the iDRACs.
+There is also [a script in the m-lab/mlabops repository](https://github.com/m-lab/mlabops/blob/master/drac_ipblock) which can assist in locking and ulocking the iDRACs.
 
 ## Build and run the racadm container locally.
 ```
