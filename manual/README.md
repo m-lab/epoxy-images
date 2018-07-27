@@ -23,7 +23,7 @@ registered with the ePoxy server.
 To add a new machine to the ePoxy data store using the default settings:
 ```
 go get github.com/m-lab/epoxy/cmd/epoxy_admin
-$GOPATH/bin/epoxy_admin -project mlab-sandbox -hostname <fqdn> \
+$GOPATH/bin/epoxy_admin -project <project> -hostname <fqdn> \
     -address <ipv4-addr>
 ```
 
