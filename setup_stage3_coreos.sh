@@ -62,7 +62,9 @@ pushd $IMAGEDIR
     mkdir -p src/github.com/intel
 	pushd src/github.com/intel
 	   git clone https://github.com/intel/multus-cni.git
-	   git checkout v2.1
+	   pushd multus-cni
+	     git checkout v2.1
+	   popd
 	popd
   popd
   GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
