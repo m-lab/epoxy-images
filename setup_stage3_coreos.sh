@@ -67,7 +67,8 @@ pushd $IMAGEDIR
 	   popd
 	popd
   popd
-  GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/intel/multus-cni/multus
+  # TODO: restore `-u` flag. Removed so `go get` works on detached head.
+  GOPATH=${TMPDIR} CGO_ENABLED=0 go get -ldflags '-w -s' github.com/intel/multus-cni/multus
   GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip
   cp ${TMPDIR}/bin/multus squashfs-root/cni/bin
   cp ${TMPDIR}/bin/index2ip squashfs-root/cni/bin
