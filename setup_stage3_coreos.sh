@@ -52,18 +52,17 @@ pushd $IMAGEDIR
   # Install the cni binaries: bridge, flannel, host-local, ipvlan, loopback, and
   # others.
   mkdir -p squashfs-root/cni/bin
-  CNI_VERSION="v0.6.0"
+  CNI_VERSION="v0.7.1"
   curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
 
   # Install multus and index2ip.
   TMPDIR=$(mktemp -d)
-  # TODO: remove pinned version of multus after debugging issues with v3.0 on k8s v1.11.
   pushd ${TMPDIR}
     mkdir -p src/github.com/intel
 	pushd src/github.com/intel
 	   git clone https://github.com/intel/multus-cni.git
 	   pushd multus-cni
-	     git checkout v2.1
+	     git checkout v3.1
 	   popd
 	popd
   popd
@@ -78,17 +77,15 @@ pushd $IMAGEDIR
   # Install crictl.
   mkdir -p squashfs-root/bin
   # TODO: temporarily disable CRI. This is required for k8s versions v1.11+
-  #CRI_VERSION="v1.11.1"
-  #wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
-  #tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C squashfs-root/bin/
-  #rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
+  CRI_VERSION="v1.12.0"
+  wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
+  tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C squashfs-root/bin/
+  rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
 
   # Install the kube* commands.
   # Installation commands adapted from:
   #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-  # TODO: temporarily pin to k8s v1.10 to work around multus v3.0 incompatibility.
-  # RELEASE="$(curl --location --show-error --silent https://dl.k8s.io/release/stable.txt | tee squashfs-root/share/oem/installed_k8s_version.txt)"
-  RELEASE="$(echo v1.10.6 | tee squashfs-root/share/oem/installed_k8s_version.txt)"
+  RELEASE="$(echo v1.12.0 | tee squashfs-root/share/oem/installed_k8s_version.txt)"
   pushd squashfs-root/bin
     curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}

@@ -11,6 +11,9 @@
 #  * on success, deploy the result to the correct Cloud Storage bucket when
 #    the target branch matches a supported deployment target.
 
+env:
+- COREOS_VERSION="1855.4.0"
+
 services:
 - docker
 
@@ -47,11 +50,11 @@ script:
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-- time docker run -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
+- travis_wait time docker run -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; /images/setup_stage3_coreos.sh /images/configs/stage3_coreos
         /images/output/epoxy_client
-        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe.vmlinuz
-        http://stable.release.core-os.net/amd64-usr/1576.4.0/coreos_production_pxe_image.cpio.gz
+        http://stable.release.core-os.net/amd64-usr/$COREOS_VERSION/coreos_production_pxe.vmlinuz
+        http://stable.release.core-os.net/amd64-usr/$COREOS_VERSION/coreos_production_pxe_image.cpio.gz
         /images/output/coreos_custom_pxe_image.cpio.gz &> /images/coreos.log" || (tail -20 coreos.log && false)
 
 # Build stage3 mlxupdate image.
