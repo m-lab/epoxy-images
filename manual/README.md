@@ -65,7 +65,7 @@ example, in ~/Downloads (use whichever directory your ISO image resides in).
 ```
 docker run -v ~/Downloads:/images -v $PWD:/scripts -it epoxy-racadm \
     /scripts/mount_update_iso.sh ${DRAC_IP} ${DRAC_PASSWORD} \
-    ~/Downloads/mlab1.iad1t.measurement-lab.org_mlxupdate.iso
+    /images/<node>.<site>.measurement-lab.org_mlxupdate.iso
 ```
 
 ## Start a virtual console to the node.
