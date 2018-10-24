@@ -24,7 +24,7 @@
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}"
          ],
-         "cmdline" : "net.ifnames=0 coreos.autologin=tty1"
+         "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },
       "commands" : [
          "# Run kexec using the downloaded initram and vmlinuz files.",
