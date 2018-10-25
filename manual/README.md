@@ -99,3 +99,17 @@ First-time updates are not yet automated. So, login in as `root` and run:
 ## Reboot the machine
 If everything has gone correctly, the machine will boot from the NIC, contact
 the ePoxy server, boot, and automatically join the platform cluster.
+
+
+# Manually generating ePoxy images
+Run the script `manually_generate_images`. This script must be run on a GCE VM
+in the same project you are building for. Make it a powerful VM so that the
+building process happens much more quickly, and since we will be deleting the VM
+as soon as we are done with it, we aren't worried about the cost. n1-standard-8
+is probably good enough. When creating the VM, be sure to give the VM full
+access to all APIs (enable all scopes). When the VM is up and running, copy this
+script to it, edit the variables in the top section to suit your needs then run it.
+```
+$ ./manually_generate_images.sh
+```
+
