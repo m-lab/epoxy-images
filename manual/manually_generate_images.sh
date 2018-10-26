@@ -31,7 +31,8 @@ cd epoxy-images
 # Install Google Cloud SDK
 travis/install_gcloud.sh
 
-# Make the output directory.
+# Make the output directory, removing any existing one first.
+rm -rf output
 mkdir output
 
 # Create the epoxy-images Docker image.
