@@ -16,17 +16,34 @@ DRAC_PASSWORD=${2:?Error provide drac password}
 # Maximum number of times to rety any given iDRAC command before giving up.
 MAX_RETRIES=5
 
+# A small wrapper for idracadm.
 function racadm() {
-    local ip=$1
-    local passwd=$2
-    shift 2
-    idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} $@
+  idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWORD} $@
+}
+
+# iDRAC commands seem to randomly fail for no apparent reason. You try it once
+# and it fails, and the next time if succeeds. This is a small wrapper that
+# will try a command MAX_RETRIES times before giving up and exiting with a
+# debug message.
+function set_retries() {
+  local command=$1
+  local msg=$2
+
+  COUNT=0
+  until racadm "${command}"; do
+    COUNT=$((COUNT + 1))
+    if [[ "${COUNT}" -ge "${MAX_RETRIES}" ]]; then
+      echo "${msg}"
+      exit 1
+    fi
+    sleep 5
+  done
 }
 
 echo "NOTE: you may want to open the virtual console to watch the system boot."
 
 # Stop the server to quiet all systems.
-racadm ${DRAC_IP} ${DRAC_PASSWORD} serveraction powerdown
+racadm serveraction powerdown
 
 sleep 10
 
@@ -51,36 +68,22 @@ sleep 10
 # error.
 MOD_COUNT=0
 
-COUNT=0
-STATUS=$(racadm ${DRAC_IP} ${DRAC_PASSWORD} get nic.nicconfig.1.bootoptionrom)
-if [[ "$?" == "0" ]]; then
-  if ! echo "$STATUS" | grep 'bootoptionrom=Enabled'; then
-    until racadm ${DRAC_IP} ${DRAC_PASSWORD} set nic.nicconfig.1.bootoptionrom Enabled; do
-      COUNT=$((COUNT + 1))
-      if [[ "$COUNT" == "$MAX_RETRIES" ]]; then
-        echo "Max retry count reached for setting BootOptionRom to Enabled."
-        exit 1
-      fi
-      sleep 5
-    done
+STATUS=$(racadm get nic.nicconfig.1.bootoptionrom)
+if [[ "$?" -eq "0" ]]; then
+  if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled'; then
+    set_retries "set nic.nicconfig.1.bootoptionrom Enabled" \
+        "Max retry count reached for setting BootOptionRom to Enabled."
     MOD_COUNT=$((MOD_COUNT + 1))
   fi
 fi
 
 sleep 5
 
-COUNT=0
-STATUS=$(racadm ${DRAC_IP} ${DRAC_PASSWORD} get nic.nicconfig.1.legacybootproto)
-if [[ "$?" == "0" ]]; then
-  if ! echo "$STATUS" | grep 'legacybootproto=PXE'; then
-    until racadm ${DRAC_IP} ${DRAC_PASSWORD} set nic.nicconfig.1.legacybootproto PXE; do
-      COUNT=$((COUNT + 1))
-      if [[ "$COUNT" == "$MAX_RETRIES" ]]; then
-        echo "Max retry count reached for setting LegacyBootProto to PXE."
-        exit 1
-      fi
-      sleep 5
-    done
+STATUS=$(racadm get nic.nicconfig.1.legacybootproto)
+if [[ "$?" -eq "0" ]]; then
+  if ! echo "${STATUS}" | grep 'legacybootproto=PXE'; then
+    set_retries "set nic.nicconfig.1.legacybootproto PXE" \
+        "Max retry count reached for setting LegacyBootProto to PXE."
     MOD_COUNT=$((MOD_COUNT + 1))
   fi
 fi
@@ -89,28 +92,18 @@ sleep 5
 
 # Create the jobqueue entry, then powerup, but only if we actually made any
 # changes.
-if [[ "$MOD_COUNT" > 0 ]]; then
-  racadm ${DRAC_IP} ${DRAC_PASSWORD} jobqueue create NIC.Slot.1-1-1 -r pwrcycle -s TIME_NOW
+if [[ "${MOD_COUNT}" -gt 0 ]]; then
+  racadm jobqueue create NIC.Slot.1-1-1 -r pwrcycle -s TIME_NOW
   # Give the machine a while to powerup and make the BIOS config change. 180
   # seconds is arbitrary, and may be too much, though likely not too little.
   sleep 180
 fi
 
 # Power the machine back down and set the first boot device to be the NIC.
-racadm ${DRAC_IP} ${DRAC_PASSWORD} serveraction powerdown
+racadm serveraction powerdown
 
 sleep 5
 
-# This command sometimes fails for no apparent reason. Try it a few times before
-# giving up.
-COUNT=0
-until racadm ${DRAC_IP} ${DRAC_PASSWORD} set bios.biosbootsettings.bootseq NIC.Slot.1-1-1; do
-  COUNT=$((COUNT + 1))
-  if [[ "$COUNT" == "$MAX_RETRIES" ]]; then
-    echo "Max retry count reached for setting first boot device as NIC."
-    exit 1
-  fi
-  sleep 5
-done
-
-racadm ${DRAC_IP} ${DRAC_PASSWORD} jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW
+set_retries "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1" \
+    "Max retry count reached for setting first boot device as NIC."
+racadm jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW
