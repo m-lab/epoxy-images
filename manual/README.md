@@ -3,19 +3,6 @@
 NOTE: The Java Virtual Console Applet no longer works. Instead, we mount the
 virtual media locally and use the HTML5 Virtual Console.
 
-Outline of steps:
-
-* Register node with ePoxy server.
-* Download Mellanox ROM update ISO from GCS.
-* Turn off IP-blocking on the iDRAC.
-* Build the epoxy-racadm image.
-* Run the epoxy-racadm image to set node to boot from NIC.
-* Run the epoxy-racadm container to update Mellanox ROM.
-* Start a virtual console to the node.
-* Run Mellanox ROM update from virtual console.
-* Reboot the machine.
-
-
 ## Register Machine with ePoxy Server
 On first boot, the ipxe firmware will try to contact the ePoxy server but the
 request will be rejected with a "Not Found" error until the machine is
@@ -39,8 +26,8 @@ go get -u google.golang.org/grpc/health/grpc_health_v1
 To add custom boot or update stage targets, see the help text.
 
 ## Download the Mellanox ROM update ISO(s)
-Mellanox ROM update ISOs are created by a separate process (by Travis-CI builds,
-currently). Before you start this process, download the ISO for the machine in
+Mellanox ROM update ISOs are created by a separate process, and uploaded to a
+GCS bucket. Before you start this process, download the ISO for the machine in
 question from GCS. Images are stored in GCS in this bucket:
 ```
 epoxy-<project>/stage3_mlxupdate_iso
@@ -62,9 +49,9 @@ docker build -t epoxy-racadm .
 ```
 
 ## Run the epoxy-racadm image to set node to boot from NIC
-Run the epoxy-racadm container to configure the node to boot from the NIC. When
-this script has finished running, the machine _should_ be configured to boot
-from the NIC first, but keep your eye on the terminal output for errors because
+Run the epoxy-racadm image to configure the node to boot from the NIC. When this
+script has finished running, the machine _should_ be configured to boot from the
+NIC first, but keep your eye on the terminal output for errors because
 configuring iDRACs is seemingly flaky and unstable.
 ```
 docker run --rm --volume $PWD:/scripts -it epoxy-racadm \
@@ -72,7 +59,7 @@ docker run --rm --volume $PWD:/scripts -it epoxy-racadm \
 ```
 
 ## Run the epoxy-racadm container to update Mellanox ROM
-Run the epoxy-racadm container with a Mellanox ROM update ISO image, for
+Run the epoxy-racadm image with a Mellanox ROM update ISO image, for
 example, in ~/Downloads (use whichever directory your ISO image resides in).
 ```
 docker run --rm --volume ~/Downloads:/images --volume $PWD:/scripts -it epoxy-racadm \
@@ -100,16 +87,16 @@ First-time updates are not yet automated. So, login in as `root` and run:
 If everything has gone correctly, the machine will boot from the NIC, contact
 the ePoxy server, boot, and automatically join the platform cluster.
 
-
 # Manually generating ePoxy images
-Run the script `manually_generate_images`. This script must be run on a GCE VM
-in the same project you are building for. Make it a powerful VM so that the
-building process happens much more quickly, and since we will be deleting the VM
-as soon as we are done with it, we aren't worried about the cost. n1-standard-8
-is probably good enough. When creating the VM, be sure to give the VM full
-access to all APIs (enable all scopes). When the VM is up and running, copy this
-script to it, edit the variables in the top section to suit your needs then run it.
+To manually generate ePoxy images, you can run the script in this directory
+named `manually_generate_images`. This script must be run on a GCE VM in the
+same project you are building for. Make it a powerful VM so that the building
+process happens much more quickly, and since we will be deleting the VM as soon
+as we are done with it, we aren't worried about the cost. n1-standard-8 is
+probably good enough. When creating the VM, be sure to give the VM full access
+to all APIs. When the VM is up and running, copy this script to it, edit the
+variables in the top section to suit your needs then run it. Specifically, you
+will surely want to change $PROJECT and $NODE\_REGEXP.
 ```
 $ ./manually_generate_images.sh
 ```
-
