@@ -6,6 +6,17 @@
 
 OUTPUT=${1:?Please provide the name for writing config file}
 
+# TODO: Modify ePoxy to recognize both IPv4 and IPv6 addresses when
+# authenticating requests from nodes. For nodes in an environment where an
+# upstream device may have IPv6 autoconfiguration/discovery turned on, the node
+# may get an autoconf address which is not the one we use for the node.
+# Additionally, when we finally configure IPv6 on nodes, if ePoxy is not
+# configured to recognize both IPv4 and IPv6 addresses, then requests from
+# legitimate nodes from IPv6 addresses will fail.
+#
+# Disable IPv6 autoconf.
+echo "0" > /proc/sys/net/ipv6/conf/all/autoconf
+
 # Extract the epoxy.ip= parameter from /proc/cmdline.
 #
 # For example:
