@@ -24,7 +24,7 @@
             "epoxy.project={{kargs `epoxy.project`}}",
             "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest"
          ],
-         "cmdline" : "net.ifnames=0 coreos.autologin=tty1"
+         "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },
       "commands" : [
          "# Run kexec using the downloaded initram and vmlinuz files.",

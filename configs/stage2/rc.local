@@ -26,6 +26,9 @@ function setup_network() {
   )
   ifconfig eth0
 
+  # TODO: Remove this once ePoxy server supports IPV6.
+  # Disables IPv6.
+  echo "1" > /proc/sys/net/ipv6/conf/all/disable_ipv6
 }
 
 
