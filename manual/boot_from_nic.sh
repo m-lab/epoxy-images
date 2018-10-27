@@ -25,7 +25,7 @@ function racadm() {
 # and it fails, and the next time if succeeds. This is a small wrapper that
 # will try a command MAX_RETRIES times before giving up and exiting with a
 # debug message.
-function set_retries() {
+function retry_racadm() {
   local command=$1
   local msg=$2
 
@@ -71,7 +71,7 @@ MOD_COUNT=0
 STATUS=$(racadm get nic.nicconfig.1.bootoptionrom)
 if [[ "$?" -eq "0" ]]; then
   if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled'; then
-    set_retries "set nic.nicconfig.1.bootoptionrom Enabled" \
+    retry_racadm "set nic.nicconfig.1.bootoptionrom Enabled" \
         "Max retry count reached for setting BootOptionRom to Enabled."
     MOD_COUNT=$((MOD_COUNT + 1))
   fi
@@ -82,7 +82,7 @@ sleep 5
 STATUS=$(racadm get nic.nicconfig.1.legacybootproto)
 if [[ "$?" -eq "0" ]]; then
   if ! echo "${STATUS}" | grep 'legacybootproto=PXE'; then
-    set_retries "set nic.nicconfig.1.legacybootproto PXE" \
+    retry_racadm "set nic.nicconfig.1.legacybootproto PXE" \
         "Max retry count reached for setting LegacyBootProto to PXE."
     MOD_COUNT=$((MOD_COUNT + 1))
   fi
@@ -104,6 +104,6 @@ racadm serveraction powerdown
 
 sleep 5
 
-set_retries "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1" \
+retry_racadm "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1" \
     "Max retry count reached for setting first boot device as NIC."
 racadm jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW
