@@ -104,6 +104,6 @@ racadm serveraction powerdown
 
 sleep 5
 
-retry_racadm "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1" \
+retry_racadm "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1,Optical.SATAEmbedded.J-1" \
     "Max retry count reached for setting first boot device as NIC."
 racadm jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW
