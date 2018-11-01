@@ -27,14 +27,21 @@ function racadm() {
 # debug message.
 function retry_racadm() {
   local command=$1
+  local count=0
   local msg=$2
 
-  COUNT=0
   until racadm "${command}"; do
-    COUNT=$((COUNT + 1))
-    if [[ "${COUNT}" -ge "${MAX_RETRIES}" ]]; then
-      echo "${msg}"
-      exit 1
+    count=$((count + 1))
+    if [[ "${count}" -ge "${MAX_RETRIES}" ]]; then
+      # Try resetting the iDRAC, then try MAX_RETRIES again.
+      if [[ -z "${FINAL_ATTEMPT}" ]]; then
+        count=0
+        sleep 120
+        FINAL_ATTEMPT="yes"
+      else
+        echo "${msg}"
+        exit 1
+      fi
     fi
     sleep 5
   done
@@ -93,7 +100,8 @@ sleep 5
 # Create the jobqueue entry, then powerup, but only if we actually made any
 # changes.
 if [[ "${MOD_COUNT}" -gt 0 ]]; then
-  racadm jobqueue create NIC.Slot.1-1-1 -r pwrcycle -s TIME_NOW
+  retry_racadm "jobqueue create NIC.Slot.1-1-1 -r pwrcycle -s TIME_NOW" \
+      "Max retry count reached for setting NIC.Slot.1-1-1 jobqueue job."
   # Give the machine a while to powerup and make the BIOS config change. 180
   # seconds is arbitrary, and may be too much, though likely not too little.
   sleep 180
@@ -106,4 +114,5 @@ sleep 5
 
 retry_racadm "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1,Optical.SATAEmbedded.J-1" \
     "Max retry count reached for setting first boot device as NIC."
-racadm jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW
+retry_racadm "jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW" \
+    "Max retry count reached for creating BIOS.Setup.1-1 jobqueue job."
