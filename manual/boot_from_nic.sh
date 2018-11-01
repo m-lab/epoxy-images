@@ -27,18 +27,17 @@ function racadm() {
 # debug message.
 function retry_racadm() {
   local command=$1
+  local count=0
   local msg=$2
 
-  COUNT=0
   until racadm "${command}"; do
-    COUNT=$((COUNT + 1))
-    if [[ "${COUNT}" -ge "${MAX_RETRIES}" ]]; then
-      # Try resetting the iDRAC, then try the command again.
+    count=$((count + 1))
+    if [[ "${count}" -ge "${MAX_RETRIES}" ]]; then
+      # Try resetting the iDRAC, then try MAX_RETRIES again.
       if [[ -z "${FINAL_ATTEMPT}" ]]; then
-        racadm racreset
+        count=0
         sleep 120
         FINAL_ATTEMPT="yes"
-        retry_racadm "$command" "$msg"
       else
         echo "${msg}"
         exit 1
