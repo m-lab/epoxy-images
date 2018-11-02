@@ -15,6 +15,7 @@ OUTPUT=${1:?Please provide the name for writing config file}
 # legitimate nodes from IPv6 addresses will fail.
 #
 # Disable IPv6 autoconf.
+echo "0" > /proc/sys/net/ipv6/conf/all/accept_ra
 echo "0" > /proc/sys/net/ipv6/conf/all/autoconf
 
 # Extract the epoxy.ip= parameter from /proc/cmdline.
