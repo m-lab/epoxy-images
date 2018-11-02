@@ -50,4 +50,5 @@ Address=$IPV4ADDR/26
 Gateway=$GATEWAY
 DNS=$DNS1
 DNS=$DNS2
+IPv6AcceptRA=no
 EOF
