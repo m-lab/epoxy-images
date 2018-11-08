@@ -28,18 +28,24 @@ function racadm() {
 function retry_racadm() {
   local command=$1
   local count=0
+  local final_attempt="no"
   local msg=$2
 
   until racadm "${command}"; do
     count=$((count + 1))
     if [[ "${count}" -ge "${MAX_RETRIES}" ]]; then
-      # Try resetting the iDRAC, then try MAX_RETRIES again.
-      if [[ -z "${FINAL_ATTEMPT}" ]]; then
+      # Try rebooting the machine and resetting the iDRAC, then try MAX_RETRIES
+      # again.
+      if [[ "${final_attempt}" == "no" ]]; then
         count=0
-        sleep 120
-        FINAL_ATTEMPT="yes"
+        racadm serveraction powercycle
+        racadm racreset hard -f
+        sleep 240
+        final_attempt="yes"
       else
         echo "${msg}"
+        # Make sure the machine is powered up before we exit.
+        racadm serveraction powerup
         exit 1
       fi
     fi
@@ -51,6 +57,19 @@ echo "NOTE: you may want to open the virtual console to watch the system boot."
 
 # Stop the server to quiet all systems.
 racadm serveraction powerdown
+
+sleep 10
+
+# Get the NIC #1's BIOS key
+OUTPUT=$(racadm get nic.nicconfig.1)
+NIC_BIOS_KEY=$(echo "${OUTPUT}" | egrep -o 'NIC\.Slot\.[0-9]{1}-[0-9]{1}-[0-9]{1}')
+
+# Delete any existing jobs, first gently, then forcibly.
+racadm jobqueue delete --all
+
+sleep 5
+
+racadm jobqueue delete -i JID_CLEARALL_FORCE
 
 sleep 10
 
@@ -77,7 +96,8 @@ MOD_COUNT=0
 
 STATUS=$(racadm get nic.nicconfig.1.bootoptionrom)
 if [[ "$?" -eq "0" ]]; then
-  if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled'; then
+  if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled' && \
+      ! echo "${STATUS}" | grep ERROR; then
     retry_racadm "set nic.nicconfig.1.bootoptionrom Enabled" \
         "Max retry count reached for setting BootOptionRom to Enabled."
     MOD_COUNT=$((MOD_COUNT + 1))
@@ -88,7 +108,8 @@ sleep 5
 
 STATUS=$(racadm get nic.nicconfig.1.legacybootproto)
 if [[ "$?" -eq "0" ]]; then
-  if ! echo "${STATUS}" | grep 'legacybootproto=PXE'; then
+  if ! echo "${STATUS}" | grep 'legacybootproto=PXE' && \
+      ! echo "${STATUS}" | grep ERROR; then
     retry_racadm "set nic.nicconfig.1.legacybootproto PXE" \
         "Max retry count reached for setting LegacyBootProto to PXE."
     MOD_COUNT=$((MOD_COUNT + 1))
@@ -100,8 +121,8 @@ sleep 5
 # Create the jobqueue entry, then powerup, but only if we actually made any
 # changes.
 if [[ "${MOD_COUNT}" -gt 0 ]]; then
-  retry_racadm "jobqueue create NIC.Slot.1-1-1 -r pwrcycle -s TIME_NOW" \
-      "Max retry count reached for setting NIC.Slot.1-1-1 jobqueue job."
+  retry_racadm "jobqueue create $NIC_BIOS_KEY -r pwrcycle -s TIME_NOW" \
+      "Max retry count reached for setting ${NIC_BIOS_KEY} jobqueue job."
   # Give the machine a while to powerup and make the BIOS config change. 180
   # seconds is arbitrary, and may be too much, though likely not too little.
   sleep 180
@@ -112,7 +133,10 @@ racadm serveraction powerdown
 
 sleep 5
 
-retry_racadm "set bios.biosbootsettings.bootseq NIC.Slot.1-1-1,Optical.SATAEmbedded.J-1" \
+retry_racadm "set bios.biosbootsettings.bootseq $NIC_BIOS_KEY,Optical.SATAEmbedded.J-1" \
     "Max retry count reached for setting first boot device as NIC."
+
+sleep 5
+
 retry_racadm "jobqueue create BIOS.Setup.1-1 -r pwrcycle -s TIME_NOW" \
     "Max retry count reached for creating BIOS.Setup.1-1 jobqueue job."
