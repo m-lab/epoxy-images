@@ -8,18 +8,14 @@ set -e
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
-USAGE="$0 <build_dir> <output_dir> <config_dir>"
-BUILD_DIR=${1:?Please specify a build directory: $USAGE}
-EPOXY_CLIENT=${2:?Please specify the path to the epoxy client binary: $USAGE}
-CONFIG_DIR=${3:?Please specify a configuration directory: $USAGE}
-OUTPUT_DIR=${4:?Please specify an output directory: $USAGE}
+USAGE="$0 <epoxy-client> <output_file>"
+EPOXY_CLIENT=${1:?Please specify the path to the epoxy client binary: $USAGE}
+OUTPUT_FILE=${2:?Please specify an output file: $USAGE}
 
-# TODO: implement bootstrapfs build.
-#
-# Steps:
-# * make tmp dir
-# * create dir tree
-# * copy epoxy client to tmpdir
-# * tar bz2 content of tmp dir
-# * copy result to output_dir
-
+# Create a custom bootstrapfs.
+output=$( mktemp -d -t build-bootstrapfs.XXXXX )
+mkdir -p ${output}/{etc,usr/bin,boot}
+install -D -m 755 "${EPOXY_CLIENT}" "${output}/epoxy_client"
+tar -C "${output}" -jcvf "${OUTPUT_FILE}" .
+cat "${OUTPUT_FILE}" | shasum > "${OUTPUT_FILE}".sha1sum
+rm -rf "${output}"
