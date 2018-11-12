@@ -80,3 +80,8 @@ ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
 ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
   ${SOURCE_DIR}/output/stage1_mlxrom/*/* \
   ${BUCKET}/stage1_mlxrom/latest/
+
+# Deploy the stage1 custom bootstrapfs for the modified PlanetLab bootmanager.
+${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
+  ${SOURCE_DIR}/output/bootstrapfs-MeasurementLabUpdate.tar.bz2* \
+  ${BUCKET}/stage1_bootstrapfs/
