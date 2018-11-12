@@ -197,6 +197,7 @@ function copy_roms_to_output() {
   local build_dir=$1
   local output_dir=$2
 
+  mkdir -p "${output_dir}"
   # Copy files to output.
   rsync -ar "${build_dir}" "${output_dir}"
   # Assure that the output files are readable.
