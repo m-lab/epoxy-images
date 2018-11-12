@@ -71,7 +71,7 @@ steps:
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform',
     'cp', '-r', '/workspace/output/stage1_mlxrom/*',
-    'gs://soltesz-$PROJECT_ID/stage1_mlxrom/'
+    'gs://epoxy-$PROJECT_ID/stage1_mlxrom/'
   ]
 
 # stage3_coreos.
@@ -84,7 +84,7 @@ steps:
     '/workspace/output/coreos_production_pxe.vmlinuz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_coreos/*.json',
-    'gs://soltesz-$PROJECT_ID/stage3_coreos/'
+    'gs://epoxy-$PROJECT_ID/stage3_coreos/'
   ]
 
 # stage3_mlxupdate.
@@ -97,5 +97,5 @@ steps:
     '/workspace/output/initramfs_stage3_mlxupdate.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_mlxupdate/*.json',
-    'gs://soltesz-$PROJECT_ID/stage3_mlxupdate/'
+    'gs://epoxy-$PROJECT_ID/stage3_mlxupdate/'
   ]
