@@ -172,12 +172,6 @@ function build_roms() {
     pushd ${flexboot_src}
       # TODO: select image type more intelligently.
       for device in ConnectX-3.mrom ConnectX-3Pro.mrom ; do
-        # Note: this is currently very inefficient.
-        # The flexboot build scripts do not detect that the embedded script
-        # has changed, so we must start over.
-        # TODO: regenerate only the embedded image to speed up builds.
-        make clean; rm -rf bin
-
         extra_cflags="$( get_extra_flags $device $version )"
 
         # The generated ROM file is the device name.
@@ -225,8 +219,11 @@ DEBUG=
 # Embedded ROM image.
 # VERSION=3.4.800
 
+FLEXDIR=$( mktemp -d -t flexboot.XXXXXX )
+SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
+
 prepare_flexboot_source \
-    ${BUILD_DIR} \
+    ${FLEXDIR} \
     ${CONFIG_DIR} \
     ${SOURCE_DIR}/vendor/flexboot-20160705.tar.gz \
     flexboot
@@ -235,15 +232,18 @@ generate_stage1_ipxe_scripts \
     ${BUILD_DIR} \
     ${CONFIG_DIR} \
     "${HOSTNAMES}" \
-    ${BUILD_DIR}/stage1_scripts
+    "${SCRIPTDIR}"
 
 build_roms \
-    ${BUILD_DIR}/flexboot/src \
-    ${BUILD_DIR}/stage1_scripts \
+    ${FLEXDIR}/flexboot/src \
+    "${SCRIPTDIR}" \
     "${ROM_VERSION}" \
     "${DEBUG}" \
     "${CERTS}" \
-    ${BUILD_DIR}/stage1_mlxrom
+    "${BUILD_DIR}/stage1_mlxrom"
+
+rm -rf "${SCRIPTDIR}"
+rm -rf "${FLEXDIR}"
 
 copy_roms_to_output \
     ${BUILD_DIR}/stage1_mlxrom/ \
