@@ -164,15 +164,19 @@ function build_roms() {
   local extra_cflags=
   local procs=`getconf _NPROCESSORS_ONLN`
 
-  for stage1 in `ls ${stage1_config_dir}/*.ipxe` ; do
-    # Extract the hostname from the filename.
-    hostname=${stage1##*stage1-}
-    hostname=${hostname%%.ipxe}
+  for device in ConnectX-3.mrom ConnectX-3Pro.mrom ; do
 
+    extra_cflags="$( get_extra_flags $device $version )"
     pushd ${flexboot_src}
-      # TODO: select image type more intelligently.
-      for device in ConnectX-3.mrom ConnectX-3Pro.mrom ; do
-        extra_cflags="$( get_extra_flags $device $version )"
+      # NOTE: clean the build environment between devices. Without resetting,
+      # ROMs for the ConnectX-3Pro have the wrong device ID.
+      make clean
+      rm -rf bin
+
+      for stage1 in `ls ${stage1_config_dir}/*.ipxe` ; do
+        # Extract the hostname from the filename.
+        hostname=${stage1##*stage1-}
+        hostname=${hostname%%.ipxe}
 
         # The generated ROM file is the device name.
         make -j ${procs} bin/${device} \
@@ -187,9 +191,9 @@ function build_roms() {
         cp bin/${device} ${rom_output_dir}/${version}/${device%%.mrom}/${hostname}.mrom
       done
     popd
-    # Remove old files to prevent regenerating ROMs during multiple builds.
-    rm -f ${stage1}
   done
+  # Remove old files to prevent regenerating ROMs during multiple builds.
+  rm -f ${stage1_config_dir}/*.ipxe
 }
 
 
