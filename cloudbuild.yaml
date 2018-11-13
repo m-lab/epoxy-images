@@ -55,9 +55,11 @@ steps:
    - 'COREOS_VERSION=1855.4.0'
 
 # stage3_mlxupdate images.
+# NOTE: all project cloudbuild service accounts must be granted READ access to
+# the vendor-mlab-oti bucket.
 - name: gcr.io/cloud-builders/gsutil
   args: [
-    'cp', 'gs://vendor-mlab-sandbox/mft-4.4.0-44.tgz', '/workspace/vendor'
+    'cp', 'gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz', '/workspace/vendor'
   ]
 - name: epoxy-images-builder
   args: [
