@@ -164,21 +164,19 @@ function build_roms() {
   local extra_cflags=
   local procs=`getconf _NPROCESSORS_ONLN`
 
-  for stage1 in `ls ${stage1_config_dir}/*.ipxe` ; do
-    # Extract the hostname from the filename.
-    hostname=${stage1##*stage1-}
-    hostname=${hostname%%.ipxe}
+  for device in ConnectX-3.mrom ConnectX-3Pro.mrom ; do
 
+    extra_cflags="$( get_extra_flags $device $version )"
     pushd ${flexboot_src}
-      # TODO: select image type more intelligently.
-      for device in ConnectX-3.mrom ConnectX-3Pro.mrom ; do
-        # Note: this is currently very inefficient.
-        # The flexboot build scripts do not detect that the embedded script
-        # has changed, so we must start over.
-        # TODO: regenerate only the embedded image to speed up builds.
-        make clean; rm -rf bin
+      # NOTE: clean the build environment between devices. Without resetting,
+      # ROMs for the ConnectX-3Pro have the wrong device ID.
+      make clean
+      rm -rf bin
 
-        extra_cflags="$( get_extra_flags $device $version )"
+      for stage1 in `ls ${stage1_config_dir}/*.ipxe` ; do
+        # Extract the hostname from the filename.
+        hostname=${stage1##*stage1-}
+        hostname=${hostname%%.ipxe}
 
         # The generated ROM file is the device name.
         make -j ${procs} bin/${device} \
@@ -193,9 +191,9 @@ function build_roms() {
         cp bin/${device} ${rom_output_dir}/${version}/${device%%.mrom}/${hostname}.mrom
       done
     popd
-    # Remove old files to prevent regenerating ROMs during multiple builds.
-    rm -f ${stage1}
   done
+  # Remove old files to prevent regenerating ROMs during multiple builds.
+  rm -f ${stage1_config_dir}/*.ipxe
 }
 
 
@@ -203,6 +201,7 @@ function copy_roms_to_output() {
   local build_dir=$1
   local output_dir=$2
 
+  mkdir -p "${output_dir}"
   # Copy files to output.
   rsync -ar "${build_dir}" "${output_dir}"
   # Assure that the output files are readable.
@@ -225,8 +224,11 @@ DEBUG=
 # Embedded ROM image.
 # VERSION=3.4.800
 
+FLEXDIR=$( mktemp -d -t flexboot.XXXXXX )
+SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
+
 prepare_flexboot_source \
-    ${BUILD_DIR} \
+    ${FLEXDIR} \
     ${CONFIG_DIR} \
     ${SOURCE_DIR}/vendor/flexboot-20160705.tar.gz \
     flexboot
@@ -235,15 +237,18 @@ generate_stage1_ipxe_scripts \
     ${BUILD_DIR} \
     ${CONFIG_DIR} \
     "${HOSTNAMES}" \
-    ${BUILD_DIR}/stage1_scripts
+    "${SCRIPTDIR}"
 
 build_roms \
-    ${BUILD_DIR}/flexboot/src \
-    ${BUILD_DIR}/stage1_scripts \
+    ${FLEXDIR}/flexboot/src \
+    "${SCRIPTDIR}" \
     "${ROM_VERSION}" \
     "${DEBUG}" \
     "${CERTS}" \
-    ${BUILD_DIR}/stage1_mlxrom
+    "${BUILD_DIR}/stage1_mlxrom"
+
+rm -rf "${SCRIPTDIR}"
+rm -rf "${FLEXDIR}"
 
 copy_roms_to_output \
     ${BUILD_DIR}/stage1_mlxrom/ \
