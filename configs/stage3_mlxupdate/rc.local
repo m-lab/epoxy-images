@@ -56,5 +56,4 @@ setup_network
 
 # Note: the stage3 action should be configured in the epoxy server. The nextboot
 # config returned should probably run /usr/local/util/updaterom.sh
-# TODO: add "&& reboot" once epoxy_client correctly sets exit code.
-/usr/bin/epoxy_client -action epoxy.stage3
+/usr/bin/epoxy_client -action epoxy.stage3 && reboot
