@@ -83,7 +83,7 @@ script:
           &> /images/stage3_mlxupdate.log
         && echo 'Starting ROM & ISO build'
         && /images/setup_stage3_mlxupdate_isos.sh
-            mlab-sandbox /build /images/output 'mlab4.iad1t.*' 3.4.810
+            mlab-sandbox /build /images/output 'mlab4.lga1t.*' 3.4.810
               /images/stage3_mlxupdate_iso.log /images/travis/one_line_per_minute.awk"
         || (tail stage3_mlxupdate.log stage3_mlxupdate_iso.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
