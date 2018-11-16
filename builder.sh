@@ -21,7 +21,7 @@ function stage1_mlxrom() {
 
   ${SOURCE_DIR}/setup_stage1.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
-      "${SOURCE_DIR}/configs/${target}/ipxe-ca.pem"
+      "${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
 
   rm -rf "${builddir}"
 }

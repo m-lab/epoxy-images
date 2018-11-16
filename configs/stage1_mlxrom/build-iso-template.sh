@@ -25,7 +25,7 @@ ${SOURCE_DIR}/setup_stage1.sh \
     "{{project}}" "${BUILD_DIR}" "${OUTPUT_DIR}" \
     ${SOURCE_DIR}/configs/stage1_mlxrom \
     "{{hostname}}" "${ROM_VERSION}" \
-    "${SOURCE_DIR}/configs/stage1_mlxrom/ipxe-ca.pem" 2>&1 \
+    "${SOURCE_DIR}/configs/stage1_mlxrom/gtsgiag3.pem" 2>&1 \
     | tee -a ${LOGFILE} \
     | ${FILTER}
 
