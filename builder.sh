@@ -95,16 +95,15 @@ function stage3_mlxupdate() {
   rm -rf ${builddir}
 }
 
-function stage1_iso() {
+function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local version=${MLXROM_VERSION:?Please define the MLXROM_VERSION to build}
   local regex_name="REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
-  ${SOURCE_DIR}/setup_stage1_iso.sh "${project}" "${builddir}" "${artifacts}" \
+  ${SOURCE_DIR}/setup_stage1_isos.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
 
   rm -rf "${builddir}"
@@ -118,8 +117,8 @@ case "${TARGET}" in
   stage1_bootstrapfs)
       stage1_bootstrapfs
       ;;
-  stage1_iso)
-      stage1_iso
+  stage1_isos)
+      stage1_isos
       ;;
   stage2)
       stage2
