@@ -95,28 +95,31 @@ script:
         /images/output/epoxy_client
         /images/output/bootstrapfs-MeasurementLabUpdate.tar.bz2"
 
+# NOTE: Build and Deployment is managed by cloud triggers registered in each
+# GCP project and the steps defined in cloudbuild.yaml
+
 # Deploy steps never trigger on a new Pull Request. Deploy steps will trigger
 # after a merge with matching "on:" conditions.
-deploy:
+#deploy:
 # SANDBOX: before code review for development code in a specific branch.
-- provider: script
-  script:
-      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
-        SERVICE_ACCOUNT_mlab_sandbox gs://epoxy-mlab-sandbox
-  skip_cleanup: true
-  on:
-    repo: m-lab/epoxy-images
-    all_branches: true
-    condition: $TRAVIS_BRANCH == sandbox-*
-
-# STAGING: after code review and before QA testing.
-- provider: script
-  script:
-      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
-        SERVICE_ACCOUNT_mlab_staging gs://epoxy-mlab-staging
-  skip_cleanup: true
-  on:
-    repo: m-lab/epoxy-images
-    branch: dev
+#- provider: script
+#  script:
+#      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
+#        SERVICE_ACCOUNT_mlab_sandbox gs://epoxy-mlab-sandbox
+#  skip_cleanup: true
+#  on:
+#    repo: m-lab/epoxy-images
+#    all_branches: true
+#    condition: $TRAVIS_BRANCH == sandbox-*
+#
+## STAGING: after code review and before QA testing.
+#- provider: script
+#  script:
+#      $TRAVIS_BUILD_DIR/deploy_epoxy_components.sh
+#        SERVICE_ACCOUNT_mlab_staging gs://epoxy-mlab-staging
+#  skip_cleanup: true
+#  on:
+#    repo: m-lab/epoxy-images
+#    branch: dev
 
 # PRODUCTION: after code review and after QA tests on staging have passed.
