@@ -1,13 +1,12 @@
 #!/bin/bash
 #
-
 # create-stage1-iso-template.sh is a template for generating shell scripts to
 # create a bootable stage1 ISO image from a suitable stage1 kernel.
-
-# The generated script accepts 
-# machine hostname, IPv4 address and gateway, this script constructs an epoxy
-# network configuration for the kernel command line, which allows standard
-# network scripts to setup the network at boot time.
+#
+# After template values are filled in, the resulting script constructs a kernel
+# command line with epoxy network configuration and stage1 URL and finally
+# generates an ISO image with the stage2_vmlinuz image and the construct kernel
+# cmdline.
 
 set -x
 
@@ -40,9 +39,7 @@ ARGS="net.ifnames=0 "
 ARGS+="epoxy.project={{project}} "
 
 # TODO: Legacy epoxy.ip= format. Remove once canonical form is supported.
-# Note: Strip the netmask and hard code it to /26 instead.
-ARGS+="epoxy.ip={{ip}}::{{gateway}}:255.255.255.192:{{hostname}}:"
-ARGS+="eth0:false:{{dns1}}:8.8.4.4 "
+ARGS+="epoxy.ip={{ip}}::{{gateway}}:255.255.255.192:{{hostname}}:eth0:false:{{dns1}}:8.8.4.4 "
 
 # Canonical epoxy network configuration.
 ARGS+="epoxy.hostname={{hostname}} "
