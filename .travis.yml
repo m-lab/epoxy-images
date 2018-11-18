@@ -68,28 +68,36 @@ script:
 #
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
-# Note: setup_stage3_mlxupdate_isos.sh depends on build artifacts from
-# setup_stage3_mlxupdate.sh in /build. If these are not present,
-# setup_stage3_mlxupdate_isos.sh will fail to generate ISOs.
-#
-# Note: reserve mlab4.lga0t for mlab-sandbox and mlab1-3.lga0t for mlab-staging.
-# TODO: larger sets of per-project images must be built outside of travis.
+# Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
 - time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
         && echo 'Starting stage3_mlxupdate build'
         && /images/setup_stage3_mlxupdate.sh
                 /build /images/output /images/configs/stage3_mlxupdate
                 /images/output/epoxy_client
-          &> /images/stage3_mlxupdate.log
-        && echo 'Starting ROM & ISO build'
-        && /images/setup_stage3_mlxupdate_isos.sh
-            mlab-sandbox /build /images/output 'mlab4.lga1t.*' 3.4.810
-              /images/stage3_mlxupdate_iso.log /images/travis/one_line_per_minute.awk"
-        || (tail stage3_mlxupdate.log stage3_mlxupdate_iso.log && false)
+          &> /images/stage3_mlxupdate.log"
+        || (tail stage3_mlxupdate.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
+# Build a stage1 ROM images for a test machine.
+#
+# Note: because this is only *testing* the build and not deploying the
+# artifacts of the build, the ROM version is fake and does not matter.
+- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
+      bash -c "mkdir -p /build
+        && echo 'Starting stage1_mlxrom build'
+        && /images/setup_stage1.sh mlab-sandbox /build /images/output
+              /images/configs/stage1_mlxrom 'mlab4.lga1t.*' '3.4.111'
+              /images/configs/stage1_mlxrom/gtsgiag3.pem"
 
-# Note: build a skeleton bootstrapfs for the modified PlanetLab bootmanager.
+# Build a stage1 ISO image for a test machine.
+- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
+      bash -c "mkdir -p /build
+        && echo 'Starting stage1_isos build'
+        && /images/setup_stage1_isos.sh mlab-sandbox /build
+              /images/output /images/configs/stage1_isos 'mlab4.lga1t.*'"
+
+# Build a skeleton bootstrapfs for the modified PlanetLab bootmanager.
 - time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
       bash -c "/images/setup_stage1_bootstrapfs.sh
         /images/output/epoxy_client
