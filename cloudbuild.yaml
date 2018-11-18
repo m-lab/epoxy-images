@@ -9,7 +9,7 @@ steps:
 # Fetch all submodules.
 - name: gcr.io/cloud-builders/git
   args: [
-    'submodule', 'update'
+    'submodule', 'update', '--init', '--recursive'
   ]
 
 # Create the image builder for later steps.
