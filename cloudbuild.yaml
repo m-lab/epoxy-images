@@ -6,6 +6,12 @@ timeout: 7200s
 ############################################################################
 
 steps:
+# Fetch all submodules.
+- name: gcr.io/cloud-builders/git
+  args: [
+    'submodule', 'update'
+  ]
+
 # Create the image builder for later steps.
 - name: gcr.io/cloud-builders/docker
   args: [
