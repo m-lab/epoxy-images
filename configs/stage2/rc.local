@@ -84,5 +84,12 @@ dropbear -g
 # Publish ssh host key before running epoxy_client:
 #    --public_ssh_host_key=/etc/dropbear/dropbear_rsa_host_key.pub
 
+# TODO: Find a way to make this unconditional.
 echo "Downloading next stage from ePoxy"
-epoxy_client --action epoxy.stage2
+if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage1 -add-kargs
+elif grep epoxy.stage2 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage2
+else
+  echo "WARNING: unknown or no stage found in /proc/cmdline"
+fi

@@ -90,13 +90,23 @@ function stage3_mlxupdate() {
   echo 'Starting stage3_mlxupdate build'
   ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      ${artifacts}/epoxy_client # &> ${SOURCE_DIR}/stage3_mlxupdate.log
+      ${artifacts}/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log
 
   rm -rf ${builddir}
 }
 
-function stage3_mlxupdate_iso() {
-  # TODO: restructure setup_stage3_mlxupdate_isos.sh
+function stage1_isos() {
+  local target=${TARGET:?Please specify a target configuration name}
+  local project=${PROJECT:?Please specify the PROJECT}
+  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
+  local regex_name="REGEXP_${PROJECT//-/_}"
+
+  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
+
+  ${SOURCE_DIR}/setup_stage1_isos.sh "${project}" "${builddir}" "${artifacts}" \
+      "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
+
+  rm -rf "${builddir}"
   return
 }
 
@@ -107,6 +117,9 @@ case "${TARGET}" in
   stage1_bootstrapfs)
       stage1_bootstrapfs
       ;;
+  stage1_isos)
+      stage1_isos
+      ;;
   stage2)
       stage2
       ;;
@@ -115,9 +128,6 @@ case "${TARGET}" in
       ;;
   stage3_mlxupdate)
       stage3_mlxupdate
-      ;;
-  stage3_mlxupdate_iso)
-      stage3_mlxupdate_iso
       ;;
   *)
       echo "Unknown target: ${TARGET}"

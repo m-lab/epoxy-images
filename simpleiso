@@ -86,8 +86,8 @@ DEFAULT linux
 
 LABEL linux
  KERNEL vmlinuz
- $initramfs_config
  APPEND $boot_params
+ $initramfs_config
 EOF
 
   # Copy isolinux bootloader.
