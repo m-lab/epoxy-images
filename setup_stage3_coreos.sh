@@ -76,7 +76,6 @@ pushd $IMAGEDIR
 
   # Install crictl.
   mkdir -p squashfs-root/bin
-  # TODO: temporarily disable CRI. This is required for k8s versions v1.11+
   CRI_VERSION="v1.12.0"
   wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
   tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C squashfs-root/bin/
@@ -85,9 +84,9 @@ pushd $IMAGEDIR
   # Install the kube* commands.
   # Installation commands adapted from:
   #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-  RELEASE="$(echo v1.12.0 | tee squashfs-root/share/oem/installed_k8s_version.txt)"
+  K8S_RELEASE="$(echo v1.12.3 | tee squashfs-root/share/oem/installed_k8s_version.txt)"
   pushd squashfs-root/bin
-    curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+    curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${K8S_RELEASE}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
 
