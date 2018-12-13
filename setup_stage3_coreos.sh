@@ -18,7 +18,7 @@ CUSTOM=${5:?Please provide the name for a customized initram image: $USAGE}
 #
 # Version of k8s services and cli tools.
 K8S_VERSION=${K8S_VERSION:-v1.12.3}
-# Version of "container registry interface". (Independent of K8S_VERSION)
+# Version of "container runtime interface". (Independent of K8S_VERSION)
 CRI_VERSION=${CRI_VERSION:-v1.12.0}
 # Version of "container networking interface".
 CNI_VERSION=${CNI_VERSION:-v0.7.1}
