@@ -71,7 +71,10 @@ steps:
   env:
    - 'PROJECT=$PROJECT_ID'
    - 'ARTIFACTS=/workspace/output'
-   - 'COREOS_VERSION=1855.4.0'
+   - 'COREOS_VERSION=1911.4.0'
+   - 'K8S_VERSION=v1.12.3'
+   - 'CRI_VERSION=v1.12.0'
+   - 'CNI_VERSION=v0.7.1'
 
 # stage3_mlxupdate images.
 # NOTE: all project cloudbuild service accounts must be granted READ access to

@@ -12,7 +12,7 @@
 #    the target branch matches a supported deployment target.
 
 env:
-- COREOS_VERSION="1855.4.0"
+- COREOS_VERSION="1911.4.0"
 
 services:
 - docker
