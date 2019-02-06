@@ -219,7 +219,7 @@ function copy_roms_to_output() {
 #
 # For example, to debug TLS negotiation using the embedded trusted certificates,
 # I started with these: DEBUG=tls,x509,certstore
-DEBUG=tls,x509:3,certstore
+DEBUG=tls,x509:1,certstore
 
 FLEXDIR=$( mktemp -d -t flexboot.XXXXXX )
 SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
