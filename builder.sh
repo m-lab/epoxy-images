@@ -21,7 +21,10 @@ function stage1_mlxrom() {
 
   ${SOURCE_DIR}/setup_stage1.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
-      "${SOURCE_DIR}/configs/${target}/gtsgiag3.pem,${SOURCE_DIR}/configs/${target}/dst_root_x3.pem,${SOURCE_DIR}/configs/${target}/isrg_root_x1.pem"
+      "${SOURCE_DIR}/configs/${target}/combo.pem"
+
+      # "${SOURCE_DIR}/configs/${target}/gtsgiag3.pem,${SOURCE_DIR}/configs/${target}/dst_root_x3.pem,${SOURCE_DIR}/configs/${target}/isrg_root_x1.pem"
+      #"${SOURCE_DIR}/configs/${target}/gtsgiag3.pem,${SOURCE_DIR}/configs/${target}/dst_root_x3.pem,${SOURCE_DIR}/configs/${target}/isrg_root_x1.pem"
 
   rm -rf "${builddir}"
 }
