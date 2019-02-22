@@ -53,7 +53,6 @@ else
 fi
 
 # ePoxy stage1 URL.
-# TODO: ARGS+="epoxy.stage1=https://boot-api-dot-{{project}}.appspot.com/v1/boot/{{hostname}}/stage1.json"
 ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boot/{{hostname}}/stage1.json"
 
 ${SOURCE_DIR}/simpleiso -x "$ARGS" "${IMAGE_DIR}/stage2_vmlinuz" \
