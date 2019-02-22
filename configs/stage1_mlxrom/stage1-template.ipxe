@@ -1,7 +1,6 @@
 #!ipxe
 
 # Global settings.
-# TODO: set epoxyaddress boot-api-dot-{{project}}.appspot.com
 set epoxyaddress epoxy-boot-api.{{project}}.measurementlab.net:4430
 
 set menu_timeout_ms:int32 5000
