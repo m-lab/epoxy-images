@@ -21,18 +21,14 @@ function stage1_mlxrom() {
 
   # For maximum flexibility, embed the root CA of all projects, as well as a
   # fallback to the Google Internet Authority intermediate cert used for GCS.
-  TRUST_CERTS="${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-sandbox.pem"
-  TRUST_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-staging.pem"
-  TRUST_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-oti.pem"
-  TRUST_CERTS+=",${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
+  TRUSTED_CERTS="${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-sandbox.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-staging.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-oti.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
 
   ${SOURCE_DIR}/setup_stage1.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
-      "${TRUST_CERTS}"
-
-      #"${SOURCE_DIR}/configs/${target}/sandbox-ca-cert.pem,${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
-      #"${SOURCE_DIR}/configs/${target}/gtsgiag3.pem,${SOURCE_DIR}/configs/${target}/dst_root_x3.pem,${SOURCE_DIR}/configs/${target}/isrg_root_x1.pem"
-      #"${SOURCE_DIR}/configs/${target}/gtsgiag3.pem,${SOURCE_DIR}/configs/${target}/dst_root_x3.pem,${SOURCE_DIR}/configs/${target}/isrg_root_x1.pem"
+      "${TRUSTED_CERTS}"
 
   rm -rf "${builddir}"
 }
