@@ -221,9 +221,6 @@ function copy_roms_to_output() {
 # I started with these: DEBUG=tls,x509,certstore
 DEBUG=
 
-# Embedded ROM image.
-# VERSION=3.4.800
-
 FLEXDIR=$( mktemp -d -t flexboot.XXXXXX )
 SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
 

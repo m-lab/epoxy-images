@@ -19,9 +19,16 @@ function stage1_mlxrom() {
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
+  # For maximum flexibility, embed the root CA of all projects, as well as a
+  # fallback to the Google Internet Authority intermediate cert used for GCS.
+  TRUSTED_CERTS="${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-sandbox.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-staging.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-oti.pem"
+  TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
+
   ${SOURCE_DIR}/setup_stage1.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
-      "${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
+      "${TRUSTED_CERTS}"
 
   rm -rf "${builddir}"
 }

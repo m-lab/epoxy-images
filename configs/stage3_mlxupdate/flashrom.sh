@@ -58,7 +58,8 @@ case "${CUR_VERSION}" in
         echo "First ROM update"
     ;;
     *type=PXE*)
-        if [[ ! "${NEW_VERSION}" > "${CUR_VERSION}" ]] ; then
+        # Allow same-version updates, but not lower version updates.
+        if [[ "${NEW_VERSION}" < "${CUR_VERSION}" ]] ; then
             echo "Warning: new ROM version is not greater than current version."
             echo "Taking no action."
             echo "Sleeping $ERROR_DELAY seconds..."
