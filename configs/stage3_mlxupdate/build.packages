@@ -3,3 +3,4 @@ make
 dkms
 linux-headers-generic
 linux-generic
+linux-base
