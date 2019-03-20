@@ -17,11 +17,11 @@ CUSTOM=${5:?Please provide the name for a customized initram image: $USAGE}
 # Default values that callers can override from the environment.
 #
 # Version of k8s services and cli tools.
-K8S_VERSION=${K8S_VERSION:-v1.12.3}
+K8S_VERSION=${K8S_VERSION:-v1.13.4}
 # Version of "container runtime interface". (Independent of K8S_VERSION)
-CRI_VERSION=${CRI_VERSION:-v1.12.0}
+CRI_VERSION=${CRI_VERSION:-v1.13.0}
 # Version of "container networking interface".
-CNI_VERSION=${CNI_VERSION:-v0.7.1}
+CNI_VERSION=${CNI_VERSION:-v0.7.4}
 
 SCRIPTDIR=$( dirname "${BASH_SOURCE[0]}" )
 
