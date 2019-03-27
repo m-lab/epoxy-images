@@ -70,7 +70,7 @@ pushd $IMAGEDIR
 	pushd src/github.com/intel
 	   git clone https://github.com/intel/multus-cni.git
 	   pushd multus-cni
-	     git checkout v3.1
+	     git checkout v3.2
 	   popd
 	popd
   popd
