@@ -97,14 +97,6 @@ pushd $IMAGEDIR
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
 
-  # Create a state directory for the IPAM host-local plugin (which is the IPAM
-  # plugin used by flannel). And create two symlinks to is named after the
-  # names of our two flannel networks. This causes both flannel networks to use
-  # a common state directory to avoid IP assignment conflics for pods.
-  mkdir -p squashfs-root/var/lib/cni/networks/flannel
-  ln -s flannel squashfs-root/var/lib/cni/networks/flannel-conf
-  ln -s flannel squashfs-root/var/lib/cni/networks/flannel-experiment-conf
-
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
       -noappend -always-use-fragments
