@@ -17,11 +17,11 @@ CUSTOM=${5:?Please provide the name for a customized initram image: $USAGE}
 # Default values that callers can override from the environment.
 #
 # Version of k8s services and cli tools.
-K8S_VERSION=${K8S_VERSION:-v1.13.4}
+K8S_VERSION=${K8S_VERSION:-v1.13.5}
 # Version of "container runtime interface". (Independent of K8S_VERSION)
 CRI_VERSION=${CRI_VERSION:-v1.13.0}
 # Version of "container networking interface".
-CNI_VERSION=${CNI_VERSION:-v0.7.4}
+CNI_VERSION=${CNI_VERSION:-v0.7.5}
 
 SCRIPTDIR=$( dirname "${BASH_SOURCE[0]}" )
 
@@ -96,6 +96,14 @@ pushd $IMAGEDIR
     curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/"${K8S_VERSION}"/bin/linux/amd64/{kubeadm,kubelet,kubectl}
     chmod 755 {kubeadm,kubelet,kubectl}
   popd
+
+  # Create a state directory for the IPAM host-local plugin (which is the IPAM
+  # plugin used by flannel). And create two symlinks to is named after the
+  # names of our two flannel networks. This causes both flannel networks to use
+  # a common state directory to avoid IP assignment conflics for pods.
+  mkdir -p squashfs-root/var/lib/cni/networks/flannel
+  ln -s flannel squashfs-root/var/lib/cni/networks/flannel-conf
+  ln -s flannel squashfs-root/var/lib/cni/networks/flannel-experiment-conf
 
   # Rebuild the squashfs and cpio image.
   mksquashfs squashfs-root initrd-contents/usr.squashfs \
