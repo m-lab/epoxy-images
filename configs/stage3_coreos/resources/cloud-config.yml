@@ -108,7 +108,7 @@ coreos:
         What=/dev/disk/by-label/cache-data
         Where=/cache/data
         Type=xfs
-        Options=defaults
+        Options=defaults,prjquota
 
         [Install]
         RequiredBy=docker.service
