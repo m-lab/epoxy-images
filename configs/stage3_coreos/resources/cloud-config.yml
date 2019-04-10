@@ -61,22 +61,19 @@ coreos:
         # Clear any remaining LVM configs from prior installations.
         ExecStart=/usr/sbin/dmsetup remove_all --force
 
-        # For a 500GB disk, this is roughly:
-        #  * 250G for experiment data.
-        #  * 150G for core experiment data.
+        # For a 1TB disk, this is roughly:
+        #  * 900G for core and experiment data.
         #  * 100G for docker image cache.
         # Note: systemd translates double percent (%%) to a single percent.
         ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
             mklabel gpt \
-            mkpart data ext4 0%% 50%% \
-            mkpart core ext4 50%% 80%% \
-            mkpart docker ext4 80%% 100%%
+            mkpart data xfs 0%% 90%% \
+            mkpart docker xfs 90%% 100%%
 
         # Format and label each partition.
         # Note: the labels could make the formatting conditional in the future.
-        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-data /dev/sda1
-        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-core /dev/sda2
-        ExecStart=/usr/sbin/mke2fs -t ext4 -F -L cache-docker /dev/sda3
+        ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
+        ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
 
     # Mount /cache/docker.
     - name: cache-docker.mount
@@ -110,25 +107,6 @@ coreos:
         [Mount]
         What=/dev/disk/by-label/cache-data
         Where=/cache/data
-        Type=ext4
-        Options=defaults
-
-        [Install]
-        RequiredBy=docker.service
-
-    # Mount /cache/core.
-    - name: cache-core.mount
-      enable: true
-      content: |
-        [Unit]
-        Description=Mount Core Experiment Data Volume
-        Before=docker.service
-        After=format-cache.service
-        Requires=format-cache.service
-
-        [Mount]
-        What=/dev/disk/by-label/cache-core
-        Where=/cache/core
         Type=ext4
         Options=defaults
 
@@ -172,3 +150,4 @@ users:
     groups: ["sudo"]
     ssh-authorized-keys:
       - "command=\"sudo /usr/bin/systemctl reboot -i\" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd/MjyFiDvvw9IR6crFgFnLtZT4pQw6Pjv9jSs7XKasgsnr8dTjLSb91sYPqKpz2CHpcHJfYtqFZvNePR44BEQ/Pf9DcS9ico1OXOunkqC3L9mw6MaPE5b5GjatP0eXGPcDUdKhDCsL43PjEs8hJ+/hTrDrv1qE/dDYpfsnIVcSj3Zd+uOd+c+RY8MPzaRytYlaFytT/R8R4X8aC9xYCLzcPQ8XIgVUGscwI6WhiFCCiU2sffeeNPzcoRJ9T+P2j6LQSbS1P8Clg89BdYucRCcKWED3lVQ9v6tC6Y8xaGeaEEyB7+B5p8EoIYRu90idrPVSjSsjBYP1UUdo2h7R+VH reboot-api@"
+
