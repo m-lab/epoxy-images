@@ -43,6 +43,27 @@ coreos:
             Requires=cache-docker.mount
             After=cache-docker.mount
 
+    - name: mlab-set-quotas.service
+      content: |
+        [Unit]
+        Description=Configures quotas for M-Lab experiment data directories.
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/share/oem/mlab_set_quotas.sh /etc/mlab_quotas /cache/data
+
+    - name: mlab-set-quotas.timer
+      command: "start"
+      content: |
+        [Unit]
+        Description=Runs mlab-set-quotas.service every 15 minutes.
+
+        [Timer]
+        OnCalendar=*:0/15
+
+        [Install]
+        WantedBy=multi-user.target
+
     # Format the /cache volumes using /dev/sda.
     - name: format-cache.service
       command: start
