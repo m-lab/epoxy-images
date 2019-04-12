@@ -11,14 +11,18 @@
 # having removed something by simply rebooting the platform node, which will
 # reformat the data mount, wiping out all accounting data with it.  From there
 # you can start fresh.
+#
+# For the reasoning on why you see "sleep 0.1" before echo commands see:
+# https://github.com/systemd/systemd/issues/2913
 
 USAGE="$0 <config-file-path> <data-mount-path>"
-CONFIG=${1:?Please provide a config file path: $USAGE}}
+CONFIG=${1:?Please provide a config file path: $USAGE}
 DATA_MOUNT=${2:?Please provide a data mount path: $USAGE}
 CONFIG_CACHED="/tmp/mlab_quotas"
 
 if [[ ! -f "${CONFIG}" ]]; then
   echo "${CONFIG} does not exist. Exiting."
+  sleep 0.1
   exit 0
 fi
 
@@ -30,6 +34,7 @@ if [[ ! -f "${CONFIG_CACHED}" ]]; then
 else
   if diff "${CONFIG}" "${CONFIG_CACHED}" > /dev/null; then
     echo "Quota configuration file has not changed. Exiting."
+    sleep 0.1
     exit 0
   fi
 fi
@@ -52,6 +57,7 @@ while IFS=: read -r -a line; do
   # a valid configuration.
   if [[ "${#line[@]}" -ne "3" ]]; then
     echo "Incorrect format in line '${line[@]}'. Skipping."
+    sleep 0.1
     continue
   fi
 
@@ -79,6 +85,7 @@ while IFS=: read -r -a line; do
       "${DATA_MOUNT}" > /dev/null
 
   echo "Set quota for experiment ${project_name} to ${project_quota}."
+  sleep 0.1
 
 done < "${CONFIG}"
 
