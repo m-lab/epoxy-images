@@ -2,7 +2,7 @@
 
 write_files:
 
-# Purpose: make sure TCP BBR is available for ndt7 et al.
+# Purpose: make sure TCP BBR is loaded for ndt7 et al.
 - content: tcp_bbr
   permissions: '0644'
   owner: root:root
