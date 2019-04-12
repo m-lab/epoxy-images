@@ -3,10 +3,10 @@
 write_files:
 
 # Purpose: make sure TCP BBR is loaded for ndt7 et al.
-- content: tcp_bbr
-  permissions: '0644'
+- path: /etc/modules-load.d/bbr.conf
   owner: root:root
-  path: /etc/modules-load.d/bbr.conf
+  permissions: '0644'
+  content: tcp_bbr
 
 coreos:
   # TODO: during the image customization process, consider adding custom
