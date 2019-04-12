@@ -61,13 +61,11 @@ while IFS=: read -r -a line; do
     continue
   fi
 
-  for v in "${line[@]}"; do
-    project_id="${line[0]}"
-    project_name="${line[1]}"
-    project_quota="${line[2]}"
-  done
+  project_id="${line[0]}"
+  project_name="${line[1]}"
+  project_quota="${line[2]}"
 
-  # The full path do the experiment's data directory.
+  # The full path to the experiment's data directory.
   project_dir="${DATA_MOUNT}/$project_name"
 
   # Append to /etc/projects and /etc/projid.
