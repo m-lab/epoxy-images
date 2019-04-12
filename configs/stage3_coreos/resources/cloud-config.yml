@@ -1,5 +1,14 @@
 #cloud-config
 
+storage:
+  files:
+    # Purpose: make sure TCP BBR is available for ndt7 et al.
+    - path: /etc/modules-load.d/bbr.conf
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: tcp_bbr
+
 coreos:
   # TODO: during the image customization process, consider adding custom
   # network handling units directly instead of this approach.
