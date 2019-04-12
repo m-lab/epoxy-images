@@ -1,7 +1,6 @@
 | Branch | Status |
 |--------|--------|
 | master | [![Build Status](https://travis-ci.org/m-lab/epoxy-images.svg?branch=master)](https://travis-ci.org/m-lab/epoxy-images) |
-| dev | [![Build Status](https://travis-ci.org/m-lab/epoxy-images.svg?branch=dev)](https://travis-ci.org/m-lab/epoxy-images) |
 
 # epoxy-images
 
