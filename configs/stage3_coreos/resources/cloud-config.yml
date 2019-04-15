@@ -150,6 +150,16 @@ coreos:
         Type=oneshot
         ExecStart=/usr/share/oem/setup_after_boot.sh
 
+    - name: enable-bbr.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Enable tcp_bbr module.
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/sbin/modprobe tcp_bbr
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
