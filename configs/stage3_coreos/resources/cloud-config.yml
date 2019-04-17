@@ -144,7 +144,7 @@ coreos:
         # Both directives are required.
         # It is unclear why Requires= alone is not sufficient (but it isn't).
         Requires=network-online.target
-        After=systemd-networkd-wait-online.service format-cache.service
+        After=systemd-networkd-wait-online.service systemd-resolved.service format-cache.service
 
         [Service]
         Type=oneshot
