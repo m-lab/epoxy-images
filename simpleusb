@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# simpleusb generates a UEFI boot image suitable for USB images.
+# simpleusb generates a UEFI boot image suitable for USB media.
 
 set -uex
 
@@ -83,66 +83,57 @@ function make_efi_usb() {
   local usbdir=$1
   local usbfile=$2
   local tmp=$( mktemp --directory )
-
   local raw_size_k=$(
-    du --dereference --summarize  --block-size=1K ${usbdir} \
+    du --dereference --summarize --block-size=1K ${usbdir} \
       | awk '{ print $1; }'
   )
   local size=$(( $raw_size_k + $FREE_SPACE_K ))
 
-  # Creates an empty disk image.
-  truncate --size ${size}K ${usbfile}
+  # Creates an empty fat16 disk image. NB: fat32 min size is 256MB.
+  truncate --size ${size}K ${tmp}/data.fat16
+  mkfs.vfat ${tmp}/data.fat16 -F16
 
-  # Format as GPT image with one fat16 partition.
-  parted ${usbfile} \
+  # Make the grub efi boot loader image.
+  grub-mkimage -o bootx64.efi -p /efi/boot -O x86_64-efi fat iso9660 part_gpt \
+      part_msdos normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap \
+      configfile loopback chain efifwsetup efi_gop efi_uga ls search \
+      search_label search_fs_uuid search_fs_file gfxterm gfxterm_background \
+      gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
+
+  # Ignore meaningless sector alignment failures.
+  export MTOOLS_SKIP_CHECK=1
+
+  echo " Copying files to FAT16 image... "
+  # Creates the necessary subdirectories.
+  mmd -i ${tmp}/data.fat16 ::/efi
+  mmd -i ${tmp}/data.fat16 ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 bootx64.efi ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 "${usbdir}"/* ::/efi/boot
+
+  # Create 1M GPT header file. Use 1M to keep resulting image 1M aligned.
+  local offset=$(( 1048576 ))
+  truncate --size ${offset} ${usbfile}
+
+  # Append fat16 data to the GPT header.
+  cat ${tmp}/data.fat16 >> ${usbfile}
+
+  echo " Formatting GPT header... "
+  # Finally format the blank GPT header with the one fat16 partition.
+  parted --script ${usbfile} \
     mktable gpt \
-    mkpart primary fat16 2048s 100% \
+    mkpart primary fat16 ${offset}B 100% \
     name 1 UEFI \
     quit
 
-  # Create a device map for the partition in ${usbfile}.
-  # -s = synchronous mode.
-  # -a = add partition map
-  # -v = verbose
-  device=$( kpartx -s -av ${usbfile} | awk '{print $3}' )
-
-  # Format the disk image as FAT16. Note: min fat32 disk size is 256MB.
-  mkfs.vfat /dev/mapper/${device} -F16
-
-  # Release the device map.
-  # -s = synchronous mode.
-  # -d = delete partition map
-  # -v = verbose
-  kpartx -s -dv ${usbfile}
-
-  export MTOOLS_SKIP_CHECK=1
-  # 2048s(ectors) == 1M.
-  local offset=1048576
-
-  # Creates the necessary subdirectories.
-  mmd -i ${usbfile}@@${offset} ::/efi
-  mmd -i ${usbfile}@@${offset} ::/efi/boot
-
-  # Make the efi boot loader.
-  grub-mkimage -o bootx64.efi -p /efi/boot -O x86_64-efi fat iso9660 part_gpt \
-      part_msdos  normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap configfile loopback chain efifwsetup efi_gop \
-      efi_uga ls search search_label search_fs_uuid search_fs_file gfxterm \
-      gfxterm_background gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
-
-  # NB: for i386 one can use:
-  # grub-mkimage -o bootia32.efi -p /efi/boot -O i386-efi ...
-
-  echo -n " Copying files to USB image... "
-  mcopy -bsQ -i ${usbfile}@@${offset} bootx64.efi ::/efi/boot
-  mcopy -bsQ -i ${usbfile}@@${offset} "${usbdir}"/* ::/efi/boot
+  # Clean up temporary directory.
+  rm -rf ${tmp}
 }
 
 function main() {
   local usbdir=$( mktemp -d /tmp/usb.dir.XXXXXX )
 
-  setup_usbfs ${usbdir} ${VMLINUZ} "${INITRAMFS}" "${BOOT_PARAMS}"
-
   # Generate the USB image.
+  setup_usbfs ${usbdir} ${VMLINUZ} "${INITRAMFS}" "${BOOT_PARAMS}"
   make_efi_usb "${usbdir}" "${USB_NAME}"
 
   # Clean up temporary directory.
