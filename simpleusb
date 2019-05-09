@@ -1,0 +1,253 @@
+#!/bin/bash
+#
+# Generate a basic USB boot image from vmlinuz & initramfs.
+
+set -uex
+
+# Optional parameters.
+INITRAMFS=
+BOOT_PARAMS=
+
+# Constants
+FREE_SPACE=4096
+boot_params=
+initramfs_config=
+
+
+function help() {
+  echo "usage: ${0} [OPTIONS] vmlinuz usbname"
+  echo
+  echo "where OPTIONS are:"
+  echo " -h       show this help"
+  echo " -i FILE  initramfs filesystem image for kernel"
+  echo " -x ARGS  extra kernel command line args"
+}
+
+
+# Parse command line parameters.
+while getopts "hi:x:" opt; do
+  case ${opt} in
+    h)
+      help
+      exit 0
+      ;;
+    i)
+      INITRAMFS="${OPTARG}"
+      ;;
+    x)
+      BOOT_PARAMS="${OPTARG}"
+      ;;
+  esac
+done
+
+# Adjust positional parameters after processing with getopts.
+shift $((OPTIND - 1))
+
+# Assign positional parameters.
+VMLINUZ=${1:?Error: Please provide a vmlinuz image}
+USB_NAME=${2:?Error: Please provide a USB output file name}
+
+
+function setup_usbfs() {
+  local usbfs_dir=$1
+  local vmlinuz=$2
+  local initramfs=$3
+  local boot_params=$4
+
+  local initramfs_config=
+
+  # Setup the filesystem.
+  cp $vmlinuz ${usbfs_dir}/vmlinuz
+  cp $vmlinuz ${usbfs_dir}/vmlinuz.efi
+  if test -f "$initramfs" ; then
+      cp $initramfs ${usbfs_dir}/initramfs
+      initramfs_config="INITRD initramfs"
+      initramfs_config_efi="initrdefi /efi/boot/initramfs"
+  fi
+
+  # Use syslinux to make the image bootable
+  cat >${usbfs_dir}/syslinux.cfg <<EOF
+SAY ePoxy USB syslinux boot image: $USB_NAME
+SAY Kernel parameters: $boot_params
+TIMEOUT 30
+DEFAULT linux
+
+LABEL linux
+ KERNEL vmlinuz
+ APPEND $boot_params
+ $initramfs_config
+EOF
+
+  # TODO: include initramfs_config also.
+  # menuentry 'linuxefi: vmlinuz USB grub boot image: $USB_NAME' {
+  cat >$usbfs_dir/grub.cfg<<EOF
+set timeout=5
+set color_highlight=black/light-magenta
+
+menuentry 'stage1 linuxefi: vmlinuz' {
+    linuxefi /efi/boot/vmlinuz.efi $boot_params
+    $initramfs_config_efi
+}
+submenu 'Useful snippets' {
+    menuentry 'Ubuntu' {
+            chainloader /efi/boot/grubx64.efi
+    }
+    menuentry 'Firmware Setup' {
+            fwsetup
+    }
+}
+EOF
+
+}
+
+function build_usb_partition() {
+  local usbdir=$1
+  local usbfile=$2
+  local tmp=$( mktemp --directory )
+
+  local size=$(($(du -Lsk ${usbdir} | awk '{ print $1; }') + $FREE_SPACE))
+  size=$(( $size / 1024 ))
+
+  local heads=64
+  local sectors=32
+  local cylinders=$(( ($size*1024*2)/($heads*$sectors) ))
+  local offset=$(( $sectors*512 ))
+
+  mkdiskimage -M -4 "$usbfile" $size $heads $sectors
+
+  cat >$tmp/mtools.conf<<EOF
+drive z:
+file="${usbfile}"
+cylinders=$cylinders
+heads=$heads
+sectors=$sectors
+offset=$offset
+mformat_only
+mtools_skip_check=1
+EOF
+  export MTOOLSRC="${tmp}/mtools.conf"
+  cat $MTOOLSRC
+
+  echo -n " populating USB image... "
+  mcopy -bsQ -i "${usbfile}" "${usbdir}"/* z:/
+
+  rm -f "${MTOOLSRC}"
+  unset MTOOLSRC
+
+  echo "making USB image bootable."
+  syslinux --offset $offset "$usbfile"
+}
+
+function make_efi_usb() {
+  local usbdir=$1
+  local usbfile=$2
+  local tmp=$( mktemp --directory )
+
+  local size=$(($(du -Lsk ${usbdir} | awk '{ print $1; }') + $FREE_SPACE))
+
+  # Creates an empty disk image, create its GPT, and then make
+  # one partition. Partitions should be aligned.
+  dd if=/dev/zero of=${usbfile} bs=1M count=160
+  parted ${usbfile} \
+    mktable gpt \
+    mkpart primary fat32 2048s 100% \
+    name 1 UEFI \
+    quit
+
+  # TODO: is there a way to do this in place?
+  # Create a device map for the partition in the ${usbfile}.
+  device=$( kpartx -s -av ${usbfile} | awk '{print $3}' )
+
+  # Formats the disk image as FAT16. Note: Min fat32 disk size is 256MB.
+  mkfs.vfat /dev/mapper/${device} -F16
+
+  # Release the device map.
+  kpartx -s -dv ${usbfile}
+
+  export MTOOLS_SKIP_CHECK=1
+  local offset=1048576
+
+  # Creates the necessary subdirectories.
+  mmd -i ${usbfile}@@${offset} ::/efi
+  mmd -i ${usbfile}@@${offset} ::/efi/boot
+
+  # Make the efi boot loader.
+  grub-mkimage -o bootx64.efi -p /efi/boot -O x86_64-efi fat iso9660 part_gpt \
+      part_msdos  normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap configfile loopback chain efifwsetup efi_gop \
+      efi_uga ls search search_label search_fs_uuid search_fs_file gfxterm \
+      gfxterm_background gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
+
+  grub-mkimage -o bootia32.efi -p /efi/boot -O i386-efi fat iso9660 part_gpt  \
+      part_msdos  normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap configfile loopback chain efifwsetup efi_gop \
+      efi_uga ls search search_label search_fs_uuid search_fs_file gfxterm \
+      gfxterm_background gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
+
+  echo -n " Copying files to USB image... "
+  mcopy -bsQ -i ${usbfile}@@${offset} bootx64.efi ::/efi/boot
+  # mcopy -bsQ -i ${usbfile}@@${offset} bootia32.efi ::/efi/boot
+  mcopy -bsQ -i ${usbfile}@@${offset} "${usbdir}"/* ::/efi/boot
+
+  # NOTE: modprobe dm-mod must be loaded.
+  # Maps and mounts the two partitions in disk.img to /dev/mapper/loop0p1.
+  #device=$( kpartx -s -av ${usbfile} | awk '{print $3}' )
+  # Copies the UEFI partion into the disk image.
+  #dd if=uefi.img of=/dev/mapper/${device} bs=1M
+  ## Unmounts the two partitions
+  #kpartx -s -dv ${usbfile}
+
+  #dd if=/dev/zero of="${usbfile}" bs=${size} count=2048
+  #mkfs.vfat -v -S 4096 -s 1 -F 32 "${usbfile}"
+
+}
+
+function create_usb() {
+  local usbdir=$1
+  local usbfile=$2
+
+  rm -f "${usbfile}"
+
+
+  # Disable some sanity checks in mtools.
+  export MTOOLS_SKIP_CHECK=1
+#  cat >${usbdir}/mtools.conf <<EOF
+#mtools_skip_check=1
+#EOF
+
+  # Create a vfat local file large enough to hold all the data in usbdir.
+  mkfs.vfat -C "${usbfile}" \
+    $(( $(du -Lsk ${usbdir} | awk '{ print $1; }') + $FREE_SPACE ))
+
+  # Environment variable for mtools
+  # export MTOOLSRC="${BUILDTMP}/mtools.conf"
+
+  # Copy files to the USB image.
+  # -b is batch mode.
+  # -s is recursive copy
+  # -Q is quit on first copy failure.
+  mcopy -bsQ -i "${usbfile}" "${usbdir}"/* ::/
+
+  # APPEND ramdisk_size=$ramdisk_size
+  # mdel -i "$usb" ::/isolinux.cfg 2>/dev/null || :
+  # mcopy -i "$usb" "$tmp" ::/syslinux.cfg
+  #rm -f "$tmp"
+  #rm -f "${MTOOLSRC}"
+  #unset MTOOLSRC
+
+  # Make the USB image bootable.
+  syslinux "${usbfile}"
+}
+
+function main() {
+  local usbdir=$( mktemp -d /tmp/usb.dir.XXXXXX )
+
+  setup_usbfs ${usbdir} ${VMLINUZ} "${INITRAMFS}" "${BOOT_PARAMS}"
+
+  # Generate the USB image.
+  #build_usb_partition "${usbdir}" "${USB_NAME}"
+  make_efi_usb "${usbdir}" "${USB_NAME}"
+
+  # Clean up temporary directory.
+  rm -fr "${usbdir}"
+}
+
+main
