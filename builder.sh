@@ -102,6 +102,20 @@ function stage3_mlxupdate() {
   rm -rf ${builddir}
 }
 
+function stage1_minimal() {
+  local target=${TARGET:?Please specify a target configuration name}
+  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
+  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
+
+  umask 0022
+  echo 'Starting stage1_minimal build'
+  ${SOURCE_DIR}/setup_stage1_minimal.sh \
+      ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
+      ${artifacts}/epoxy_client &> ${SOURCE_DIR}/stage1_minimal.log
+
+  rm -rf ${builddir}
+}
+
 function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
@@ -123,6 +137,9 @@ case "${TARGET}" in
       ;;
   stage1_bootstrapfs)
       stage1_bootstrapfs
+      ;;
+  stage1_minimal)
+      stage1_minimal
       ;;
   stage1_isos)
       stage1_isos
