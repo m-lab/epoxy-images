@@ -131,6 +131,21 @@ function stage1_isos() {
   return
 }
 
+function stage1_usbs() {
+  local target=${TARGET:?Please specify a target configuration name}
+  local project=${PROJECT:?Please specify the PROJECT}
+  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
+  local regex_name="REGEXP_${PROJECT//-/_}"
+
+  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
+
+  ${SOURCE_DIR}/setup_stage1_usbs.sh "${project}" "${builddir}" "${artifacts}" \
+      "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
+
+  rm -rf "${builddir}"
+  return
+}
+
 case "${TARGET}" in
   stage1_mlxrom)
       stage1_mlxrom
@@ -143,6 +158,9 @@ case "${TARGET}" in
       ;;
   stage1_isos)
       stage1_isos
+      ;;
+  stage1_usbs)
+      stage1_usbs
       ;;
   stage2)
       stage2
