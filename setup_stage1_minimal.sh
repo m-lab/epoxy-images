@@ -149,8 +149,8 @@ chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
 # SSH
 ################################################################################
 # Disable root login via ssh.
-if ! grep -q -E '^PermitRootLogin .*' $BOOTSTRAP/etc/ssh/sshd_config ; then
-    sed -i -e 's/^PermitRootLogin .*/PermitRootLogin prohibit-password/g' \
+if ! grep -q -E '^PermitRootLogin prohibit-password' $BOOTSTRAP/etc/ssh/sshd_config ; then
+    sed -i -e 's/.*PermitRootLogin .*/PermitRootLogin prohibit-password/g' \
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
