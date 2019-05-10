@@ -5,8 +5,7 @@
 #
 # After template values are filled in, the resulting script constructs a kernel
 # command line with epoxy network configuration and stage1 URL and finally
-# generates an USB image with the stage2_vmlinuz image and the construct kernel
-# cmdline.
+# generates a USB image with the stage1_minimal image.
 
 set -x
 
@@ -21,9 +20,9 @@ if [[ "{{netmask}}" != "255.255.255.192" ]] ; then
 fi
 mask=26
 
-if [[ ! -f "${IMAGE_DIR}/stage2_vmlinuz" ]] ; then
+if [[ ! -f "${IMAGE_DIR}/vmlinuz_stage1_minimal" ]] ; then
     echo 'Error: vmlinuz images not found!'
-    echo "Expected: stage2_vmlinuz"
+    echo "Expected: vmlinuz_stage1_minimal"
     exit 1
 fi
 
@@ -56,16 +55,12 @@ fi
 ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boot/{{hostname}}/stage1.json"
 
 
-# If using debootstick filesystem.
-#       --config-hostname HOSTNAME
-#       --config-kernel-bootargs BOOTARGS
-
-# If using stage2 vmlinuz kernel.
-#${SOURCE_DIR}/simpleusb -x "$ARGS" "${IMAGE_DIR}/stage2_vmlinuz" \
+# TODO: update to use stage2 kernels when they support UEFI boot fully.
+# ${SOURCE_DIR}/simpleusb -x "$ARGS" "${IMAGE_DIR}/stage2_vmlinuz" \
 #    ${OUTPUT_DIR}/{{hostname}}_stage1.usb
 
-# If using stage3_mlxupdate images.
+# Generate stage1 USB image.
 ${SOURCE_DIR}/simpleusb -x "$ARGS" \
     -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
     "${IMAGE_DIR}/vmlinuz_stage1_minimal" \
-    ${OUTPUT_DIR}/{{hostname}}_stage1.usb
+    ${OUTPUT_DIR}/{{hostname}}_stage1.fat16.gpt.img
