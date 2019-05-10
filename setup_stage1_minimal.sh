@@ -1,12 +1,12 @@
 #!/bin/bash
 #
-# setup_stage1_minimal sh builds a minimal filesystem based on the ubuntu
-# xenial OS, that includes epoxy_client and configuration suitable for stage1.
-# With this image it is possible to create UEFI stage1 boot media for USB or CD.
+# setup_stage1_minimal.sh builds an initram image based on the ubuntu xenial OS,
+# that includes epoxy_client and configuration suitable for a stage1 boot. With
+# this image it is possible to create UEFI or BIOS boot media for USB or CD.
 #
 # Example:
 #   ./setup_stage1_minimal.sh /build /workspace/output configs/stage1_minimal \
-#       epoxy_client
+#       output/epoxy_client
 
 set -x
 set -e
@@ -57,22 +57,25 @@ if ! test -f $BOOTSTRAP/build.date ; then
     rm -rf $BOOTSTRAP/dev
     # Disable interactive prompt from grub-pc or other packages.
     export DEBIAN_FRONTEND=noninteractive
-    PACKAGES=`cat ${CONFIG_DIR}/extra.packages ${CONFIG_DIR}/build.packages \
-      | xargs echo | tr ' ' ',' `
+
+    # Create comma-separated list.
+    PACKAGES=$(
+      cat ${CONFIG_DIR}/extra.packages | xargs echo | tr ' ' ','
+    )
+
+    # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
       --arch amd64 xenial $BOOTSTRAP
+
+    # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
 fi
 
-# Unmount the proc & sys dirs if we encounter a problem within the following
-# block.
+# Unmount the proc & sys dirs if we encounter a problem below.
 trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
-# Install extra packages and
 mount_proc_and_sys $BOOTSTRAP
-
     # Add extra apt sources to install latest kernel image and headers.
-    # TODO: only append the source once.
     LINE='deb http://archive.ubuntu.com/ubuntu/ xenial-updates universe main multiuniverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
@@ -108,17 +111,8 @@ mount_proc_and_sys $BOOTSTRAP
     # Copy kernel image to output directory before removing it.
     cp $BOOTSTRAP/boot/vmlinuz-${KERNEL_VERSION} ${OUTPUT_KERNEL}
 
-    # Backup the kernel modules.
-    cp -ar $BOOTSTRAP/lib/modules/${KERNEL_VERSION} \
-        $BOOTSTRAP/lib/modules/${KERNEL_VERSION}.orig
-
     # Frees about 50MB
     chroot $BOOTSTRAP apt-get autoclean
-
-    # Restore the kernel modules.
-    rm -rf $BOOTSTRAP/lib/modules/${KERNEL_VERSION}
-    mv $BOOTSTRAP/lib/modules/${KERNEL_VERSION}.orig \
-        $BOOTSTRAP/lib/modules/${KERNEL_VERSION}
 
     # Free up a little more space.
     rm -f $BOOTSTRAP/boot/vmlinuz*
@@ -131,24 +125,22 @@ trap '' EXIT
 ################################################################################
 # Init
 ################################################################################
-# Kernel panics unless /init is defined. Use systemd for init.
+# Kernel panics if /init is undefined. Use systemd for init.
 ln --force --symbolic sbin/init $BOOTSTRAP/init
-cp $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
+install -D --mode 644 $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
 # Enable simple rc.local script for post-setup processing.
-# rc.local.service runs after networking.service
-cp $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
+# NOTE: rc.local.service runs after networking.service
+install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
 chroot $BOOTSTRAP systemctl enable rc.local.service
 
 ################################################################################
 # Network
 ################################################################################
-# Enable static resolv.conf
+
 # TODO: use systemd for network configuration entirely.
 rm -f $BOOTSTRAP/etc/resolv.conf
-cp $CONFIG_DIR/resolv.conf $BOOTSTRAP/etc/resolv.conf
-# If permissions are incorrect, apt-get will fail to read contents.
-chmod 644 $BOOTSTRAP/etc/resolv.conf
+install -D --mode 644 $CONFIG_DIR/resolv.conf $BOOTSTRAP/etc/resolv.conf
 
 # Set a default root passwd.
 # TODO: disable root login except by ssh?
@@ -166,13 +158,8 @@ fi
 # Enable sshd.
 chroot $BOOTSTRAP systemctl enable ssh.service
 
-# TODO: get ssh keys from some external source.
+# TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
-# echo "Adding SSH authorized keys"
-# mkdir -p $BOOTSTRAP/root/.ssh
-# cp $CONFIG_DIR/authorized_keys  $BOOTSTRAP/root/.ssh/authorized_keys
-# chown root:root $BOOTSTRAP/root/.ssh/authorized_keys
-# chmod 700 $BOOTSTRAP/root/
 
 ################################################################################
 # Add epoxy client to initramfs
