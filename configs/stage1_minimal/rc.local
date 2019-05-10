@@ -1,0 +1,66 @@
+#!/bin/bash
+
+
+function get_cmdline() {
+  local key=$1
+  local result=$2
+  # Extract the boot parameter ${key}=
+  for field in $( cat /proc/cmdline ) ; do
+    if [[ "${key}" == "${field%%=*}" ]] ; then
+      result=${field##${key}=}
+      break
+    fi
+  done
+  echo $result
+}
+
+# TODO: epoxyclient should interpret this command line parameter instead.
+function setup_network() {
+  # Set a default local network configuration.
+  ipcfg=192.168.0.2::192.168.0.1:255.255.255.0:default-net:eth0::8.8.8.8:
+
+  ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+  hostname=$( get_cmdline epoxy.hostname "default-net" )
+  interface=$( get_cmdline epoxy.interface "eth0" )
+
+  count=1
+  # Note: while using a generic kernel, we must wait for the modules to load
+  # automatically before the network configuration commands will work.  This
+  # delay could be avoided by explicitly loading the modules here (fragile) or
+  # using a custom kernel that embeds the mellanox drivers.
+  until ifconfig ${interface} 2> /dev/null || [[ $count -gt 60 ]]; do
+      echo "Waiting 1 second for ${interface} to initialize.."
+      sleep 1
+      count=$(( $count + 1 ))
+  done
+
+  echo "Applying network configuration: $ipv4"
+  echo $ipv4 | tr ',' ' ' | (
+      read addr gateway _
+      echo ifconfig ${interface} ${addr}
+      echo route add default gw ${gateway}
+      echo hostname ${hostname}
+      ifconfig ${interface} ${addr}
+      route add default gw ${gateway}
+      hostname ${hostname}
+  )
+  ifconfig ${interface}
+}
+
+
+echo "Loading mlx modules"
+modprobe mlx4_en
+modprobe mlx5_core
+modprobe mlxfw
+
+
+echo "Configuring network..."
+setup_network
+
+
+echo "Downloading next stage from ePoxy"
+if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage1 -add-kargs
+else
+  echo "WARNING: no stage1 action found in /proc/cmdline"
+fi
