@@ -60,7 +60,7 @@ ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boo
 #    ${OUTPUT_DIR}/{{hostname}}_stage1.usb
 
 # Generate stage1 USB image.
-${SOURCE_DIR}/simpleusb -x "$ARGS" \
+"${SOURCE_DIR}"/simpleusb -x "$ARGS" \
     -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
-    "${IMAGE_DIR}/vmlinuz_stage1_minimal" \
-    ${OUTPUT_DIR}/{{hostname}}_stage1.fat16.gpt.img
+    "${IMAGE_DIR}"/vmlinuz_stage1_minimal \
+    "${OUTPUT_DIR}"/{{hostname}}_stage1.fat16.gpt.img
