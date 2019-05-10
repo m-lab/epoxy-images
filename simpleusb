@@ -1,0 +1,143 @@
+#!/bin/bash
+#
+# simpleusb generates a UEFI boot image suitable for USB media.
+
+set -uex
+
+# Optional parameters.
+INITRAMFS=
+BOOT_PARAMS=
+
+# Constants
+FREE_SPACE_K=4096
+boot_params=
+initramfs_config=
+
+
+function help() {
+  echo "usage: ${0} [OPTIONS] vmlinuz usbname"
+  echo
+  echo "where OPTIONS are:"
+  echo " -h       show this help"
+  echo " -i FILE  initramfs filesystem image for kernel"
+  echo " -x ARGS  extra kernel command line args"
+}
+
+
+# Parse command line parameters.
+while getopts "hi:x:" opt; do
+  case ${opt} in
+    h)
+      help
+      exit 0
+      ;;
+    i)
+      INITRAMFS="${OPTARG}"
+      ;;
+    x)
+      BOOT_PARAMS="${OPTARG}"
+      ;;
+  esac
+done
+
+# Adjust positional parameters after processing with getopts.
+shift $((OPTIND - 1))
+
+# Assign positional parameters.
+VMLINUZ=${1:?Error: Please provide a vmlinuz image}
+USB_NAME=${2:?Error: Please provide a USB output file name}
+
+
+function setup_usbfs() {
+  local usbfs_dir=$1
+  local vmlinuz=$2
+  local initramfs=$3
+  local boot_params=$4
+
+  local initramfs_config=
+
+  # Setup the filesystem.
+  cp $vmlinuz ${usbfs_dir}/vmlinuz.efi
+  if test -f "$initramfs" ; then
+      cp $initramfs ${usbfs_dir}/initramfs
+      initramfs_config="initrdefi /efi/boot/initramfs"
+  fi
+
+  # Generate default grub config using images and boot params.
+  cat >$usbfs_dir/grub.cfg<<EOF
+set timeout=5
+set color_highlight=black/light-magenta
+
+menuentry 'stage1: ${USB_NAME}' {
+    linuxefi /efi/boot/vmlinuz.efi $boot_params
+    $initramfs_config
+}
+menuentry 'Firmware Setup' {
+    fwsetup
+}
+EOF
+
+}
+
+function make_efi_usb() {
+  local usbdir=$1
+  local usbfile=$2
+  local tmp=$( mktemp --directory )
+  local raw_size_k=$(
+    du --dereference --summarize --block-size=1K ${usbdir} \
+      | awk '{ print $1; }'
+  )
+  local size=$(( $raw_size_k + $FREE_SPACE_K ))
+
+  # Creates an empty fat16 disk image. NB: fat32 min size is 256MB.
+  truncate --size ${size}K ${tmp}/data.fat16
+  mkfs.vfat ${tmp}/data.fat16 -F16
+
+  # Make the grub efi boot loader image.
+  grub-mkimage -o bootx64.efi -p /efi/boot -O x86_64-efi fat iso9660 part_gpt \
+      part_msdos normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap \
+      configfile loopback chain efifwsetup efi_gop efi_uga ls search \
+      search_label search_fs_uuid search_fs_file gfxterm gfxterm_background \
+      gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
+
+  # Ignore meaningless sector alignment failures.
+  export MTOOLS_SKIP_CHECK=1
+
+  echo " Copying files to FAT16 image... "
+  # Creates the necessary subdirectories.
+  mmd -i ${tmp}/data.fat16 ::/efi
+  mmd -i ${tmp}/data.fat16 ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 bootx64.efi ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 "${usbdir}"/* ::/efi/boot
+
+  # Create 1M GPT header file. Use 1M to keep resulting image 1M aligned.
+  local offset=$(( 1048576 ))
+  truncate --size ${offset} ${usbfile}
+
+  # Append fat16 data to the GPT header.
+  cat ${tmp}/data.fat16 >> ${usbfile}
+
+  echo " Formatting GPT header... "
+  # Finally format the blank GPT header with the one fat16 partition.
+  parted --script ${usbfile} \
+    mktable gpt \
+    mkpart primary fat16 ${offset}B 100% \
+    name 1 UEFI \
+    quit
+
+  # Clean up temporary directory.
+  rm -rf ${tmp}
+}
+
+function main() {
+  local usbdir=$( mktemp -d /tmp/usb.dir.XXXXXX )
+
+  # Generate the USB image.
+  setup_usbfs ${usbdir} ${VMLINUZ} "${INITRAMFS}" "${BOOT_PARAMS}"
+  make_efi_usb "${usbdir}" "${USB_NAME}"
+
+  # Clean up temporary directory.
+  rm -fr "${usbdir}"
+}
+
+main
