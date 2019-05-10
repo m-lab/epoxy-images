@@ -90,9 +90,8 @@ mount_proc_and_sys $BOOTSTRAP
     popd
 
     # Remove unnecessary packages to save space.
-    for i in 1 2 ; do
-    # TODO: order seems to matter, so run twice to get everything.
-    chroot $BOOTSTRAP apt-get autoremove -y \
+
+    chroot $BOOTSTRAP apt-get remove -y \
         linux-headers-generic \
         linux-generic \
         linux-headers-${KERNEL_VERSION} \
@@ -104,8 +103,8 @@ mount_proc_and_sys $BOOTSTRAP
         grub2-common \
         grub-gfxpayload-lists \
         grub-pc-bin
-    done
 
+    chroot $BOOTSTRAP apt-get autoremove -y
     chroot $BOOTSTRAP apt-get clean -y
 
     # Copy kernel image to output directory before removing it.
