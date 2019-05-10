@@ -5,7 +5,8 @@
 # setup_stage1_usbs.sh should only be run after setup_stage2.sh has run
 # successfully and the stage2_vmlinuz kernel is available.
 
-SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
+SOURCE_DIR=$( dirname "${BASH_SOURCE[0]}" )
+SOURCE_DIR=$( realpath "${SOURCE_DIR}" )
 
 set -e
 
@@ -21,10 +22,10 @@ set -xuo pipefail
 
 # Use mlabconfig to fill in the template for every machine matching the given
 # HOSTNAMES pattern.
-pushd ${BUILD_DIR}
+pushd "${BUILD_DIR}"
   test -d operator || git clone https://github.com/m-lab/operator
   pushd operator/plsync
-    mkdir -p ${OUTPUT_DIR}/scripts
+    mkdir -p "${OUTPUT_DIR}/scripts"
     ./mlabconfig.py --format=server-network-config \
         --select "${HOSTNAMES}" \
         --label "project=${PROJECT}" \
@@ -34,9 +35,9 @@ pushd ${BUILD_DIR}
 popd
 
 # Run each per-machine build script.
-for create_usb_script in `ls ${BUILD_DIR}/create-stage1-usb-*.sh` ; do
-  echo $create_usb_script
-  chmod 755 $create_usb_script
-  mkdir -p ${OUTPUT_DIR}/stage1_usbs
-  $create_usb_script ${SOURCE_DIR} ${OUTPUT_DIR} ${OUTPUT_DIR}/stage1_usbs
+for create_usb_script in ${BUILD_DIR}/create-stage1-usb-*.sh ; do
+  echo "${create_usb_script}"
+  chmod 755 "${create_usb_script}"
+  mkdir -p "${OUTPUT_DIR}/stage1_usbs"
+  ${create_usb_script} "${SOURCE_DIR}" "${OUTPUT_DIR}" "${OUTPUT_DIR}/stage1_usbs"
 done
