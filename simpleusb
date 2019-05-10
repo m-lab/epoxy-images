@@ -60,7 +60,7 @@ function setup_usbfs() {
   cp $vmlinuz ${usbfs_dir}/vmlinuz.efi
   if test -f "$initramfs" ; then
       cp $initramfs ${usbfs_dir}/initramfs
-      initramfs_config_efi="initrdefi /efi/boot/initramfs"
+      initramfs_config="initrdefi /efi/boot/initramfs"
   fi
 
   # Generate default grub config using images and boot params.
@@ -70,7 +70,7 @@ set color_highlight=black/light-magenta
 
 menuentry 'stage1: ${USB_NAME}' {
     linuxefi /efi/boot/vmlinuz.efi $boot_params
-    $initramfs_config_efi
+    $initramfs_config
 }
 menuentry 'Firmware Setup' {
     fwsetup
