@@ -10,3 +10,5 @@ wget
 curl
 vim
 openssh-server
+linux-generic
+linux-base
