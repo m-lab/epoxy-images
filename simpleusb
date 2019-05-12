@@ -7,7 +7,6 @@ set -uex
 # Optional parameters.
 INITRAMFS=
 BOOT_PARAMS=
-ADD_GPT_HEADER="false"
 
 # Constants
 FREE_SPACE_K=4096
@@ -20,7 +19,6 @@ function help() {
   echo
   echo "where OPTIONS are:"
   echo " -h       show this help"
-  echo " -g       enable GPT partition; otherwise a flat fat16 image is created"
   echo " -i FILE  initramfs filesystem image for kernel"
   echo " -x ARGS  extra kernel command line args"
 }
@@ -32,9 +30,6 @@ while getopts "hi:x:" opt; do
     h)
       help
       exit 0
-      ;;
-    g)
-      ADD_GPT_HEADER="true"
       ;;
     i)
       INITRAMFS="${OPTARG}"
@@ -115,25 +110,20 @@ function make_efi_usb() {
   mcopy -bsQ -i ${tmp}/data.fat16 bootx64.efi ::/efi/boot
   mcopy -bsQ -i ${tmp}/data.fat16 "${usbdir}"/* ::/efi/boot
 
-  if [[ ${ADD_GPT_HEADER} = "true" ]] ; then
-    # Create 1M GPT header file. Use 1M to keep resulting image 1M aligned.
-    local offset=$(( 1048576 ))
-    truncate --size ${offset} ${usbfile}
+  # Create 1M GPT header file. Use 1M to keep resulting image 1M aligned.
+  local offset=$(( 1048576 ))
+  truncate --size ${offset} ${usbfile}
 
-    # Append fat16 data to the GPT header.
-    cat ${tmp}/data.fat16 >> ${usbfile}
+  # Append fat16 data to the GPT header.
+  cat ${tmp}/data.fat16 >> ${usbfile}
 
-    echo " Formatting GPT header... "
-    # Finally format the blank GPT header with the one fat16 partition.
-    parted --script ${usbfile} \
-      mktable gpt \
-      mkpart primary fat16 ${offset}B 100% \
-      name 1 UEFI \
-      quit
-  else
-    # Copy the fat16 formatted data as the complete usbfile.
-    cp ${tmp}/data.fat16 ${usbfile}
-  fi
+  echo " Formatting GPT header... "
+  # Finally format the blank GPT header with the one fat16 partition.
+  parted --script ${usbfile} \
+    mktable gpt \
+    mkpart primary fat16 ${offset}B 100% \
+    name 1 UEFI \
+    quit
 
   # Clean up temporary directory.
   rm -rf ${tmp}
