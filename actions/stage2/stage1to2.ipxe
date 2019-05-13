@@ -54,6 +54,7 @@ sleep 2
 set kargs
 # Network settings
 # TODO: remove epoxy.ip= once epoxy-images support canonical network format.
+set kargs ${kargs} net.ifnames=0 autoconf=0
 set kargs ${kargs} epoxy.ip=${network}
 set kargs ${kargs} epoxy.ipv4=${ipv4_address}/${ipv4_subnet},${ipv4_gateway},${ipv4_dns1},${ipv4_dns2}
 
@@ -77,7 +78,7 @@ set kargs ${kargs} epoxy.allocate_k8s_token=${allocate_k8s_token_url}
 set kargs ${kargs} epoxy.server=${epoxyaddress}
 set kargs ${kargs} epoxy.project=${project}
 
-boot ${kargs} || shell
+boot vmlinuz ${kargs} || shell
 
 :fetch_timeout
   echo -- Retries ${retry_count} ${max_retry_count}
