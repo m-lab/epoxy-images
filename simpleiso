@@ -64,14 +64,15 @@ function setup_isofs() {
   local initramfs=$4
   local boot_params=$5
 
-  local cfg=${isofs_dir}/isolinux.cfg
   local initramfs_config=
+  local initramfs_config_efi=
 
   # Setup the mkisofs filesystem.
   cp $vmlinuz ${isofs_dir}/vmlinuz
   if test -f "$initramfs" ; then
     cp $initramfs ${isofs_dir}/initramfs
     initramfs_config="INITRD initramfs"
+    initramfs_config_efi="initrdefi /initramfs"
   fi
 
   # Generate isolinux.cfg
@@ -92,7 +93,7 @@ set color_highlight=black/light-magenta
 
 menuentry 'linux: ${ISO_NAME}' {
     linuxefi  /vmlinuz $boot_params
-    initrdefi /initramfs
+    $initramfs_config_efi
 }
 EOF
 
