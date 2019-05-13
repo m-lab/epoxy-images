@@ -149,7 +149,7 @@ function main() {
 
   setup_isofs $isodir ${isodir}/efiboot.img "$VMLINUZ" "$INITRAMFS" "${BOOT_PARAMS}"
 
-  # Generate the ISO image.
+  # Generate the ISO image. File paths are relative to the ${isodir}.
   ${MKISOFS} -untranslated-filenames \
       -publisher "M-Lab" \
       -appid "ePoxy" \
@@ -166,7 +166,7 @@ function main() {
       -boot-load-size 4 \
       -boot-info-table \
       -eltorito-alt-boot \
-      -e efiboot.img \
+      -efi-boot efiboot.img \
       -no-emul-boot ${isodir}
 
   # Clean up temporary directory.
