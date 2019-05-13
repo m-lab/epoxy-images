@@ -62,3 +62,26 @@ TODO(soltesz): add notes for building Linux ROM update images.
 # Deploying images
 
 TODO(soltesz): outline how ePoxy images are deployed to GCS.
+
+## BIOS & UEFI Support
+
+The `simpleiso` command creates ISO images that are capable of booting from
+either BIOS or UEFI systems. BIOS systems use isolinux while UEFI systems use
+grub.
+
+The `simpleusb` command only creates fat16.gpt images capable of booting from
+UEFI systems. While hybrid boot for GPT & MBR may be possible, tools that
+support it warn "Hybrid MBRs are flaky and dangerous!", so `simpleusb` only
+support UEFI sytems.
+
+### Testing USB images
+
+VirtualBox natively supports boot from ISO images & supports BIOS or UEFI
+boot environments. To support VM boot from USB images we must create a
+virtualbox disk image from the raw USB disk image.
+
+```bash
+VBoxManage convertdd boot.fat16.gpt.img boot.vdi --format VDI
+```
+
+Then select that image in the VM configuration.
