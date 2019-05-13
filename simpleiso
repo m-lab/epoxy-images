@@ -91,7 +91,7 @@ EOF
 set timeout=5
 set color_highlight=black/light-magenta
 
-menuentry 'stage1: iso ${USB_NAME}' {
+menuentry 'linux: ${ISO_NAME}' {
     linuxefi  /vmlinuz $boot_params
     initrdefi /initramfs
 }
@@ -100,8 +100,7 @@ EOF
   make_bootefi_img ${efiboot_img}
 
   # Copy isolinux bootloader.
-  mkdir -p ${isofs_dir}/isolinux
-  cp ${ISOLINUX_BIN} ${isofs_dir}/isolinux
+  install -D -m 644 ${ISOLINUX_BIN} ${isofs_dir}/isolinux/isolinux.bin
   touch ${isofs_dir}/$( date +%Y%m%d-%H%M%S )
 
   # Syslinux 6.x requires the LDLINUX_C32 file.
