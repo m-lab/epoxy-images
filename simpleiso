@@ -1,20 +1,16 @@
 #!/bin/bash
 #
-# Generate a basic isolinux ISO boot image from vmlinuz & initramfs
+# Generate a basic ISO boot image from vmlinuz & initramfs. The resulting image
+# should be bootable by BIOS or UEFI systems.
 
-set -x
-set -e
+set -euxo pipefail
 
 # Optional parameters.
 INITRAMFS=
 BOOT_PARAMS=
 
-# There should either be mkisofs or the compatible genisoimage program
+# From genisoimage package.
 MKISOFS=/usr/bin/mkisofs
-MKISOFS_FLAGS="-quiet -l -volid 'ePoxyISO' -preparer 'ePoxy-images'"
-MKISOFS_FLAGS="$MKISOFS_FLAGS -appid 'ePoxy' -publisher 'M-Lab'"
-MKISOFS_FLAGS="$MKISOFS_FLAGS -eltorito-catalog boot.cat"
-
 # From the isolinux package.
 ISOLINUX_BIN=/usr/lib/ISOLINUX/isolinux.bin
 # From the syslinux-common package.
@@ -63,22 +59,24 @@ ISO_NAME=${2:?Error: Please provide an ISO output file name}
 
 function setup_isofs() {
   local isofs_dir=$1
-  local vmlinuz=$2
-  local initramfs=$3
-  local boot_params=$4
+  local efiboot_img=$2
+  local vmlinuz=$3
+  local initramfs=$4
+  local boot_params=$5
 
-  local cfg=${isofs_dir}/isolinux.cfg
   local initramfs_config=
+  local initramfs_config_efi=
 
   # Setup the mkisofs filesystem.
   cp $vmlinuz ${isofs_dir}/vmlinuz
   if test -f "$initramfs" ; then
-      cp $initramfs ${isofs_dir}/initramfs
-      initramfs_config="INITRD initramfs"
+    cp $initramfs ${isofs_dir}/initramfs
+    initramfs_config="INITRD initramfs"
+    initramfs_config_efi="initrdefi /initramfs"
   fi
 
   # Generate isolinux.cfg
-  cat > ${cfg} <<EOF
+  cat > ${isofs_dir}/isolinux.cfg <<EOF
 SAY ePoxy ISO boot image: $ISO_NAME
 SAY Kernel parameters: $boot_params
 TIMEOUT 30
@@ -89,23 +87,86 @@ LABEL linux
  APPEND $boot_params
  $initramfs_config
 EOF
+  cat > ${isofs_dir}/grub.cfg <<EOF
+set timeout=5
+set color_highlight=black/light-magenta
+
+menuentry 'linux: ${ISO_NAME}' {
+    linuxefi  /vmlinuz $boot_params
+    $initramfs_config_efi
+}
+EOF
+
+  make_bootefi_img ${efiboot_img}
 
   # Copy isolinux bootloader.
-  cp ${ISOLINUX_BIN} ${isofs_dir}
+  install -D -m 644 ${ISOLINUX_BIN} ${isofs_dir}/isolinux/isolinux.bin
+  touch ${isofs_dir}/$( date +%Y%m%d-%H%M%S )
 
   # Syslinux 6.x requires the LDLINUX_C32 file.
   cp ${LDLINUX_C32} ${isofs_dir}
+}
+
+function make_bootefi_img() {
+  local bootefi_img=$1
+  local tmp=$( mktemp --directory )
+
+  # Make the grub efi boot loader image.
+  grub-mkimage -o ${tmp}/bootx64.efi -p / -O x86_64-efi fat iso9660 part_gpt \
+      part_msdos normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap \
+      configfile loopback chain efifwsetup efi_gop efi_uga ls search \
+      search_label search_fs_uuid search_fs_file gfxterm gfxterm_background \
+      gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
+
+  local raw_size_k=$(
+    du --dereference --summarize --block-size=1K ${tmp}/bootx64.efi \
+      | awk '{ print $1; }'
+  )
+  local size=$(( $raw_size_k + 4096 ))
+
+  # Ignore meaningless sector alignment failures.
+  export MTOOLS_SKIP_CHECK=1
+
+  # Creates an empty fat16 disk image. NB: fat32 min size is 256MB.
+  truncate --size ${size}K ${tmp}/data.fat16
+  mkfs.vfat ${tmp}/data.fat16 -F16
+
+  # Creates the necessary subdirectories.
+  mmd -i ${tmp}/data.fat16 ::/efi ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 ${tmp}/bootx64.efi ::/efi/boot
+
+  # Copy the fat16 formatted data as the complete bootefi img file.
+  cp ${tmp}/data.fat16 ${bootefi_img}
+
+  # Clean up temporary directory.
+  rm -rf ${tmp}
 }
 
 
 function main() {
   local isodir=$( mktemp -d /tmp/iso.dir.XXXXXX )
 
-  setup_isofs $isodir $VMLINUZ "$INITRAMFS" "${BOOT_PARAMS}"
+  setup_isofs $isodir ${isodir}/efiboot.img "$VMLINUZ" "$INITRAMFS" "${BOOT_PARAMS}"
 
-  # Generate the ISO image.
-  $MKISOFS $MKISOFS_FLAGS -eltorito-boot isolinux.bin -no-emul-boot \
-      -boot-load-size 4 -boot-info-table -output ${ISO_NAME} ${isodir}
+  # Generate the ISO image. File paths are relative to the ${isodir}.
+  ${MKISOFS} -untranslated-filenames \
+      -publisher "M-Lab" \
+      -appid "ePoxy" \
+      -volid "Dual ISO x86_64" \
+      -joliet \
+      -joliet-long \
+      -rational-rock \
+      -verbose \
+      -translation-table \
+      -output ${ISO_NAME} \
+      -eltorito-boot isolinux/isolinux.bin \
+      -eltorito-catalog isolinux/boot.cat \
+      -no-emul-boot \
+      -boot-load-size 4 \
+      -boot-info-table \
+      -eltorito-alt-boot \
+      -efi-boot efiboot.img \
+      -no-emul-boot ${isodir}
 
   # Clean up temporary directory.
   rm -fr ${isodir}
