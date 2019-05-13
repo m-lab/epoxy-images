@@ -3,8 +3,7 @@
 # Generate a basic ISO boot image from vmlinuz & initramfs. The resulting image
 # should be bootable by BIOS or UEFI systems.
 
-set -x
-set -e
+set -euxo pipefail
 
 # Optional parameters.
 INITRAMFS=
