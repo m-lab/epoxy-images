@@ -34,6 +34,12 @@ pushd "${BUILD_DIR}"
   popd
 popd
 
+# Check whether there are any files in the glob pattern.
+if ! compgen -G ${BUILD_DIR}/create-stage1-usb-*.sh ; then
+  echo 'No files to build!'
+  exit 0
+fi
+
 # Run each per-machine build script.
 for create_usb_script in ${BUILD_DIR}/create-stage1-usb-*.sh ; do
   echo "${create_usb_script}"
