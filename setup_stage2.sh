@@ -415,7 +415,7 @@ function build_kernel() {
         make olddefconfig
 
         # Build the compressed kernel image.
-        make -j3 bzImage
+        make -j8 bzImage
 
         # Copy to output name.
         cp arch/x86/boot/bzImage "${kernel}"
@@ -465,6 +465,7 @@ function main() {
 
   report "Copying epoxy_client"
   install -D -m 644 $BUILD_DIR/local/upx/epoxy_client $EPOXY_CLIENT
+  report "Successful build of stage2 image!"
 }
 
 main

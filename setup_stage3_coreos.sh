@@ -109,3 +109,5 @@ pushd $IMAGEDIR
   rm -rf initrd-contents
   rm -rf squashfs-root
 popd
+
+echo "Successful build of custom CoreOS image!"

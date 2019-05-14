@@ -55,5 +55,7 @@ fi
 # ePoxy stage1 URL.
 ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boot/{{hostname}}/stage1.json"
 
-${SOURCE_DIR}/simpleiso -x "$ARGS" "${IMAGE_DIR}/stage2_vmlinuz" \
+${SOURCE_DIR}/simpleiso -x "$ARGS" \
+    -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
+    "${IMAGE_DIR}/vmlinuz_stage1_minimal" \
     ${OUTPUT_DIR}/{{hostname}}_stage1.iso

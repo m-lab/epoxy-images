@@ -61,6 +61,8 @@ setup_network
 echo "Downloading next stage from ePoxy"
 if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
   epoxy_client -action epoxy.stage1 -add-kargs
+elif grep epoxy.stage2 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage2
 else
-  echo "WARNING: no stage1 action found in /proc/cmdline"
+  echo "WARNING: unknown or no stage found in /proc/cmdline"
 fi

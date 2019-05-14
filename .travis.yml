@@ -91,11 +91,11 @@ script:
               /images/configs/stage1_mlxrom/gtsgiag3.pem"
 
 # Build a stage1 ISO image for a test machine.
-- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-      bash -c "mkdir -p /build
-        && echo 'Starting stage1_isos build'
-        && /images/setup_stage1_isos.sh mlab-sandbox /build
-              /images/output /images/configs/stage1_isos 'mlab4.lga1t.*'"
+#- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
+#      bash -c "mkdir -p /build
+#        && echo 'Starting stage1_isos build'
+#        && /images/setup_stage1_isos.sh mlab-sandbox /build
+#              /images/output /images/configs/stage1_isos 'mlab4.lga1t.*'"
 
 # Build a skeleton bootstrapfs for the modified PlanetLab bootmanager.
 - time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder

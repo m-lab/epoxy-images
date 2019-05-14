@@ -2,7 +2,8 @@
 
 # Use a relative URL for the vmlinuz image.
 # NOTE: the image must be in the same directory as this iPXE script.
-set vmlinuz_url stage2_vmlinuz
+set vmlinuz_url vmlinuz_stage1_minimal
+set initram_url initramfs_stage1_minimal.cpio.gz
 
 echo Starting stage1to2 script
 
@@ -26,6 +27,22 @@ goto firstfetch
   echo -- Retries ${retry_count} ${max_retry_count}
   kernel --name vmlinuz ${vmlinuz_url} || goto loop
 
+# Initialize retry counters.
+set retry_count:int32 1
+set max_retry_count 20
+
+goto firstfetch_initrd
+
+:loop_initrd
+  inc retry_count 1
+  echo -- Retries ${retry_count} ${max_retry_count}
+  echo Failed ${retry_count} times... Retrying after ${retry_count} seconds
+  sleep ${retry_count}
+
+:firstfetch_initrd
+  echo -- Retries ${retry_count} ${max_retry_count}
+  initrd --name initrd ${initram_url} || goto loop_initrd
+
 imgstat
 
 # TODO: use a canonical form defined by epoxy and supporing IPv6.
@@ -37,6 +54,7 @@ sleep 2
 set kargs
 # Network settings
 # TODO: remove epoxy.ip= once epoxy-images support canonical network format.
+set kargs ${kargs} net.ifnames=0 autoconf=0
 set kargs ${kargs} epoxy.ip=${network}
 set kargs ${kargs} epoxy.ipv4=${ipv4_address}/${ipv4_subnet},${ipv4_gateway},${ipv4_dns1},${ipv4_dns2}
 

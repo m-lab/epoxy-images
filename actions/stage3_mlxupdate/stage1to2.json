@@ -5,7 +5,10 @@
       },
       "files" : {
          "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage2_vmlinuz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/vmlinuz_stage1_minimal"
+         },
+         "initram" : {
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/initramfs_stage1_minimal.cpio.gz"
          }
       },
       "vars" : {
@@ -30,6 +33,8 @@
             "/sbin/kexec",
             "--force",
             "--command-line={{.vars.kargs}} {{.vars.cmdline}}",
+            "--initrd",
+            "{{.files.initram.name}}",
             "{{.files.vmlinuz.name}}"
          ]
       ]
