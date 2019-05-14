@@ -33,6 +33,12 @@ pushd ${BUILD_DIR}
   popd
 popd
 
+# Check whether there are any files in the glob pattern.
+if ! compgen -G ${BUILD_DIR}/create-stage1-iso-*.sh ; then
+  echo 'No images to build!'
+  exit 0
+fi
+
 # Run each per-machine build script.
 for create_iso_script in `ls ${BUILD_DIR}/create-stage1-iso-*.sh` ; do
   echo $create_iso_script
