@@ -86,8 +86,8 @@ steps:
    - 'PROJECT=$PROJECT_ID'
    - 'ARTIFACTS=/workspace/output'
    - 'REGEXP_mlab_sandbox=mlab[1-4].lga1t.*'
-   - 'REGEXP_mlab_staging=mlab4.hnd.*'
-   - 'REGEXP_mlab_oti=mlab[1-3].hnd.*'
+   - 'REGEXP_mlab_staging=mlab4.hnd01.*'
+   - 'REGEXP_mlab_oti=mlab[1-3].hnd01.*'
 
 # stage3_coreos images.
 - name: epoxy-images-builder
