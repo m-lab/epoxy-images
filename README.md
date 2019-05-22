@@ -2,68 +2,94 @@
 |--------|--------|
 | master | [![Build Status](https://travis-ci.org/m-lab/epoxy-images.svg?branch=master)](https://travis-ci.org/m-lab/epoxy-images) |
 
-# epoxy-images
+# Boot Images for ePoxy Server
 
-Support for building Linux kernels, rootfs images, and ROMs for ePoxy
+This repo supports building Linux kernels, rootfs images, and ROMs for ePoxy
+boot API.
 
 An ePoxy managed system depends on several image types:
 
- * stage1 images that are either flashed to NICs, or burned to CDs.
- * stage2 Linux images that provide a minimal network boot environment.
- * stage3 Linux ROM update images, that (re)flash iPXE ROMs to NICs.
+* stage1 images are either flashed to NICs or burned to CDs. These don't
+  change very often once installed.
+* stage2 Linux images provide a minimal, consistent network boot environment.
+* stage3 Linux images provide a complete environment, e.g. to flash the
+  iPXE ROMs to NICs, or run CoreOS or another distro.
 
-# Building images
+# Initial Setup
 
-## Building stage1 iPXE ROMs
+Once built, by default images are deployed to a GCS bucket for the current
+project, `gs://epoxy-<project>`. Here `<project>` corresponds to the GCP
+project name.
 
-TODO(soltesz): add notes for building iPXE ROMs.
+When creating a new bucket, set the default ACL to `public-read` so that
+booting nodes can download the files without authentication.
 
-## Building stage2 Linux images
+```sh
+gsutil defacl set public-read gs://epoxy-mlab-sandbox
+```
 
-The ePoxy stage2 image is a single file. It is a Linux kernel with embedded
-initramfs.
+# Building Images
 
-The `setup_stage2.sh` script creates an initramfs filesystem, a cpio version of
-the initramfs, and the kernel with embedded initramfs.
+Image builds are performed by Google Cloud Build using the `cloudbuild.yaml`
+configuration.
 
-    docker build -t epoxy-images-builder  .
-    docker run -v $PWD:/images -it epoxy-images-builder \
-        /images/setup_stage2.sh /buildtmp /images/vendor \
-            /images/configs/stage2 \
-            /images/output/stage2_initramfs.cpio.gz \
-            /images/output/stage2_vmlinuz
+The first build step is to create a custom docker container that serves as a
+build environment for all subsequent steps.
 
-    docker run -v $PWD:/images -it epoxy-images-builder \
-        /images/simpleiso /images/output/stage2_vmlinuz \
-            /images/output/stage2.iso
+The environment variables for each build step are particular to the needs of the
+M-Lab projects. Update them for your own build.
 
-Using this ISO, you should be able to boot the image using VirtualBox or a
-similar tool. If your ssh key is in `configs/stage2/authorized_keys`, and the VM
-is configured to attach to a Host-only network on the 192.168.0.0/24 subnet,
-then you can ssh to the machine at:
+## Building Images for Development
 
-    ssh root@192.168.0.2
+Before building with cloudbuild.yaml, it may be helpful to build locally. To
+build images locally, use the same steps as found in cloudbuild.yaml, for
+example:
 
-Alternate network configurations are also possible, using the same format as the
-[nsfroot][nfsroot] `ip=` kernel parameter. The default value is shown below.
+```sh
+docker build -t epoxy-images-builder .
+docker run -e PROJECT=$PROJECT_ID -e ARTIFACTS=/workspace/output \
+  -it epoxy-images-builder /workspace/builder.sh stage1_minimal
+```
 
-    network=192.168.0.2::192.168.0.1:255.255.255.0:default-net:eth0::8.8.8.8:
-    docker run -v $PWD:/images -it epoxy-images-builder \
-        /images/simpleiso -x epoxy.ip=${network} \
-            /images/output/stage2_vmlinuz \
-            /images/output/stage2.iso
+Most builds generate two files, the Linux kernel and corresponding initramfs.
+In the case of the stage1_minimal target, the build generates:
 
-[nfsroot]: https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt
+```txt
+$ ls -l output/
+-rw-r--r-- 1 root root 158861392 May 13 16:43 initramfs_stage1_minimal.cpio.gz
+-rw-r--r-- 1 root root   7013968 May 13 16:43 vmlinuz_stage1_minimal
+```
 
-## Building stage3 Linux ROM update images
+The initramfs is large because it contains the complete "minimal" root
+filesystem, including kernel modules, binaries and all associated libraries.
 
-TODO(soltesz): add notes for building Linux ROM update images.
+Using these base images it's possible to create an ISO or USB image for
+booting with VirtualBox. Alternate network configurations are also possible
+by modifying the kernel parameters below:
 
-# Deploying images
+```bash
+kargs="net.ifnames=0 autoconf=0 "
+kargs+="epoxy.interface=eth0 "
+kargs+="epoxy.ipv4=192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4 "
+kargs+="epoxy.ipv6= "
+kargs+="epoxy.hostname=localhost "
 
-TODO(soltesz): outline how ePoxy images are deployed to GCS.
+docker run -v $PWD:/workspace -it epoxy-images-builder \
+  /workspace/simpleiso -x "${kargs}" \
+    -i /workspace/output/initramfs_stage1_minimal.cpio.gz \
+    /workspace/output/vmlinuz_stage1_minimal \
+    /workspace/output/stage1_minimal.iso
+```
 
-## BIOS & UEFI Support
+You should be able to boot the ISO image using VirtualBox or any machine.
+If the VM is configured to attach to a Host-only network on the 192.168.0.0/24
+subnet, then you can ssh to the machine at:
+
+```sh
+ssh root@192.168.0.2
+```
+
+# BIOS & UEFI Support
 
 The `simpleiso` command creates ISO images that are capable of booting from
 either BIOS or UEFI systems. BIOS systems use isolinux while UEFI systems use
@@ -72,9 +98,9 @@ grub.
 The `simpleusb` command only creates fat16.gpt images capable of booting from
 UEFI systems. While hybrid boot for GPT & MBR may be possible, tools that
 support it warn "Hybrid MBRs are flaky and dangerous!", so `simpleusb` only
-support UEFI sytems.
+support UEFI systems.
 
-### Testing USB images
+## Testing USB images
 
 VirtualBox natively supports boot from ISO images & supports BIOS or UEFI
 boot environments. To support VM boot from USB images we must create a
