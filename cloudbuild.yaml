@@ -1,5 +1,5 @@
 # Timeout for complete build. Default is 10m.
-timeout: 7200s
+timeout: 10800s
 
 ############################################################################
 # BUILD ARTIFACTS
