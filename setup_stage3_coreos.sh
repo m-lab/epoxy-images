@@ -67,7 +67,7 @@ pushd $IMAGEDIR
   # Make all the shims so that network plugins can be debugged.
   mkdir -p squashfs-root/shimcni/bin
   pushd squashfs-root/shimcni/bin
-    for i in *; do
+    for i in ${IMAGEDIR}/squashfs-root/cni/bin/*; do
       # NOTE: the target path does not exist at this moment, but that's the file
       # the symlink should reference in the final image filesystem.
       ln -s /usr/shimcni/bin/shim.sh $(basename "$i")
