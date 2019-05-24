@@ -66,13 +66,13 @@ pushd $IMAGEDIR
   # Make all the shims so that network plugins can be debugged.
   mkdir -p squashfs-root/shimcni/bin
   pushd squashfs-root/shimcni/bin
-    cp -a ${CONFIG_DIR}/shim.sh .
-    chmod +x shim.sh
     for i in squashfs-root/cni/bin/*; do
       # NOTE: the target path does not exist at this moment, but that's the file
       # the symlink should reference in the final image filesystem.
       ln -s /usr/shimcni/bin/shim.sh $(basename "$i")
     done
+    cp -a ${CONFIG_DIR}/shim.sh .
+    chmod +x shim.sh
   popd
 
   # Install multus and index2ip.
