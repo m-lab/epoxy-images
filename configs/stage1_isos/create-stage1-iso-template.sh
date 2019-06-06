@@ -15,11 +15,10 @@ SOURCE_DIR=${1:?Please provide the source directory root: $USAGE}
 IMAGE_DIR=${2:?Error: specify input vmlinuz: $USAGE}
 OUTPUT_DIR=${3:?Error: specify directory for output ISO: $USAGE}
 
-if [[ "{{netmask}}" != "255.255.255.192" ]] ; then
-  echo 'Error: Sorry, unsupported netmask: {{netmask}}'
+if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
+  echo 'Error: Sorry, unsupported netmask: {{ipv4_netmask}}'
   exit 1
 fi
-mask=26
 
 if [[ ! -f "${IMAGE_DIR}/stage2_vmlinuz" ]] ; then
     echo 'Error: vmlinuz images not found!'
@@ -39,12 +38,12 @@ ARGS="net.ifnames=0 "
 ARGS+="epoxy.project={{project}} "
 
 # TODO: Legacy epoxy.ip= format. Remove once canonical form is supported.
-ARGS+="epoxy.ip={{ip}}::{{gateway}}:255.255.255.192:{{hostname}}:eth0:false:{{dns1}}:8.8.4.4 "
+ARGS+="epoxy.ip={{ipv4_address}}::{{ipv4_gateway}}:255.255.255.192:{{hostname}}:eth0:false:{{ipv4_dns1}}:{{ipv4_dns2}} "
 
 # Canonical epoxy network configuration.
 ARGS+="epoxy.hostname={{hostname}} "
 ARGS+="epoxy.interface=eth0 "
-ARGS+="epoxy.ipv4={{ip}}/${mask},{{gateway}},{{dns1}},8.8.4.4 "
+ARGS+="epoxy.ipv4={{ipv4_address}}/{{ipv4_subnet}},{{ipv4_gateway}},{{ipv4_dns1}},{{ipv4_dns2}} "
 
 if [[ "{{ipv6_enabled}}" == "true" ]] ; then
   ARGS+="epoxy.ipv6={{ipv6_address}}/64,{{ipv6_gateway}},{{ipv6_dns1}},{{ipv6_dns2}} "
