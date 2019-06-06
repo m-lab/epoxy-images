@@ -77,6 +77,7 @@ function generate_stage1_ipxe_scripts() {
     pushd operator/plsync
       mkdir -p ${output_dir}
       ./mlabconfig.py --format=server-network-config \
+          --physical \
           --select "${hostname_pattern}" \
           --label "project=${PROJECT}" \
           --template_input "${config_dir}/stage1-template.ipxe" \

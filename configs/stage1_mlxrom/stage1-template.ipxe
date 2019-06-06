@@ -15,17 +15,18 @@ set max_retry_delay_s 480
 set ipv6_enabled {{ipv6_enabled}}
 set ipv6_address {{ipv6_address}}
 set ipv6_gateway {{ipv6_gateway}}
-set ipv6_subnet  64
+set ipv6_subnet  {{ipv6_subnet}}
 set ipv6_dns1    {{ipv6_dns1}}
 set ipv6_dns2    {{ipv6_dns2}}
 
 # IPv4 network configuration.
-set ipv4_address {{ip}}
-set ipv4_gateway {{gateway}}
-set ipv4_subnet  26
-set ipv4_netmask {{netmask}}
-set ipv4_dns1    {{dns1}}
-set ipv4_dns2    {{dns2}}
+set ipv4_enabled {{ipv4_enabled}}
+set ipv4_address {{ipv4_address}}
+set ipv4_gateway {{ipv4_gateway}}
+set ipv4_subnet  {{ipv4_subnet}}
+set ipv4_netmask {{ipv4_netmask}}
+set ipv4_dns1    {{ipv4_dns1}}
+set ipv4_dns2    {{ipv4_dns2}}
 
 # Apply ipxe network settings (IPv4 only).
 ifopen net0
