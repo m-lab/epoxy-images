@@ -27,6 +27,7 @@ pushd "${BUILD_DIR}"
   pushd operator/plsync
     mkdir -p "${OUTPUT_DIR}/scripts"
     ./mlabconfig.py --format=server-network-config \
+        --physical \
         --select "${HOSTNAMES}" \
         --label "project=${PROJECT}" \
         --template_input "${CONFIG_DIR}/create-stage1-usb-template.sh" \
