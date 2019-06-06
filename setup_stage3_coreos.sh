@@ -61,7 +61,20 @@ pushd $IMAGEDIR
   # Install the cni binaries: bridge, flannel, host-local, ipvlan, loopback, and
   # others.
   mkdir -p squashfs-root/cni/bin
-  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" | tar --directory=squashfs-root/cni/bin -xz
+  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" \
+    | tar --directory=squashfs-root/cni/bin -xz
+
+  # Make all the shims so that network plugins can be debugged.
+  mkdir -p squashfs-root/shimcni/bin
+  pushd squashfs-root/shimcni/bin
+    for i in ${IMAGEDIR}/squashfs-root/cni/bin/*; do
+      # NOTE: the target path does not exist at this moment, but that's the file
+      # the symlink should reference in the final image filesystem.
+      ln -s /usr/shimcni/bin/shim.sh $(basename "$i")
+    done
+    cp -a ${CONFIG_DIR}/shim.sh .
+    chmod +x shim.sh
+  popd
 
   # Install multus and index2ip.
   TMPDIR=$(mktemp -d)
