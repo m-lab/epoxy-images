@@ -16,4 +16,4 @@ do
       idracadm -r ${DRAC_IP} -u admin -p ${DRAC_PASSWD} \
       get bios.biosbootsettings.bootseq 2>&1 | grep BootSeq)
   echo "${node}: ${BOOTSEQ}"
-done < $NODE_LIST_FILE
+done < "$NODE_LIST_FILE"
