@@ -194,3 +194,4 @@ users:
     groups: ["sudo"]
     ssh-authorized-keys:
       - "command=\"sudo /usr/bin/systemctl reboot -i\" ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDd/MjyFiDvvw9IR6crFgFnLtZT4pQw6Pjv9jSs7XKasgsnr8dTjLSb91sYPqKpz2CHpcHJfYtqFZvNePR44BEQ/Pf9DcS9ico1OXOunkqC3L9mw6MaPE5b5GjatP0eXGPcDUdKhDCsL43PjEs8hJ+/hTrDrv1qE/dDYpfsnIVcSj3Zd+uOd+c+RY8MPzaRytYlaFytT/R8R4X8aC9xYCLzcPQ8XIgVUGscwI6WhiFCCiU2sffeeNPzcoRJ9T+P2j6LQSbS1P8Clg89BdYucRCcKWED3lVQ9v6tC6Y8xaGeaEEyB7+B5p8EoIYRu90idrPVSjSsjBYP1UUdo2h7R+VH reboot-api@"
+
