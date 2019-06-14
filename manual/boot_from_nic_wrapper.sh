@@ -5,7 +5,7 @@
 # script and then making sure the node came back up before moving on to the
 # next node.
 # 
-# This script make a *lot* of assumptions about the filesystem layout and tools
+# This script makes a *lot* of assumptions about the filesystem layout and tools
 # that are in your path, but this is probably okay because once the platform is
 # converted to booting from ePoxy, we likely won't ever need this script again.
 #
@@ -21,7 +21,7 @@ while read -r node
 do
   echo -e "\n\nOPERATING ON NODE: ${node}"
 
-  if [[ "$node" =~ ^# ]]; then 
+  if [[ "$node" =~ ^# ]]; then
     echo "Node commented out. Skipping."
     continue
   fi
