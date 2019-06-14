@@ -57,6 +57,10 @@ configuring iDRACs is seemingly flaky and unstable.
 docker run --rm --volume $PWD:/scripts -it epoxy-racadm \
     /scripts/boot_from_nic.sh ${DRAC_IP} ${DRAC_PASSWORD}
 ```
+If you need to update multiple machines, you can use the wrapper script like:
+```
+./boot_from_nic_wrapper.sh <file with list of nodes>
+```
 
 ## Run the epoxy-racadm container to update Mellanox ROM
 Run the epoxy-racadm image with a Mellanox ROM update ISO image, for
