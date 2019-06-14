@@ -1,5 +1,4 @@
 #cloud-config
-
 coreos:
   # TODO: during the image customization process, consider adding custom
   # network handling units directly instead of this approach.
@@ -24,6 +23,14 @@ coreos:
         [Service]
         Type=oneshot
         ExecStart=/usr/share/oem/generate_network_config.sh /etc/systemd/network/00-eth0.network
+
+    # Replaces eth0's qdisc with fq.
+    - name: set-tc-qdisc.service
+      command: start
+      content: |
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/sbin/tc qdisc replace dev eth0 root fq
 
     # Restarts the networkd service using our new config.
     - name: systemd-networkd.service
