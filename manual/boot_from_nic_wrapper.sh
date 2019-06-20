@@ -36,13 +36,14 @@ function send_slack_message() {
       "$SLACK_WEBHOOK_URL"
 }
 
-# Don't proceed if either of these variables aren't configured.
+# Don't proceed if SLACK_WEBHOOK_URL is unset, or if the
+# LAME_DUCK_DIR doesn't exist.
 if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
   echo "Please configure a SLACK_WEBHOOK_URL."
   exit 1
 fi
-if [[ -z "$LAME_DUCK_URL" ]]; then
-  echo "Please configure a LAME_DUCK_URL."
+if [[ ! -d "$LAME_DUCK_DIR" ]]; then
+  echo "LAME_DUCK_DIR is not a valid directory: $LAME_DUCK_DIR"
   exit 1
 fi
 
