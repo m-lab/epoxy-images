@@ -168,6 +168,8 @@ function main() {
       -efi-boot efiboot.img \
       -no-emul-boot ${isodir}
 
+  isohybrid ${ISO_NAME}
+
   # Clean up temporary directory.
   rm -fr ${isodir}
 }
