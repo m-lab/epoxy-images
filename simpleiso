@@ -9,8 +9,8 @@ set -euxo pipefail
 INITRAMFS=
 BOOT_PARAMS=
 
-# From genisoimage package.
-MKISOFS=/usr/bin/mkisofs
+# From xorriso package.
+MKISOFS=/usr/bin/xorriso
 # From the isolinux package.
 ISOLINUX_BIN=/usr/lib/ISOLINUX/isolinux.bin
 # From the syslinux-common package.
@@ -149,24 +149,18 @@ function main() {
   setup_isofs $isodir ${isodir}/efiboot.img "$VMLINUZ" "$INITRAMFS" "${BOOT_PARAMS}"
 
   # Generate the ISO image. File paths are relative to the ${isodir}.
-  ${MKISOFS} -untranslated-filenames \
-      -publisher "M-Lab" \
-      -appid "ePoxy" \
-      -volid "Dual ISO x86_64" \
-      -joliet \
-      -joliet-long \
-      -rational-rock \
-      -verbose \
-      -translation-table \
-      -output ${ISO_NAME} \
-      -eltorito-boot isolinux/isolinux.bin \
-      -eltorito-catalog isolinux/boot.cat \
+  ${MKISOFS} -as mkisofs \
+      -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin \
+      -c isolinux/boot.cat \
+      -b isolinux/isolinux.bin \
       -no-emul-boot \
       -boot-load-size 4 \
       -boot-info-table \
       -eltorito-alt-boot \
-      -efi-boot efiboot.img \
-      -no-emul-boot ${isodir}
+      -e efiboot.img \
+      -isohybrid-gpt-basdat
+      -output ${ISO_NAME} \
+      ${isodir}
 
   # Run isohybrid on the generated ISO. This makes it bootable regardless of
   # the media (CD or USB drive).
