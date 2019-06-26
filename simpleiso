@@ -97,7 +97,7 @@ menuentry 'linux: ${ISO_NAME}' {
 }
 EOF
 
-  make_bootefi_img ${efiboot_img}
+  make_bootefi_img ${efiboot_img} ${isofs_dir}
 
   # Copy isolinux bootloader.
   install -D -m 644 ${ISOLINUX_BIN} ${isofs_dir}/isolinux/isolinux.bin
@@ -109,6 +109,7 @@ EOF
 
 function make_bootefi_img() {
   local bootefi_img=$1
+  local isofs_dir=$2
   local tmp=$( mktemp --directory )
 
   # Make the grub efi boot loader image.
@@ -134,6 +135,9 @@ function make_bootefi_img() {
   # Creates the necessary subdirectories.
   mmd -i ${tmp}/data.fat16 ::/efi ::/efi/boot
   mcopy -bsQ -i ${tmp}/data.fat16 ${tmp}/bootx64.efi ::/efi/boot
+  mcopy -bsQ -i ${tmp}/data.fat16 ${isofs_dir}/grub.cfg ::/
+  mcopy -bsQ -i ${tmp}/data.fat16 ${isofs_dir}/vmlinuz ::/
+  mcopy -bsQ -i ${tmp}/data.fat16 ${isofs_dir}/initramfs ::/
 
   # Copy the fat16 formatted data as the complete bootefi img file.
   cp ${tmp}/data.fat16 ${bootefi_img}
@@ -162,10 +166,6 @@ function main() {
       -isohybrid-gpt-basdat \
       -output ${ISO_NAME} \
       ${isodir}
-
-  # Run isohybrid on the generated ISO. This makes it bootable regardless of
-  # the media (CD or USB drive).
-  isohybrid --uefi ${ISO_NAME}
 
   # Clean up temporary directory.
   rm -fr ${isodir}
