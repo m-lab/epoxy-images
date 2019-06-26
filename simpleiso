@@ -170,7 +170,7 @@ function main() {
 
   # Run isohybrid on the generated ISO. This makes it bootable regardless of
   # the media (CD or USB drive).
-  isohybrid ${ISO_NAME}
+  isohybrid --uefi ${ISO_NAME}
 
   # Clean up temporary directory.
   rm -fr ${isodir}
