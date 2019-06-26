@@ -158,7 +158,8 @@ function main() {
       -boot-info-table \
       -eltorito-alt-boot \
       -e efiboot.img \
-      -isohybrid-gpt-basdat
+      -no-emul-boot \
+      -isohybrid-gpt-basdat \
       -output ${ISO_NAME} \
       ${isodir}
 
