@@ -112,18 +112,19 @@ function make_bootefi_img() {
   local isofs_dir=$2
   local tmp=$( mktemp --directory )
 
+  local raw_size_k=$(
+    du --dereference --summarize --block-size=1K ${isofs_dir} \
+      | awk '{ print $1; }'
+  )
+
+  local size=$(( $raw_size_k + 4096 ))
+
   # Make the grub efi boot loader image.
   grub-mkimage -o ${tmp}/bootx64.efi -p / -O x86_64-efi fat iso9660 part_gpt \
       part_msdos normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap \
       configfile loopback chain efifwsetup efi_gop efi_uga ls search \
       search_label search_fs_uuid search_fs_file gfxterm gfxterm_background \
       gfxterm_menu test all_video loadenv exfat ext2 ntfs udf
-
-  local raw_size_k=$(
-    du --dereference --summarize --block-size=1K ${tmp}/bootx64.efi \
-      | awk '{ print $1; }'
-  )
-  local size=$(( $raw_size_k + 4096 ))
 
   # Ignore meaningless sector alignment failures.
   export MTOOLS_SKIP_CHECK=1
