@@ -33,8 +33,7 @@
             "/sbin/kexec",
             "--force",
             "--command-line={{.vars.kargs}} {{.vars.cmdline}}",
-            "--initrd",
-            "{{.files.initram.name}}",
+            "--initrd={{.files.initram.name}}",
             "{{.files.vmlinuz.name}}"
          ]
       ]
