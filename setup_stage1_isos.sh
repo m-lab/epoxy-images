@@ -23,7 +23,8 @@ set -xuo pipefail
 # HOSTNAMES pattern.
 pushd ${BUILD_DIR}
   # TODO: Replace curl with a native go-get once mlabconfig is rewritten in Go.
-  curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py"
+  curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
+      ./mlabconfig.py
   mkdir -p ${OUTPUT_DIR}/scripts
   ./mlabconfig.py --format=server-network-config \
       --physical \

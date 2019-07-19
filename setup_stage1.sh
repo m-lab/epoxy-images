@@ -74,7 +74,8 @@ function generate_stage1_ipxe_scripts() {
   pushd ${build_dir}
     # TODO: replace host set with metadata service.
     # TODO: Replace curl with a native go-get once mlabconfig is rewritten in Go.
-    curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py"
+    curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
+        ./mlabconfig.py
     mkdir -p ${output_dir}
     ./mlabconfig.py --format=server-network-config \
         --physical \
