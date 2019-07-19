@@ -23,16 +23,16 @@ set -xuo pipefail
 # Use mlabconfig to fill in the template for every machine matching the given
 # HOSTNAMES pattern.
 pushd "${BUILD_DIR}"
-  test -d operator || git clone https://github.com/m-lab/operator
-  pushd operator/plsync
-    mkdir -p "${OUTPUT_DIR}/scripts"
-    ./mlabconfig.py --format=server-network-config \
-        --physical \
-        --select "${HOSTNAMES}" \
-        --label "project=${PROJECT}" \
-        --template_input "${CONFIG_DIR}/create-stage1-usb-template.sh" \
-        --template_output "${BUILD_DIR}/create-stage1-usb-{{hostname}}.sh"
-  popd
+  # TODO: Replace curl with a native go-get once mlabconfig is rewritten in Go.
+  curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
+      ./mlabconfig.py
+  mkdir -p "${OUTPUT_DIR}/scripts"
+  python ./mlabconfig.py --format=server-network-config \
+      --physical \
+      --select "${HOSTNAMES}" \
+      --label "project=${PROJECT}" \
+      --template_input "${CONFIG_DIR}/create-stage1-usb-template.sh" \
+     --template_output "${BUILD_DIR}/create-stage1-usb-{{hostname}}.sh"
 popd
 
 # Check whether there are any files in the glob pattern.
