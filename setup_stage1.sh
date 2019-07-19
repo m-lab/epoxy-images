@@ -73,16 +73,14 @@ function generate_stage1_ipxe_scripts() {
   # Create all stage1.ipxe scripts.
   pushd ${build_dir}
     # TODO: replace host set with metadata service.
-    test -d operator || git clone https://github.com/m-lab/operator
-    pushd operator/plsync
-      mkdir -p ${output_dir}
-      ./mlabconfig.py --format=server-network-config \
-          --physical \
-          --select "${hostname_pattern}" \
-          --label "project=${PROJECT}" \
-          --template_input "${config_dir}/stage1-template.ipxe" \
-          --template_output "${output_dir}/stage1-{{hostname}}.ipxe"
-    popd
+    curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py"
+    mkdir -p ${output_dir}
+    ./mlabconfig.py --format=server-network-config \
+        --physical \
+        --select "${hostname_pattern}" \
+        --label "project=${PROJECT}" \
+        --template_input "${config_dir}/stage1-template.ipxe" \
+        --template_output "${output_dir}/stage1-{{hostname}}.ipxe"
   popd
 }
 

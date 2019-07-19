@@ -22,17 +22,14 @@ set -xuo pipefail
 # Use mlabconfig to fill in the template for every machine matching the given
 # HOSTNAMES pattern.
 pushd ${BUILD_DIR}
-  test -d operator || git clone https://github.com/m-lab/operator
-  pushd operator/plsync
-    mkdir -p ${OUTPUT_DIR}/scripts
-    ./mlabconfig.py --format=server-network-config \
-        --physical \
-        --select "${HOSTNAMES}" \
-        --label "project=${PROJECT}" \
-        --template_input "${CONFIG_DIR}/create-stage1-iso-template.sh" \
-        --template_output "${BUILD_DIR}/create-stage1-iso-{{hostname}}.sh"
-  popd
-popd
+  curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py"
+  mkdir -p ${OUTPUT_DIR}/scripts
+  ./mlabconfig.py --format=server-network-config \
+      --physical \
+      --select "${HOSTNAMES}" \
+      --label "project=${PROJECT}" \
+      --template_input "${CONFIG_DIR}/create-stage1-iso-template.sh" \
+      --template_output "${BUILD_DIR}/create-stage1-iso-{{hostname}}.sh"
 
 # Check whether there are any files in the glob pattern.
 if ! compgen -G ${BUILD_DIR}/create-stage1-iso-*.sh ; then
