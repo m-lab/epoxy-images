@@ -26,7 +26,7 @@ pushd ${BUILD_DIR}
   curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
       ./mlabconfig.py
   mkdir -p ${OUTPUT_DIR}/scripts
-  ./mlabconfig.py --format=server-network-config \
+  bash ./mlabconfig.py --format=server-network-config \
       --physical \
       --select "${HOSTNAMES}" \
       --label "project=${PROJECT}" \
