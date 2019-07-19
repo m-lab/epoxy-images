@@ -77,7 +77,7 @@ function generate_stage1_ipxe_scripts() {
     curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
         ./mlabconfig.py
     mkdir -p ${output_dir}
-    bash ./mlabconfig.py --format=server-network-config \
+    python ./mlabconfig.py --format=server-network-config \
         --physical \
         --select "${hostname_pattern}" \
         --label "project=${PROJECT}" \
