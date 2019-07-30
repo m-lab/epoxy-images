@@ -18,23 +18,48 @@ OUTPUT=${1:?Please provide the name for writing config file}
 echo "0" > /proc/sys/net/ipv6/conf/all/accept_ra
 echo "0" > /proc/sys/net/ipv6/conf/all/autoconf
 
-# Extract the epoxy.ip= parameter from /proc/cmdline.
-#
-# For example:
-#   epoxy.ip=4.14.159.99::4.14.159.65:255.255.255.192:mlab3.lga0t.measurement-lab.org:eth0:off:8.8.8.8:8.8.4.4
-if [[ `cat /proc/cmdline` =~ epoxy.ip=([^ ]+) ]]; then
-    FIELDS=${BASH_REMATCH[1]}
+# Extract the epoxy.hostname parameter from /proc/cmdline
+if [[ `cat /proc/cmdline` =~ epoxy.hostname=([^ ]+) ]]; then
+  HOSTNAME=${BASH_REMATCH[1]}
 else
-    # Use default values for VM testing.
-    FIELDS="192.168.0.2::192.168.0.1:255.255.255.192:localhost:eth0:off:8.8.8.8:8.8.4.4"
+  HOSTNAME="localhost"
 fi
 
-# Extract all helpful fields.
-IPV4ADDR=$( echo $FIELDS | awk -F: '{print $1}' )
-GATEWAY=$( echo $FIELDS | awk -F: '{print $3}' )
-HOSTNAME=$( echo $FIELDS | awk -F: '{print $5}' )
-DNS1=$( echo $FIELDS | awk -F: '{print $8}' )
-DNS2=$( echo $FIELDS | awk -F: '{print $9}' )
+# IPv4
+#
+# Extract the epoxy.ipv4= parameter from /proc/cmdline.
+#
+# For example:
+#   epoxy.ipv4=4.14.159.86/26,4.14.159.65,8.8.8.8,8.8.4.4
+if [[ `cat /proc/cmdline` =~ epoxy.ipv4=([^ ]+) ]]; then
+    FIELDS_IPv4=${BASH_REMATCH[1]}
+else
+    # Use default values for VM testing.
+    FIELDS_IPv4="192.168.0.2,192.168.0.1,8.8.8.8,8.8.4.4"
+fi
+
+# Extract all helpful IPv4 fields.
+ADDR_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $1}' )
+GATEWAY_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $2}' )
+DNS1_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $3}' )
+DNS2_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $4}' )
+
+# IPv6
+#
+# Extract the epoxy.ipv6= parameter from /proc/cmdline.
+#
+# For example:
+#   epoxy.ipv6=2001:1900:2100:2d::86/64,2001:1900:2100:2d::1,2001:4860:4860::8888,2001:4860:4860::8844
+if [[ `cat /proc/cmdline` =~ epoxy.ipv6=([^ ]+) ]]; then
+    FIELDS_IPv6=${BASH_REMATCH[1]}
+fi
+
+# Extract all helpful IPv6 fields.
+ADDR_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $1}' )
+GATEWAY_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $2}' )
+DNS1_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $3}' )
+DNS2_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $4}' )
+
 
 # Note, we cannot set the hostname via networkd. Use hostnamectl instead.
 hostnamectl set-hostname ${HOSTNAME}
@@ -51,9 +76,16 @@ cat > ${OUTPUT} <<EOF
 Name=eth0
 
 [Network]
-Address=$IPV4ADDR/26
-Gateway=$GATEWAY
-DNS=$DNS1
-DNS=$DNS2
+# IPv4
+Address=$ADDR_IPv4
+Gateway=$GATEWAY_IPv4
+DNS=$DNS1_IPv4
+DNS=$DNS2_IPv4
+
+# IPv6
+Address=$ADDR_IPv6
+Gateway=$GATEWAY_IPv6
+DNS=$DNS1_IPv6
+DNS=$DNS2_IPv6
 IPv6AcceptRA=no
 EOF
