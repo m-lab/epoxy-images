@@ -77,13 +77,13 @@ Name=eth0
 
 [Network]
 # IPv4
-Address=$ADDR_IPv4/26
+Address=$ADDR_IPv4
 Gateway=$GATEWAY_IPv4
 DNS=$DNS1_IPv4
 DNS=$DNS2_IPv4
 
 # IPv6
-Address=$ADDR_IPv6/64
+Address=$ADDR_IPv6
 Gateway=$GATEWAY_IPv6
 DNS=$DNS1_IPv6
 DNS=$DNS2_IPv6
