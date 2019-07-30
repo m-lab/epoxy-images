@@ -39,10 +39,10 @@ else
 fi
 
 # Extract all helpful IPv4 fields.
-ADDR_IPv4=$( echo $FIELDS_IPv4 | awk -F: '{print $1}' )
-GATEWAY_IPv4=$( echo $FIELDS_IPv4 | awk -F: '{print $2}' )
-DNS1_IPv4=$( echo $FIELDS_IPv4 | awk -F: '{print $3}' )
-DNS2_IPv4=$( echo $FIELDS_IPv4 | awk -F: '{print $4}' )
+ADDR_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $1}' )
+GATEWAY_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $2}' )
+DNS1_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $3}' )
+DNS2_IPv4=$( echo $FIELDS_IPv4 | awk -F, '{print $4}' )
 
 # IPv6
 #
