@@ -27,7 +27,7 @@ fi
 
 # IPv4
 #
-# Extract the epoxy.ip= parameter from /proc/cmdline.
+# Extract the epoxy.ipv4= parameter from /proc/cmdline.
 #
 # For example:
 #   epoxy.ipv4=4.14.159.86/26,4.14.159.65,8.8.8.8,8.8.4.4
