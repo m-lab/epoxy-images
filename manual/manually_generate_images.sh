@@ -3,7 +3,7 @@
 # A script to create ePoxy images manually.
 
 # Edit the following variable to suit your needs, most importantly PROJECT and NODE_REGEXP.
-COREOS_VERSION="2079.6.0"
+COREOS_VERSION="2135.6.0"
 PROJECT="mlab-staging"
 NODE_REGEXP="mlab4.(bru02|lax02|syd02)"
 GCS_BUCKET="gs://epoxy-${PROJECT}"

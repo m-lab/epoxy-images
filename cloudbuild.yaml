@@ -102,7 +102,7 @@ steps:
   env:
    - 'PROJECT=$PROJECT_ID'
    - 'ARTIFACTS=/workspace/output'
-   - 'COREOS_VERSION=2079.6.0'
+   - 'COREOS_VERSION=2135.6.0'
    - 'K8S_VERSION=v1.13.5'
    - 'CRI_VERSION=v1.13.0'
    - 'CNI_VERSION=v0.7.5'
