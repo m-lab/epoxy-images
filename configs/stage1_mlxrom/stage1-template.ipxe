@@ -39,6 +39,9 @@ set hostname {{hostname}}
 # Save the GCP project name.
 set project {{project}}
 
+# Save the site's uplink speed.
+set uplink_speed {{uplink_speed}}
+
 # The ePoxy stage1 URL.
 set stage1_url https://${epoxyaddress}/v1/boot/${hostname}/stage1.ipxe
 
