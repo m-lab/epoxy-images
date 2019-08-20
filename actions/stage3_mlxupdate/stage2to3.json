@@ -22,6 +22,7 @@
             "epoxy.report={{kargs `epoxy.report`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}",
+            "epoxy.uplink_speed={{kargs `epoxy.uplink_speed`}}",
             "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest"
          ],
          "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"

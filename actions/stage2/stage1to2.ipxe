@@ -77,6 +77,7 @@ set kargs ${kargs} epoxy.report=${report_url}
 set kargs ${kargs} epoxy.allocate_k8s_token=${allocate_k8s_token_url}
 set kargs ${kargs} epoxy.server=${epoxyaddress}
 set kargs ${kargs} epoxy.project=${project}
+set kargs ${kargs} epoxy.uplink_speed=${uplink_speed}
 
 boot vmlinuz ${kargs} || shell
 

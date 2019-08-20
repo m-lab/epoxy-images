@@ -22,7 +22,8 @@
             "epoxy.report={{kargs `epoxy.report`}}",
             "epoxy.allocate_k8s_token={{kargs `epoxy.allocate_k8s_token`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
-            "epoxy.project={{kargs `epoxy.project`}}"
+            "epoxy.project={{kargs `epoxy.project`}}",
+            "epoxy.uplink_speed={{kargs `epoxy.uplink_speed`}}"
          ],
          "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },
