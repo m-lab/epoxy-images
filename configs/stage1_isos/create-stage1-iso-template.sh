@@ -37,6 +37,9 @@ ARGS="net.ifnames=0 "
 # ePoxy server & project.
 ARGS+="epoxy.project={{project}} "
 
+# Site's uplink speed.
+ARGS+="epoxy.uplink_speed={{uplink_speed}}"
+
 # TODO: Legacy epoxy.ip= format. Remove once canonical form is supported.
 ARGS+="epoxy.ip={{ipv4_address}}::{{ipv4_gateway}}:255.255.255.192:{{hostname}}:eth0:false:{{ipv4_dns1}}:{{ipv4_dns2}} "
 
