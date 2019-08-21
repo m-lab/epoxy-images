@@ -187,7 +187,9 @@ write_files:
     content: |
       #!/bin/bash
       SITE=$(dnsdomainname | cut -d. -f1)
-      SPEED=$(curl -sSL https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json | jq -r ".${SITE}.uplink_speed")
+      SPEED=$(curl --silent --show-error --location \
+          https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
+          | jq -r ".${SITE}.uplink_speed")
       if [[ "${SPEED}" == "10g" ]]; then
         MAXRATE="8gbit"
       elif [[ "${SPEED}" == "1g" ]]; then
@@ -197,6 +199,7 @@ write_files:
         exit 1
       fi
       /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
+      echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
