@@ -193,7 +193,7 @@ write_files:
       if [[ "${SPEED}" == "10g" ]]; then
         MAXRATE="8gbit"
       elif [[ "${SPEED}" == "1g" ]]; then
-        MAXRATE="0.8gbit"
+        MAXRATE="1gbit"
       else
         echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
         exit 1
