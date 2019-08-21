@@ -172,7 +172,7 @@ coreos:
       enable: true
       content: |
         [Unit]
-        Description=A post-boot setup command.
+        Description=Configures TCP pacing properly depending on the site's uplink speed
         Requires=network-online.target
         After=systemd-networkd-wait-online.service systemd-resolved.service format-cache.service
 
