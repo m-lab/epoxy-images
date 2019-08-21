@@ -174,6 +174,47 @@ coreos:
         Type=oneshot
         ExecStart=/usr/sbin/modprobe tcp_bbr
 
+    # A unit to run the script that configures Fair Queue ("TCP pacing") for eth0.
+    - name: configure-tc-fq.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=A post-boot setup command.
+        Requires=network-online.target
+        After=systemd-networkd-wait-online.service systemd-resolved.service format-cache.service
+
+        [Service]
+        Type=oneshot
+        ExecStart=/opt/bin/configure_tc_fq.sh
+
+write_files:
+  # Sets "Fair Queue" as the default queueing discipline.
+  # http://man7.org/linux/man-pages/man8/tc-fq.8.html
+  - path: /etc/sysctl.d/tc.conf
+    permissions: 0644
+    owner: root:root
+    content: |
+      net.core.default_qdisc=fq
+
+  - path: /opt/bin/configure_tc_fq.sh
+    permissions: 0744
+    owner: root:root
+    content: |
+      #!/bin/bash
+      SITE=$(dnsdomainname | cut -d. -f1)
+      SPEED=$(curl -sSL https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json | jq -r ".${SITE}.uplink_speed")
+      if [[ "${SPEED}" == "10g" ]]; then
+        MAXRATE="8gbit"
+      elif [[ "${SPEED}" == "1g" ]]; then
+        MAXRATE="0.8gbit"
+      else
+        echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
+        exit 1
+      fi
+      /sbin/tc qdisc del dev eth0 root
+      /sbin/tc qdisc add dev eth0 root fq maxrate "${MAXRATE}"
+
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvIKeMHcEO1xnTmEdMY6E9Y4pBdGBCDXZnuQC5ZPjNQr9IG3ytw0OxwyCObAzSr+WOymYv6Cwm4Ckz2jc/bWygzWJH+DMdldZe7HVQu4YxuegqahIkB0D1OzaZGNctBgTp9bmpWGxyek7U8ff7GTiFqhcms4Oer4rdd0gqUhmv3LnRWQqrIDblrBosHBED/zXgjbOj3beWCA3xHDCaui/gkbmp0J2jzCnlsc7eSI0d6Jro2UhbiS2ssxVQsLViLh5okJJeb2JyzbLbcpselUg9DSwSk0pFH/wHL0usjvBisF/fEP8eQ1svq6N6gncvPlgoJaSvtACmDvIFkU4baA2v pboothe@pboothe3.nyc.corp.google.com"
