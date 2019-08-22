@@ -191,7 +191,7 @@ write_files:
           https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
           | jq -r ".${SITE}.uplink_speed")
       if [[ "${SPEED}" == "10g" ]]; then
-        MAXRATE="8gbit"
+        MAXRATE="10gbit"
       elif [[ "${SPEED}" == "1g" ]]; then
         MAXRATE="1gbit"
       else
