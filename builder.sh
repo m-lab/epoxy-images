@@ -148,6 +148,7 @@ function stage1_usbs() {
   return
 }
 
+mkdir -p ${ARTIFACTS}
 case "${TARGET}" in
   stage1_mlxrom)
       stage1_mlxrom
