@@ -12,10 +12,10 @@ options:
 
 steps:
 # Fetch all submodules.
-#- name: gcr.io/cloud-builders/git
-#  args: [
-#    'submodule', 'update', '--init', '--recursive'
-#  ]
+- name: gcr.io/cloud-builders/git
+  args: [
+    'submodule', 'update', '--init', '--recursive'
+  ]
 
 # Create the image builder for later steps.
 - name: gcr.io/cloud-builders/docker
