@@ -113,7 +113,7 @@ function stage1_minimal() {
   echo 'Starting stage1_minimal build'
   ${SOURCE_DIR}/setup_stage1_minimal.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage1_minimal.log
+      /go/bin/epoxy_client
 
   rm -rf ${builddir}
 }
