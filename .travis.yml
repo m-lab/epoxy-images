@@ -51,7 +51,7 @@ script:
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
 # Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
-- travis_wait time docker run -it --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+- travis_wait time docker run --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
     -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
     bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate" || false
 - ls -l $TRAVIS_BUILD_DIR/output
