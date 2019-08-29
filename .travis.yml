@@ -33,10 +33,10 @@ script:
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
-    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
-    bash -c "umask 0022; /workspace/builder.sh stage3_coreos &> /workspace/coreos.log" || (tail -20 coreos.log && false)
-- ls -l $TRAVIS_BUILD_DIR/output
+#- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+#    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+#    bash -c "umask 0022; /workspace/builder.sh stage3_coreos &> /workspace/coreos.log" || (tail -20 coreos.log && false)
+#- ls -l $TRAVIS_BUILD_DIR/output
 
 # Build stage3 mlxupdate image.
 #
@@ -53,7 +53,8 @@ script:
 # Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
 - travis_wait time docker run -it --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
     -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
-    bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate &> /workspace/stage3_mlxupdate.log" || (tail -20 stage3_mlxupdate.log && false)
+    bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate"
+#   bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate &> /workspace/stage3_mlxupdate.log" || (tail -20 stage3_mlxupdate.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Build a stage1 ROM images for a test machine.
