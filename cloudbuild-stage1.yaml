@@ -79,11 +79,3 @@ steps:
     'cp', '-r', '/workspace/output/stage1_isos/*',
     'gs://epoxy-$PROJECT_ID/stage1_isos/'
   ]
-
-# stage1_usbs
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r', '/workspace/output/stage1_usbs/*',
-    'gs://epoxy-$PROJECT_ID/stage1_usbs/'
-  ]
