@@ -2,9 +2,12 @@
 timeout: 10800s
 
 # The default disk size is 100GB. However, the stage1 ISOs are pretty big these
-# days. 200GB  should give us some breathing room.
+# days. 400GB  should give us some breathing room.
 options:
   diskSizeGb: 400
+  env:
+    - 'PROJECT=$PROJECT_ID'
+    - 'ARTIFACTS=/workspace/output'
 
 ############################################################################
 # BUILD ARTIFACTS
@@ -28,9 +31,6 @@ steps:
   args: [
     '/workspace/builder.sh', 'stage1_minimal'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 # stage1 bootstrapfs for PlanetLab updates.
 # NOTE: this must run after stage2 so that the epoxy_client is available.
@@ -38,18 +38,12 @@ steps:
   args: [
     '/workspace/builder.sh', 'stage1_bootstrapfs'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 # stage3_coreos images.
 - name: epoxy-images-builder
   args: [
     '/workspace/builder.sh', 'stage3_coreos'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 # stage3_mlxupdate images.
 # NOTE: all project cloudbuild service accounts must be granted READ access to
@@ -62,9 +56,6 @@ steps:
   args: [
     '/workspace/builder.sh', 'stage3_mlxupdate'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 ############################################################################
 # DEPLOY ARTIFACTS
