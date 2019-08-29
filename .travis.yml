@@ -33,10 +33,10 @@ script:
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-#- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
-#    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
-#    bash -c "umask 0022; /workspace/builder.sh stage3_coreos" || false
-#- ls -l $TRAVIS_BUILD_DIR/output
+- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+    bash -c "umask 0022; /workspace/builder.sh stage3_coreos" || false
+- ls -l $TRAVIS_BUILD_DIR/output
 
 # Build stage3 mlxupdate image.
 #
@@ -51,7 +51,7 @@ script:
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
 # Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
-- travis_wait time docker run --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+- travis_wait time docker run -t --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
     -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
     bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate" || (tail -100 /workspace/stage3_mlxupdate.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
@@ -60,8 +60,8 @@ script:
 #
 # Note: because this is only *testing* the build and not deploying the
 # artifacts of the build, the ROM version is fake and does not matter.
-- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
-    -it -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+- travis_wait time docker run -t -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
     bash -c "mkdir -p /build && /workspace/builder.sh stage1_mlxrom" || false
 - ls -l $TRAVIS_BUILD_DIR/output/stage1_mlxrom
 
