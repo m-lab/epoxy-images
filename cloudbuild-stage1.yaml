@@ -2,9 +2,12 @@
 timeout: 10800s
 
 # The default disk size is 100GB. However, the stage1 ISOs are pretty big these
-# days. 200GB  should give us some breathing room.
+# days. 400GB  should give us some breathing room.
 options:
   diskSizeGb: 400
+  env:
+    - 'PROJECT=$PROJECT_ID'
+    - 'ARTIFACTS=/workspace/output'
 
 ############################################################################
 # BUILD ARTIFACTS
@@ -28,18 +31,12 @@ steps:
   args: [
     '/workspace/builder.sh', 'stage1_minimal'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
 
 # stage1 ROMs.
 - name: epoxy-images-builder
   args: [
     '/workspace/builder.sh', 'stage1_mlxrom'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'  # One of: mlab-sandbox, mlab-staging, or mlab-oti.
-   - 'ARTIFACTS=/workspace/output'
 
 # stage1 ISOs
 # NOTE: must run after stage1_minimal so that kernel & initram are available.
@@ -47,25 +44,6 @@ steps:
   args: [
     '/workspace/builder.sh', 'stage1_isos'
   ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
-   - 'REGEXP_mlab_sandbox=mlab[1-4].[a-z]{3}[0-9]t.*'
-   - 'REGEXP_mlab_staging=mlab4.[a-z]{3}[0-9]{2}.*'
-   - 'REGEXP_mlab_oti=mlab[1-3].[a-z]{3}[0-9]{2}.*'
-
-# stage1 USBs
-# NOTE: must run after stage1_minimal so that kernel & initram are available.
-- name: epoxy-images-builder
-  args: [
-    '/workspace/builder.sh', 'stage1_usbs'
-  ]
-  env:
-   - 'PROJECT=$PROJECT_ID'
-   - 'ARTIFACTS=/workspace/output'
-   - 'REGEXP_mlab_sandbox=mlab[1-4].lga1t.*'
-   - 'REGEXP_mlab_staging=mlab4.hnd01.*'
-   - 'REGEXP_mlab_oti=mlab[1-3].hnd01.*'
 
 ############################################################################
 # DEPLOY ARTIFACTS
