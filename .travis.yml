@@ -11,9 +11,6 @@
 #  * on success, deploy the result to the correct Cloud Storage bucket when
 #    the target branch matches a supported deployment target.
 
-env:
-- COREOS_VERSION="2135.6.0"
-
 services:
 - docker
 
@@ -46,7 +43,8 @@ script:
 # Note: download the mellanox firmware tools from cache in private bucket,
 #       since origin (http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz)
 #       is sloooow.
-- gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz $TRAVIS_BUILD_DIR/
+- mkdir -p $TRAVIS_BUILD_DIR/vendor/
+- gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz $TRAVIS_BUILD_DIR/vendor/
 
 # Note: build must be privileged to mount /proc & /sys during debootstrap build.
 #
@@ -55,9 +53,7 @@ script:
 # Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
 - travis_wait time docker run -it --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
     -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
-    bash -c "umask 0022; install -D -m 644 /workspace/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
-        && echo 'Starting stage3_mlxupdate build'
-        && /workspace/builder.sh stage3_mlxupdate &> /workspace/stage3_mlxupdate.log" || (tail -20 stage3_mlxupdate.log && false)
+    bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate &> /workspace/stage3_mlxupdate.log" || (tail -20 stage3_mlxupdate.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Build a stage1 ROM images for a test machine.
