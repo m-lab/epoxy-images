@@ -17,8 +17,3 @@ MLXROM_REGEXP_mlab_oti='mlab[1-3].[a-z]{3}[0-9]{2}.*'
 ISO_REGEXP_mlab_sandbox='mlab[1-4].[a-z]{3}[0-9]t.*'
 ISO_REGEXP_mlab_staging='mlab4.[a-z]{3}[0-9]{2}.*'
 ISO_REGEXP_mlab_oti='mlab[1-3].[a-z]{3}[0-9]{2}.*'
-
-# stage1 usbs
-USB_REGEXP_mlab_sandbox='mlab[1-4].lga1t.*'
-USB_REGEXP_mlab_staging='mlab4.hnd01.*'
-USB_REGEXP_mlab_oti='mlab[1-3].hnd01.*'
