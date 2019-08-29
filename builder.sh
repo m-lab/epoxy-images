@@ -99,7 +99,10 @@ function stage3_mlxupdate() {
   echo 'Starting stage3_mlxupdate build'
   ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log
+      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log \
+  || (
+      tail -100 ${SOURCE_DIR}/stage3_mlxupdate.log && false
+  )
 
   rm -rf ${builddir}
 }
