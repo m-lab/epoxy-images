@@ -33,10 +33,10 @@ script:
 
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
-    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
-    bash -c "umask 0022; /workspace/builder.sh stage3_coreos" || false
-- ls -l $TRAVIS_BUILD_DIR/output
+#- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+#    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+#    bash -c "umask 0022; /workspace/builder.sh stage3_coreos" || false
+#- ls -l $TRAVIS_BUILD_DIR/output
 
 # Build stage3 mlxupdate image.
 #
