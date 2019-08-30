@@ -16,19 +16,12 @@ An ePoxy managed system depends on several image types:
 
 The epoxy-images repo is connected to Google Cloud Build.
 
-* mlab-sandbox
-
-  - push to a branch matching `sandbox-*` builds using cloudbuild.yaml
-  - push to a branch matching `stage1-*` builds using cloudbuild-stage1.yaml
-
-* mlab-staging
-
-  - push to master builds both cloudbuild.yaml and cloudbuild-stage1.yaml
-
-* mlab-oti
-
-  - tags matching `v[0-9]+.[0-9]+.[0-9]+` builds using cloudbuild.yaml
-  - tags matching `v[0-9]+.[0-9]+.[0-9]+-stage1` builds using cloudbuild-stage1.yaml
+* mlab-sandbox - push to a branch matching `sandbox-*` builds cloudbuild.yaml &
+  cloudbuild-stage1.yaml.
+* mlab-staging - push to `master` builds both cloudbuild.yaml and
+  cloudbuild-stage1.yaml
+* mlab-oti - tags matching `v[0-9]+.[0-9]+.[0-9]+` builds cloudbuild.yaml &
+  cloudbuild-stage1.yaml
 
 # Building images
 
