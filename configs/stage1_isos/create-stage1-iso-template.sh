@@ -20,7 +20,7 @@ if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
   exit 1
 fi
 
-if [[ ! -f "${IMAGE_DIR}/stage2_vmlinuz" ]] ; then
+if [[ ! -f "${IMAGE_DIR}/vmlinuz_stage1_minimal" ]] ; then
     echo 'Error: vmlinuz images not found!'
     echo "Expected: stage2_vmlinuz"
     exit 1

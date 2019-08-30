@@ -32,29 +32,17 @@ steps:
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
-# stage1 bootstrapfs for PlanetLab updates.
-# NOTE: this must run after stage2 so that the epoxy_client is available.
+# stage1 ROMs.
 - name: epoxy-images-builder
   args: [
-    '/workspace/builder.sh', 'stage1_bootstrapfs'
+    '/workspace/builder.sh', 'stage1_mlxrom'
   ]
 
-# stage3_coreos images.
+# stage1 ISOs
+# NOTE: must run after stage1_minimal so that kernel & initram are available.
 - name: epoxy-images-builder
   args: [
-    '/workspace/builder.sh', 'stage3_coreos'
-  ]
-
-# stage3_mlxupdate images.
-# NOTE: all project cloudbuild service accounts must be granted READ access to
-# the vendor-mlab-oti bucket.
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    'cp', 'gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz', '/workspace/vendor'
-  ]
-- name: epoxy-images-builder
-  args: [
-    '/workspace/builder.sh', 'stage3_mlxupdate'
+    '/workspace/builder.sh', 'stage1_isos'
   ]
 
 ############################################################################
@@ -65,38 +53,29 @@ steps:
 # not support multiple target locations. So, the steps below are explicit.
 ############################################################################
 
-# stage1_bootstrapfs.
+# stage1_mlxrom.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r', '/workspace/output/bootstrapfs-MeasurementLabUpdate.tar.bz2*',
-    'gs://epoxy-$PROJECT_ID/stage1_bootstrapfs/'
+    'cp', '-r', '/workspace/output/stage1_mlxrom/*',
+    'gs://epoxy-$PROJECT_ID/stage1_mlxrom/'
   ]
 
-# stage3_coreos.
+# Deploy stage1_mlxrom images again to the 'latest' directory (without version).
 - name: gcr.io/cloud-builders/gsutil
-  args: [
-    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r',
-    '/workspace/output/vmlinuz_stage1_minimal',
-    '/workspace/output/initramfs_stage1_minimal.cpio.gz',
-    '/workspace/output/coreos_custom_pxe_image.cpio.gz',
-    '/workspace/output/coreos_production_pxe.vmlinuz',
-    '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_coreos/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_coreos/'
-  ]
+  # NOTE: use bash as the entry point to take advantage of bash file globbing.
+  entrypoint: bash
+  args:
+   - -c
+   - >
+     gsutil -h "Cache-Control:private, max-age=0, no-transform" -m
+     cp -r /workspace/output/stage1_mlxrom/*/*
+     gs://epoxy-$PROJECT_ID/stage1_mlxrom/latest/
 
-# stage3_mlxupdate.
+# stage1_isos.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r',
-    '/workspace/output/vmlinuz_stage1_minimal',
-    '/workspace/output/initramfs_stage1_minimal.cpio.gz',
-    '/workspace/output/vmlinuz_stage3_mlxupdate',
-    '/workspace/output/initramfs_stage3_mlxupdate.cpio.gz',
-    '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_mlxupdate/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_mlxupdate/'
+    'cp', '-r', '/workspace/output/stage1_isos/*',
+    'gs://epoxy-$PROJECT_ID/stage1_isos/'
   ]

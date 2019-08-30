@@ -12,6 +12,17 @@ An ePoxy managed system depends on several image types:
  * stage2 Linux images that provide a minimal network boot environment.
  * stage3 Linux ROM update images, that (re)flash iPXE ROMs to NICs.
 
+# Build Automation
+
+The epoxy-images repo is connected to Google Cloud Build.
+
+* mlab-sandbox - push to a branch matching `sandbox-*` builds cloudbuild.yaml &
+  cloudbuild-stage1.yaml.
+* mlab-staging - push to `master` builds both cloudbuild.yaml and
+  cloudbuild-stage1.yaml
+* mlab-oti - tags matching `v[0-9]+.[0-9]+.[0-9]+` builds cloudbuild.yaml &
+  cloudbuild-stage1.yaml
+
 # Building images
 
 ## Building stage1 iPXE ROMs

@@ -11,9 +11,6 @@
 #  * on success, deploy the result to the correct Cloud Storage bucket when
 #    the target branch matches a supported deployment target.
 
-env:
-- COREOS_VERSION="2135.6.0"
-
 services:
 - docker
 
@@ -34,74 +31,39 @@ script:
 
 - mkdir -p $TRAVIS_BUILD_DIR/output
 
-# Build stage2 vmlinuz image.
-# TODO: clean up args to setup_stage2.sh script.
-# TODO: use alternative to travis_wait to allow build with no output for longer
-#       than 10m.
-- time docker run -t -v $TRAVIS_BUILD_DIR:/images epoxy-images-builder
-      bash -c "/images/setup_stage2.sh
-         /buildtmp
-         /images/vendor
-         /images/configs/stage2
-         /images/output/stage2_initramfs.cpio.gz
-         /images/output/stage2_vmlinuz
-         /images/output/epoxy_client /images/stage2.log
-         /images/travis/one_line_per_minute.awk" || (cat stage2.log && false)
-
 # Build coreos custom initram image.
 # Note: set the umask so the travis user can read newly created files.
-- travis_wait time docker run -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-      bash -c "umask 0022; /images/setup_stage3_coreos.sh /images/configs/stage3_coreos
-        /images/output/epoxy_client
-        http://stable.release.core-os.net/amd64-usr/$COREOS_VERSION/coreos_production_pxe.vmlinuz
-        http://stable.release.core-os.net/amd64-usr/$COREOS_VERSION/coreos_production_pxe_image.cpio.gz
-        /images/output/coreos_custom_pxe_image.cpio.gz &> /images/coreos.log" || (tail -20 coreos.log && false)
+- travis_wait time docker run -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+    bash -c "umask 0022; /workspace/builder.sh stage3_coreos" || false
+- ls -l $TRAVIS_BUILD_DIR/output
 
 # Build stage3 mlxupdate image.
 #
 # Note: download the mellanox firmware tools from cache in private bucket,
 #       since origin (http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz)
 #       is sloooow.
-- gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz $TRAVIS_BUILD_DIR/
+- mkdir -p $TRAVIS_BUILD_DIR/vendor/
+- gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz $TRAVIS_BUILD_DIR/vendor/
 
 # Note: build must be privileged to mount /proc & /sys during debootstrap build.
 #
 # Note: when /build location is internal to container fs, i/o is more efficient.
 #
 # Note: larger sets of per-project images are built by Cloud Builder, outside of travis.
-- time docker run -it --privileged -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-      bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz
-        && echo 'Starting stage3_mlxupdate build'
-        && /images/setup_stage3_mlxupdate.sh
-                /build /images/output /images/configs/stage3_mlxupdate
-                /images/output/epoxy_client
-          &> /images/stage3_mlxupdate.log"
-        || (tail stage3_mlxupdate.log && false)
+- travis_wait time docker run -t --privileged -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+    bash -c "umask 0022; /workspace/builder.sh stage3_mlxupdate" || (tail -100 /workspace/stage3_mlxupdate.log && false)
 - ls -l $TRAVIS_BUILD_DIR/output
 
 # Build a stage1 ROM images for a test machine.
 #
 # Note: because this is only *testing* the build and not deploying the
 # artifacts of the build, the ROM version is fake and does not matter.
-- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-      bash -c "mkdir -p /build
-        && echo 'Starting stage1_mlxrom build'
-        && /images/setup_stage1.sh mlab-sandbox /build /images/output
-              /images/configs/stage1_mlxrom 'mlab4.lga1t.*' '3.4.111'
-              /images/configs/stage1_mlxrom/gtsgiag3.pem"
-
-# Build a stage1 ISO image for a test machine.
-#- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-#      bash -c "mkdir -p /build
-#        && echo 'Starting stage1_isos build'
-#        && /images/setup_stage1_isos.sh mlab-sandbox /build
-#              /images/output /images/configs/stage1_isos 'mlab4.lga1t.*'"
-
-# Build a skeleton bootstrapfs for the modified PlanetLab bootmanager.
-- time docker run -it -v $TRAVIS_BUILD_DIR:/images -w /images epoxy-images-builder
-      bash -c "/images/setup_stage1_bootstrapfs.sh
-        /images/output/epoxy_client
-        /images/output/bootstrapfs-MeasurementLabUpdate.tar.bz2"
+- travis_wait time docker run -t -e PROJECT=mlab-sandbox -e ARTIFACTS=/workspace/output
+    -v $TRAVIS_BUILD_DIR:/workspace -w /workspace epoxy-images-builder
+    bash -c "mkdir -p /build && /workspace/builder.sh stage1_mlxrom" || false
+- ls -l $TRAVIS_BUILD_DIR/output/stage1_mlxrom
 
 # NOTE: Build and deployment is managed by CloudBuilder triggers registered in
 # each GCP project and the steps defined in cloudbuild.yaml.

@@ -4,8 +4,15 @@
 # parameter (target) and multiple parameters from the environment. builder.sh
 # transalates these into calls to specific build scripts.
 
+# Kill background wait loop on exit.
+trap 'kill $(jobs -p)' EXIT
+# Print periodic messages for travis.
+while true ; do echo "waiting 300 sec";  sleep 300 ; done &
+
 set -eu
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
+
+source "${SOURCE_DIR}/config.sh"
 
 USAGE="$0 <target>"
 TARGET=${1:?Please provide a build target: $USAGE}
@@ -15,7 +22,7 @@ function stage1_mlxrom() {
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
   local version=${MLXROM_VERSION:?Please define the MLXROM_VERSION to build}
-  local regex_name="REGEXP_${PROJECT//-/_}"
+  local regex_name="MLXROM_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
@@ -38,7 +45,7 @@ function stage1_bootstrapfs() {
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   ${SOURCE_DIR}/setup_stage1_bootstrapfs.sh \
-      ${artifacts}/epoxy_client \
+      /go/bin/epoxy_client \
       ${artifacts}/bootstrapfs-MeasurementLabUpdate.tar.bz2
 
   rm -rf "${builddir}"
@@ -54,7 +61,7 @@ function stage2() {
      "${SOURCE_DIR}/configs/${target}" \
      "${artifacts}/stage2_initramfs.cpio.gz" \
      "${artifacts}/stage2_vmlinuz" \
-     "${artifacts}/epoxy_client" \
+      /go/bin/epoxy_client \
      "${SOURCE_DIR}/stage2.log" \
      "${SOURCE_DIR}/travis/one_line_per_minute.awk" \
   || (
@@ -74,7 +81,7 @@ function stage3_coreos() {
   umask 0022
   ${SOURCE_DIR}/setup_stage3_coreos.sh \
       "${SOURCE_DIR}/configs/${target}" \
-      "${artifacts}/epoxy_client" \
+      /go/bin/epoxy_client \
       http://stable.release.core-os.net/amd64-usr/${version}/coreos_production_pxe.vmlinuz \
       http://stable.release.core-os.net/amd64-usr/${version}/coreos_production_pxe_image.cpio.gz \
       "${artifacts}/coreos_custom_pxe_image.cpio.gz" &> ${SOURCE_DIR}/coreos.log \
@@ -97,7 +104,10 @@ function stage3_mlxupdate() {
   echo 'Starting stage3_mlxupdate build'
   ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      ${artifacts}/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log
+      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log \
+  || (
+      tail -100 ${SOURCE_DIR}/stage3_mlxupdate.log && false
+  )
 
   rm -rf ${builddir}
 }
@@ -111,7 +121,7 @@ function stage1_minimal() {
   echo 'Starting stage1_minimal build'
   ${SOURCE_DIR}/setup_stage1_minimal.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      ${artifacts}/epoxy_client &> ${SOURCE_DIR}/stage1_minimal.log
+      /go/bin/epoxy_client
 
   rm -rf ${builddir}
 }
@@ -120,7 +130,7 @@ function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local regex_name="REGEXP_${PROJECT//-/_}"
+  local regex_name="ISO_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
@@ -135,7 +145,7 @@ function stage1_usbs() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local regex_name="REGEXP_${PROJECT//-/_}"
+  local regex_name="USB_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
@@ -146,6 +156,7 @@ function stage1_usbs() {
   return
 }
 
+mkdir -p ${ARTIFACTS}
 case "${TARGET}" in
   stage1_mlxrom)
       stage1_mlxrom
