@@ -86,6 +86,5 @@ DNS=$DNS2_IPv4
 Address=$ADDR_IPv6
 Gateway=$GATEWAY_IPv6
 DNS=$DNS1_IPv6
-DNS=$DNS2_IPv6
 IPv6AcceptRA=no
 EOF
