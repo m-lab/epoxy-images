@@ -70,6 +70,8 @@ if "ipmi_ipv4" -ne "$drac_ipv4" ; then
   echo ipmitool lan set 1 defgw ipaddr $gateway
 fi
 
+sleep 60
+
 echo "Downloading next stage from ePoxy"
 if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
   epoxy_client -action epoxy.stage1 -add-kargs
