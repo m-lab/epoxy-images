@@ -90,7 +90,7 @@ mount_proc_and_sys $BOOTSTRAP
     popd
 
     # Install ipmitool to configure DRAC during stage1.
-    chroot $BOOTSTRAP apt-get install ipmitool
+    chroot $BOOTSTRAP apt-get install -y ipmitool
 
     # Remove unnecessary packages to save space.
 
