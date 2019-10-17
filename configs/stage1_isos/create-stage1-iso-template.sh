@@ -52,7 +52,10 @@ else
 fi
 
 # ePoxy stage1 URL.
-ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boot/{{hostname}}/stage1.json"
+ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boot/{{hostname}}/stage1.json "
+
+# DRAC IPv4 address.
+ARGS+="drac.ipv4={{drac_ipv4_address}}"
 
 ${SOURCE_DIR}/simpleiso -x "$ARGS" \
     -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
