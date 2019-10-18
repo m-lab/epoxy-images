@@ -205,7 +205,7 @@ coreos:
 
 write_files:
   - path: /opt/bin/configure_tc_fq.sh
-    permissions: 0744
+    permissions: 0755
     owner: root:root
     content: |
       #!/bin/bash
@@ -224,12 +224,12 @@ write_files:
       /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
       echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
 
-  - path: /etc/periodic/15min/cleanup-shim.sh
-    permissions: 0744
+  - path: /etc/periodic/15min/README
+    permissions: 0644
     owner: root:root
     content: |
-      #!/bin/bash
-      echo "OKAY"
+      Place executable scripts in this directory and a systemd timer will
+      execute them every 15min.
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
