@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# run-parts executes every executable file in a given directory.
+
+set -e
+
+DIR=${1:?Please provide a directory}
+
+if [[ ! -d $DIR ]] ; then
+  # It's missing or not a dir, so do nothing.
+  exit 0
+fi
+
+# Dir exits, check every file in given dir.
+for file in $DIR/* ; do
+  if [[ -x $file ]] ; then
+    $file || :  # Ignore execution errors.
+  fi
+done
+exit 0
