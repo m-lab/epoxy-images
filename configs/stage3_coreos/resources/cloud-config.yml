@@ -42,6 +42,29 @@ coreos:
             Requires=cache-docker.mount
             After=cache-docker.mount
 
+    # TODO: can we use systemd template variables to add other times?
+    - name: mlab-periodic-job.service
+      content: |
+        [Unit]
+        Description=Runs periodic jobs.
+        Requires=network-online.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/share/oem/run-parts /etc/periodic/15min
+
+    - name: mlab-periodic-job.timer
+      command: "start"
+      content: |
+        [Unit]
+        Description=Runs mlab-periodic-job.service every 15 minutes.
+
+        [Timer]
+        OnCalendar=*:0/15
+
+        [Install]
+        WantedBy=multi-user.target
+
     - name: mlab-set-quotas.service
       content: |
         [Unit]
@@ -200,6 +223,13 @@ write_files:
       fi
       /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
       echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+
+  - path: /etc/periodic/15min/cleanup-shim.sh
+    permissions: 0744
+    owner: root:root
+    content: |
+      #!/bin/bash
+      echo "OKAY"
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
