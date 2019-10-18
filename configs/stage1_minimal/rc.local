@@ -78,17 +78,20 @@ modprobe mlxfw
 echo "Configuring network..."
 setup_network
 
-echo "Configuring DRAC..."
+echo "Checking if DRAC needs to be configured..."
 modprobe ipmi_si
 modprobe ipmi_devintf
 drac_ipv4=$( get_cmdline drac.ipv4 "" )
 ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
 
+echo "Configured IPv4 address: $drac_ipv4"
+echo "Current IPv4 address: $ipmi_ipv4"
 if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
+  echo "Configuring DRAC..."
   setup_drac $drac_ipv4
 fi
 
-sleep 60
+sleep 10
 
 echo "Downloading next stage from ePoxy"
 if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
