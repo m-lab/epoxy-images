@@ -47,6 +47,21 @@ function setup_network() {
   ifconfig ${interface}
 }
 
+function setup_drac() {
+  local drac_ipv4=$1
+  local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+
+  echo $ipv4 | tr ',' ' ' | (
+    read _ gateway _
+    echo ipmitool user set name 2 admin
+    echo ipmitool user set password 2 "m3@sur3m3nt" 20
+    echo ipmitool lan set 1 ipsrc static
+    echo ipmitool lan set 1 ipaddr $drac_ipv4
+    echo ipmitool lan set 1 netmask 255.255.255.192
+    echo ipmitool lan set 1 defgw ipaddr $gateway
+  )
+}
+
 
 echo "Loading mlx modules"
 modprobe mlx4_en
@@ -64,12 +79,7 @@ drac_ipv4=$( get_cmdline drac.ipv4 "" )
 ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
 
 if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
-  echo ipmitool user set name 2 admin
-  echo ipmitool user set password 2 "m3@sur3m3nt" 20
-  echo ipmitool lan set 1 ipsrc static
-  echo ipmitool lan set 1 ipaddr $drac_ipv4
-  echo ipmitool lan set 1 netmask 255.255.255.192
-  echo ipmitool lan set 1 defgw ipaddr $gateway
+  setup_drac $drac_ipv4
 fi
 
 sleep 60
