@@ -58,10 +58,12 @@ echo "Configuring network..."
 setup_network
 
 echo "Configuring DRAC..."
+modprobe ipmi_si
+modprobe ipmi_devintf
 drac_ipv4=$( get_cmdline drac.ipv4 "" )
-ipmi_ipv4=$( ipmitool lan print 1 | awk --posix -F: '/^IP Address\ {2,}/{print $2}' | tr -d '[:space:]' )
+ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
 
-if "ipmi_ipv4" -ne "$drac_ipv4" ; then
+if $ipmi_ipv4 -ne "$drac_ipv4" ; then
   echo ipmitool user set name 2 admin
   echo ipmitool user set password 2 "m3@sur3m3nt" 20
   echo ipmitool lan set 1 ipsrc static
