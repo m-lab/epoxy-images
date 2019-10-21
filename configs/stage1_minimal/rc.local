@@ -79,6 +79,7 @@ echo "Configuring network..."
 setup_network
 
 echo "Checking if DRAC needs to be configured..."
+sleep 10
 modprobe ipmi_si
 modprobe ipmi_devintf
 drac_ipv4=$( get_cmdline drac.ipv4 "" )
