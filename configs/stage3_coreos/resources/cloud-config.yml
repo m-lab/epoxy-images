@@ -42,6 +42,29 @@ coreos:
             Requires=cache-docker.mount
             After=cache-docker.mount
 
+    # TODO: can we use systemd template variables to add other times?
+    - name: mlab-periodic-job.service
+      content: |
+        [Unit]
+        Description=Runs periodic jobs.
+        Requires=network-online.target
+
+        [Service]
+        Type=oneshot
+        ExecStart=/usr/share/oem/run-parts /etc/periodic/15min
+
+    - name: mlab-periodic-job.timer
+      command: "start"
+      content: |
+        [Unit]
+        Description=Runs mlab-periodic-job.service every 15 minutes.
+
+        [Timer]
+        OnCalendar=*:0/15
+
+        [Install]
+        WantedBy=multi-user.target
+
     - name: mlab-set-quotas.service
       content: |
         [Unit]
@@ -180,9 +203,23 @@ coreos:
         Type=oneshot
         ExecStart=/opt/bin/configure_tc_fq.sh
 
+    # TODO(https://github.com/m-lab/k8s-support/issues/230): Delete this script
+    # once issue is fixed.
+    - name: copy-fix-hung-shim.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Copy fix-hung-shim script to /etc/periodic/15min
+
+        [Service]
+        Type=oneshot
+        ExecStart=install -D --mode=0755 --owner=root --group=root \
+          --target-directory=/etc/periodic/15min/ /usr/share/oem/fix-hung-shim.sh
+
 write_files:
   - path: /opt/bin/configure_tc_fq.sh
-    permissions: 0744
+    permissions: 0755
     owner: root:root
     content: |
       #!/bin/bash
@@ -200,6 +237,15 @@ write_files:
       fi
       /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
       echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+
+  # TODO(https://github.com/m-lab/k8s-support/issues/230): Delete this script
+  # once issue is fixed.
+  - path: /etc/periodic/15min/README
+    permissions: 0644
+    owner: root:root
+    content: |
+      Place executable scripts in this directory and a systemd timer will
+      execute them every 15min.
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
