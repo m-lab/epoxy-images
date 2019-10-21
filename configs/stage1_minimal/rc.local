@@ -49,7 +49,7 @@ function setup_network() {
 
 function setup_drac() {
   (
-    set -xo pipefail
+    set -o pipefail
 
     # These can fail if there is no IPMI device.
     if ! modprobe ipmi_si; then
@@ -67,29 +67,30 @@ function setup_drac() {
     fi
 
     local ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ] || [ -z "$ipmi_ipv4" ]; then
+      echo "Cannot read current IPv4 address via ipmitool."
       return 1
     fi
 
     echo "Configured IPv4 address: $drac_ipv4"
     echo "Current IPv4 address: $ipmi_ipv4"
-    sleep 10
     if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
       echo "Configuring DRAC..."
       local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
 
       echo $epoxy_ipv4 | tr ',' ' ' | (
         read _ gateway _
+        echo ipmitool user set name 2 admin
+        echo ipmitool user set password 2 "m3@sur3m3nt" 20
+        echo ipmitool lan set 1 ipsrc static
+        echo ipmitool lan set 1 ipaddr $drac_ipv4
+        echo ipmitool lan set 1 netmask 255.255.255.192
+            echo ipmitool lan set 1 defgw ipaddr $gateway
         ipmitool user set name 2 admin
-        sleep 2
         ipmitool user set password 2 "m3@sur3m3nt" 20
-        sleep 2
         ipmitool lan set 1 ipsrc static
-        sleep 2
         ipmitool lan set 1 ipaddr $drac_ipv4
-        sleep 2
         ipmitool lan set 1 netmask 255.255.255.192
-        sleep 2
         ipmitool lan set 1 defgw ipaddr $gateway
       )
     else
