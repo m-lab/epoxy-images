@@ -11,7 +11,7 @@ if [[ ! -d $DIR ]] ; then
   exit 0
 fi
 
-# Dir exits, check every file in given dir.
+# Dir exists, check every file in given dir.
 for file in $DIR/* ; do
   if [[ -x $file ]] ; then
     $file || :  # Ignore execution errors.
