@@ -48,24 +48,45 @@ function setup_network() {
 }
 
 function setup_drac() {
-  local drac_ipv4=$1
-  local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+  modprobe ipmi_si
+  modprobe ipmi_devintf
+  local drac_ipv4=$( get_cmdline drac.ipv4 "" )
+  if [ $? -ne 0 ]; then
+    return 1
+  fi
 
-  echo $epoxy_ipv4 | tr ',' ' ' | (
-    read _ gateway _
-    echo ipmitool user set name 2 admin
-    echo ipmitool user set password 2 "m3@sur3m3nt" 20
-    echo ipmitool lan set 1 ipsrc static
-    echo ipmitool lan set 1 ipaddr $drac_ipv4
-    echo ipmitool lan set 1 netmask 255.255.255.192
-    echo ipmitool lan set 1 defgw ipaddr $gateway
-    ipmitool user set name 2 admin
-    ipmitool user set password 2 "m3@sur3m3nt" 20
-    ipmitool lan set 1 ipsrc static
-    ipmitool lan set 1 ipaddr $drac_ipv4
-    ipmitool lan set 1 netmask 255.255.255.192
-    ipmitool lan set 1 defgw ipaddr $gateway
-  )
+  local ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
+  if [ $? -ne 0 ]; then
+    return 1
+  fi
+
+  echo "Configured IPv4 address: $drac_ipv4"
+  echo "Current IPv4 address: $ipmi_ipv4"
+  sleep 10
+  if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
+    echo "Configuring DRAC..."
+    local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+
+    echo $epoxy_ipv4 | tr ',' ' ' | (
+      read _ gateway _
+      echo ipmitool user set name 2 admin
+      echo ipmitool user set password 2 "m3@sur3m3nt" 20
+      echo ipmitool lan set 1 ipsrc static
+      echo ipmitool lan set 1 ipaddr $drac_ipv4
+      echo ipmitool lan set 1 netmask 255.255.255.192
+      echo ipmitool lan set 1 defgw ipaddr $gateway
+      sleep 10
+      ipmitool user set name 2 admin
+      ipmitool user set password 2 "m3@sur3m3nt" 20
+      ipmitool lan set 1 ipsrc static
+      ipmitool lan set 1 ipaddr $drac_ipv4
+      ipmitool lan set 1 netmask 255.255.255.192
+      ipmitool lan set 1 defgw ipaddr $gateway
+    )
+    setup_drac $drac_ipv4
+  else
+    echo "DRAC is configured already. Skipping configuration."
+  fi
 }
 
 
@@ -79,20 +100,7 @@ echo "Configuring network..."
 setup_network
 
 echo "Checking if DRAC needs to be configured..."
-sleep 10
-modprobe ipmi_si
-modprobe ipmi_devintf
-drac_ipv4=$( get_cmdline drac.ipv4 "" )
-ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
-
-echo "Configured IPv4 address: $drac_ipv4"
-echo "Current IPv4 address: $ipmi_ipv4"
-if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
-  echo "Configuring DRAC..."
-  setup_drac $drac_ipv4
-fi
-
-sleep 10
+setup_drac
 
 echo "Downloading next stage from ePoxy"
 if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
