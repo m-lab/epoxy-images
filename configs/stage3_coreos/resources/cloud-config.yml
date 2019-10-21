@@ -203,6 +203,20 @@ coreos:
         Type=oneshot
         ExecStart=/opt/bin/configure_tc_fq.sh
 
+    # TODO(https://github.com/m-lab/k8s-support/issues/230): Delete this script
+    # once issue is fixed.
+    - name: copy-fix-hung-shim.service
+      command: start
+      enable: true
+      content: |
+        [Unit]
+        Description=Copy fix-hung-shim script to /etc/periodic/15min
+
+        [Service]
+        Type=oneshot
+        ExecStart=install -D --mode=0755 --owner=root --group=root \
+          --target-directory=/etc/periodic/15min/ /usr/share/oem/fix-hung-shim.sh
+
 write_files:
   - path: /opt/bin/configure_tc_fq.sh
     permissions: 0755
@@ -224,6 +238,8 @@ write_files:
       /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
       echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
 
+  # TODO(https://github.com/m-lab/k8s-support/issues/230): Delete this script
+  # once issue is fixed.
   - path: /etc/periodic/15min/README
     permissions: 0644
     owner: root:root
