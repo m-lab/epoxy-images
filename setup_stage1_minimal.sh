@@ -157,7 +157,7 @@ fi
 # Enable sshd.
 chroot $BOOTSTRAP systemctl enable ssh.service
 
-#
+# Copy the authorized_keys file.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
 install -D --mode 644 $CONFIG_DIR/authorized_keys $BOOTSTRAP/root/.ssh/authorized_keys
