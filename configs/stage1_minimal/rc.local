@@ -88,6 +88,15 @@ function setup_drac() {
         logrun ipmitool user set password 2 "m3@sur3m3nt" 20
         logrun ipmitool lan set 1 ipsrc static
         logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        # On Dell R640 and iDRAC 9, setting the IP address takes longer than
+        # ipmitool's timeout, thus the command above returns a non-zero exit
+        # code. Since the DRAC configuration normally only happens once,
+        # there is no harm in waiting some more time and retrying, here.
+        if [ $? -ne 0 ]; then
+          echo "DRAC's IP address has not changed yet. Retrying in 30s..."
+          sleep 30
+          logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        fi
         logrun ipmitool lan set 1 netmask 255.255.255.192
         logrun ipmitool lan set 1 defgw ipaddr $gateway
       )
