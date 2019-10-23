@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function logrun() {
+    echo $@
+    $@
+}
 
 function get_cmdline() {
   local key=$1
@@ -80,18 +84,12 @@ function setup_drac() {
 
       echo $epoxy_ipv4 | tr ',' ' ' | (
         read _ gateway _
-        echo ipmitool user set name 2 admin
-        echo ipmitool user set password 2 "m3@sur3m3nt" 20
-        echo ipmitool lan set 1 ipsrc static
-        echo ipmitool lan set 1 ipaddr $drac_ipv4
-        echo ipmitool lan set 1 netmask 255.255.255.192
-        echo ipmitool lan set 1 defgw ipaddr $gateway
-        ipmitool user set name 2 admin
-        ipmitool user set password 2 "m3@sur3m3nt" 20
-        ipmitool lan set 1 ipsrc static
-        ipmitool lan set 1 ipaddr $drac_ipv4
-        ipmitool lan set 1 netmask 255.255.255.192
-        ipmitool lan set 1 defgw ipaddr $gateway
+        logrun ipmitool user set name 2 admin
+        logrun ipmitool user set password 2 "m3@sur3m3nt" 20
+        logrun ipmitool lan set 1 ipsrc static
+        logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        logrun ipmitool lan set 1 netmask 255.255.255.192
+        logrun ipmitool lan set 1 defgw ipaddr $gateway
       )
     else
       echo "DRAC is configured already. Skipping configuration."
