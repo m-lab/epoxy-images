@@ -151,7 +151,7 @@ chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
 ################################################################################
 # SSH
 ################################################################################
-# Disable root login via ssh.
+# Disable root login with password via ssh.
 if ! grep -q -E '^PermitRootLogin prohibit-password' $BOOTSTRAP/etc/ssh/sshd_config ; then
     sed -i -e 's/.*PermitRootLogin .*/PermitRootLogin prohibit-password/g' \
         $BOOTSTRAP/etc/ssh/sshd_config
@@ -160,8 +160,10 @@ fi
 # Enable sshd.
 chroot $BOOTSTRAP systemctl enable ssh.service
 
+# Copy the authorized_keys file.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
+install -D --mode 644 $CONFIG_DIR/authorized_keys $BOOTSTRAP/root/.ssh/authorized_keys
 
 ################################################################################
 # Add epoxy client to initramfs
