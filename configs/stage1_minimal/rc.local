@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function logrun() {
+    echo $@
+    $@
+}
 
 function get_cmdline() {
   local key=$1
@@ -47,6 +51,52 @@ function setup_network() {
   ifconfig ${interface}
 }
 
+function setup_drac() {
+  (
+    set -o pipefail
+
+    # These can fail if there is no IPMI device.
+    if ! modprobe ipmi_si; then
+      return 1
+    fi
+
+    if ! modprobe ipmi_devintf; then
+      return 1
+    fi
+
+    local drac_ipv4=$( get_cmdline drac.ipv4 "" )
+    if [ -z "$drac_ipv4" ]; then
+      echo "Cannot read DRAC's IPv4 from /proc/cmdline."
+      return 1
+    fi
+
+    local ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
+    if [ $? -ne 0 ] || [ -z "$ipmi_ipv4" ]; then
+      echo "Cannot read current IPv4 address via ipmitool."
+      return 1
+    fi
+
+    echo "Configured IPv4 address: $drac_ipv4"
+    echo "Current IPv4 address: $ipmi_ipv4"
+    if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
+      echo "Configuring DRAC..."
+      local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+
+      echo $epoxy_ipv4 | tr ',' ' ' | (
+        read _ gateway _
+        logrun ipmitool user set name 2 admin
+        logrun ipmitool user set password 2 "m3@sur3m3nt" 20
+        logrun ipmitool lan set 1 ipsrc static
+        logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        logrun ipmitool lan set 1 netmask 255.255.255.192
+        logrun ipmitool lan set 1 defgw ipaddr $gateway
+      )
+    else
+      echo "DRAC is configured already. Skipping configuration."
+    fi
+  )
+}
+
 
 echo "Loading mlx modules"
 modprobe mlx4_en
@@ -57,6 +107,8 @@ modprobe mlxfw
 echo "Configuring network..."
 setup_network
 
+echo "Checking if DRAC needs to be configured..."
+setup_drac
 
 echo "Downloading next stage from ePoxy"
 if grep epoxy.stage1 /proc/cmdline > /dev/null ; then

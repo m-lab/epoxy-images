@@ -89,6 +89,9 @@ mount_proc_and_sys $BOOTSTRAP
         KERNEL_VERSION=${KERNEL_VERSION##vmlinuz-}
     popd
 
+    # Install ipmitool to configure DRAC during stage1.
+    chroot $BOOTSTRAP apt-get install -y ipmitool
+
     # Remove unnecessary packages to save space.
 
     chroot $BOOTSTRAP apt-get remove -y \
