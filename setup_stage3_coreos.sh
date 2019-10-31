@@ -61,7 +61,7 @@ pushd $IMAGEDIR
   # Install the cni binaries: bridge, flannel, host-local, ipvlan, loopback, and
   # others.
   mkdir -p squashfs-root/cni/bin
-  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-amd64-${CNI_VERSION}.tgz" \
+  curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-amd64-${CNI_VERSION}.tgz" \
     | tar --directory=squashfs-root/cni/bin -xz
 
   # Make all the shims so that network plugins can be debugged.
