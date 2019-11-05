@@ -6,8 +6,8 @@ set epoxyaddress epoxy-boot-api.{{project}}.measurementlab.net:4430
 set menu_timeout_ms:int32 5000
 set fetch_timeout_ms 10000
 
-set retry_delay_s:int32 30
-set max_retry_delay_s 480
+set retry_delay_s:int32 15
+set max_retry_delay_s 240
 
 # IPv6 network configuration.
 # ipv6_enabled will always be defined. When ipv6_enabled is "false", then other
@@ -50,7 +50,6 @@ set stage1_url https://${epoxyaddress}/v1/boot/${hostname}/stage1.ipxe
   menu M-Lab iPXE boot menu: ${epoxyaddress}
     item --gap --   Production options:
     item stage1     -- Boot stage1 script
-    item localboot  -- Boot local disk
     item --gap
     item --gap --   Diagnostic options:
     item shell      -- iPXE Shell
@@ -84,7 +83,7 @@ set stage1_url https://${epoxyaddress}/v1/boot/${hostname}/stage1.ipxe
   echo Fetching stage1 script.
   goto firstfetch
 
-:retry_loop iseq ${retry_delay_s} ${max_retry_delay_s} && goto fetch_timeout_local_boot ||
+:retry_loop iseq ${retry_delay_s} ${max_retry_delay_s} && goto fetch_timeout_reboot ||
   inc retry_delay_s ${retry_delay_s}
   echo Sleeping ${retry_delay_s} seconds...
   sleep ${retry_delay_s}
@@ -121,7 +120,7 @@ set stage1_url https://${epoxyaddress}/v1/boot/${hostname}/stage1.ipxe
 
 
 :localboot
-:fetch_timeout_local_boot
-  echo Sleeping 10 seconds and booting from local hard drive.
+:fetch_timeout_reboot
+  echo Sleeping 10 seconds and rebooting system to retry.
   sleep 10
-  sanboot --no-describe --drive 0x80 || shell
+  reboot || shell

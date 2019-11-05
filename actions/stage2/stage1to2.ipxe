@@ -11,20 +11,17 @@ echo -- Downloading stage2 image from ${vmlinuz_url}
 
 # Initialize retry counters.
 set retry_count:int32 1
-set max_retry_count 20
+set max_retry_count 15
 
 goto firstfetch
 
 :loop
-  inc retry_count 1
-  echo -- Retries ${retry_count} ${max_retry_count}
-  echo Failed ${retry_count} times... Retrying after ${retry_count} seconds
-  # This doesn't work?
-  # iseq ${retry_count} ${max_retry_count} && goto fetch_timeout
+  echo Failed ${retry_count} of ${max_retry_count} times... Retrying after ${retry_count} seconds
   sleep ${retry_count}
+  inc retry_count 1
+  iseq ${retry_count} ${max_retry_count} && goto fetch_timeout ||
 
 :firstfetch
-  echo -- Retries ${retry_count} ${max_retry_count}
   kernel --name vmlinuz ${vmlinuz_url} || goto loop
 
 # Initialize retry counters.
@@ -34,13 +31,12 @@ set max_retry_count 20
 goto firstfetch_initrd
 
 :loop_initrd
-  inc retry_count 1
-  echo -- Retries ${retry_count} ${max_retry_count}
-  echo Failed ${retry_count} times... Retrying after ${retry_count} seconds
+  echo Failed ${retry_count} of ${max_retry_count} times... Retrying after ${retry_count} seconds
   sleep ${retry_count}
+  inc retry_count 1
+  iseq ${retry_count} ${max_retry_count} && goto fetch_timeout ||
 
 :firstfetch_initrd
-  echo -- Retries ${retry_count} ${max_retry_count}
   initrd --name initrd ${initram_url} || goto loop_initrd
 
 imgstat
@@ -81,7 +77,6 @@ set kargs ${kargs} epoxy.project=${project}
 boot vmlinuz ${kargs} || shell
 
 :fetch_timeout
-  echo -- Retries ${retry_count} ${max_retry_count}
-  echo Failed too many times..
-  # Reboot?
-  shell
+  echo Rebooting after ${retry_count} of ${max_retry_count} attempts.
+  sleep 10
+  reboot || shell
