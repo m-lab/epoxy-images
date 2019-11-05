@@ -11,7 +11,7 @@ echo -- Downloading stage2 image from ${vmlinuz_url}
 
 # Initialize retry counters.
 set retry_count:int32 1
-set max_retry_count 20
+set max_retry_count 15
 
 goto firstfetch
 
