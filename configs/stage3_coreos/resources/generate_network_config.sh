@@ -64,11 +64,6 @@ DNS2_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $4}' )
 # Note, we cannot set the hostname via networkd. Use hostnamectl instead.
 hostnamectl set-hostname ${HOSTNAME}
 
-# According to https://systemd.network/systemd.link.html, TSO can only be
-# enabled or set to the kernel default when using networkd. We need to disable
-# it, thus we use ethtool instead.
-ethtool -K eth0 tso off
-
 # TODO: do not hardcode /26.
 # TODO: do not hardcode eth0.
 cat > ${OUTPUT} <<EOF
