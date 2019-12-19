@@ -247,6 +247,16 @@ write_files:
       Place executable scripts in this directory and a systemd timer will
       execute them every 15min.
 
+  # No configuration for journald is included by default. By explicitly setting
+  # Storage=persistent here, we make sure /var/log/journal is created and used.
+  # This folder is needed by fluentd to read the journald logs.
+  - path: /etc/systemd/journald.conf
+    permissions: 0644
+    owner: root:root
+    content: |
+      [Journal]
+      Storage=persistent
+
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
  - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvIKeMHcEO1xnTmEdMY6E9Y4pBdGBCDXZnuQC5ZPjNQr9IG3ytw0OxwyCObAzSr+WOymYv6Cwm4Ckz2jc/bWygzWJH+DMdldZe7HVQu4YxuegqahIkB0D1OzaZGNctBgTp9bmpWGxyek7U8ff7GTiFqhcms4Oer4rdd0gqUhmv3LnRWQqrIDblrBosHBED/zXgjbOj3beWCA3xHDCaui/gkbmp0J2jzCnlsc7eSI0d6Jro2UhbiS2ssxVQsLViLh5okJJeb2JyzbLbcpselUg9DSwSk0pFH/wHL0usjvBisF/fEP8eQ1svq6N6gncvPlgoJaSvtACmDvIFkU4baA2v pboothe@pboothe3.nyc.corp.google.com"
