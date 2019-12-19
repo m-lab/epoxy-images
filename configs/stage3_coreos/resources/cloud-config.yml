@@ -217,6 +217,10 @@ coreos:
         ExecStart=install -D --mode=0755 --owner=root --group=root \
           --target-directory=/etc/periodic/15min/ /usr/share/oem/fix-hung-shim.sh
 
+    # Restart systemd-journald so the new journald.conf is used.
+    - name: systemd-journald.service
+      command: restart
+
 write_files:
   - path: /opt/bin/configure_tc_fq.sh
     permissions: 0755
