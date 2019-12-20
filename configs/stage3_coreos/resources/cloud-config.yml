@@ -217,6 +217,10 @@ coreos:
         ExecStart=install -D --mode=0755 --owner=root --group=root \
           --target-directory=/etc/periodic/15min/ /usr/share/oem/fix-hung-shim.sh
 
+    # Restart systemd-journald so the new journald.conf is used.
+    - name: systemd-journald.service
+      command: restart
+
 write_files:
   - path: /opt/bin/configure_tc_fq.sh
     permissions: 0755
@@ -246,6 +250,16 @@ write_files:
     content: |
       Place executable scripts in this directory and a systemd timer will
       execute them every 15min.
+
+  # No configuration for journald is included by default. By explicitly setting
+  # Storage=persistent here, we make sure /var/log/journal is created and used.
+  # This folder is needed by fluentd to read the journald logs.
+  - path: /etc/systemd/journald.conf
+    permissions: 0644
+    owner: root:root
+    content: |
+      [Journal]
+      Storage=persistent
 
 # TODO: collect list of ssh keys from a metadata service during post-boot setup.
 ssh_authorized_keys:
