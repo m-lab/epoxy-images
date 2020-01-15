@@ -33,20 +33,24 @@ PREV_COUNT=$( cat $STATEDIR/host.log | grep host | wc --lines )
 CURR_TIME=$( date +%s )
 PREV_TIME=$( stat --format=%Y ${STATEDIR}/host.log )
 
-# The last two checks counted 1 process, and it's been at least 15min.
-if [[ $PREV_COUNT -eq 1 ]] && \
-   [[ $CURR_COUNT -eq 1 ]] && \
+# The last two checks counted less than 4 processes, and it's been at least
+# 15min. There will generally be 10+ host pod processes.
+if [[ $PREV_COUNT -lt 4 ]] && \
+   [[ $CURR_COUNT -lt 4 ]] && \
    [[ $(( $CURR_TIME - $PREV_TIME )) -ge 900 ]] ; then
 
-  # Lookup container id for hung shim process.
-  container_id=$( cat $TEMPDIR/host.log | grep host | awk '{print $1}' )
-  if [[ -z "$container_id" ]] ; then
-    echo "Failed to extract host container id"
-    exit 1
+  # Only proceed if the previous count is equivalent to the current count.
+  if [[ $PREV_COUNT -eq $CURR_COUNT ]] ; then
+    # Lookup container ids for any hung shim processes.
+    for container_id in $( cat $TEMPDIR/host.log | grep host | awk '{print $1}') ; do
+      if [[ -z "$container_id" ]] ; then
+        echo "Failed to extract host container id"
+        exit 1
+      fi
+      # Kill the process ids for the command matching container_id.
+      pgrep --full $container_id | xargs kill -9
+    done
   fi
-  # Kill all process ids for commands matching container_id.
-  pgrep --full $container_id | xargs kill -9
-
   # Remove old state.
   rm -f $STATEDIR/host.log
 fi
