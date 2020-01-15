@@ -33,10 +33,10 @@ PREV_COUNT=$( cat $STATEDIR/host.log | grep host | wc --lines )
 CURR_TIME=$( date +%s )
 PREV_TIME=$( stat --format=%Y ${STATEDIR}/host.log )
 
-# The last two checks counted less than 3 processes, and it's been at least
+# The last two checks counted less than 4 processes, and it's been at least
 # 15min. There will generally be 10+ host pod processes.
-if [[ $PREV_COUNT -lt 3 ]] && \
-   [[ $CURR_COUNT -lt 3 ]] && \
+if [[ $PREV_COUNT -lt 4 ]] && \
+   [[ $CURR_COUNT -lt 4 ]] && \
    [[ $(( $CURR_TIME - $PREV_TIME )) -ge 900 ]] ; then
 
   # Only proceed if the previous count is equivalent to the current count.
