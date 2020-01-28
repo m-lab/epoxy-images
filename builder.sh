@@ -33,7 +33,7 @@ function stage1_mlxrom() {
   TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/epoxy-ca.mlab-oti.pem"
   TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
 
-  ${SOURCE_DIR}/setup_stage1.sh "${project}" "${builddir}" "${artifacts}" \
+  ${SOURCE_DIR}/setup_stage1_mlxrom.sh "${project}" "${builddir}" "${artifacts}" \
       "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
       "${TRUSTED_CERTS}"
 
