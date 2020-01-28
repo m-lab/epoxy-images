@@ -32,13 +32,6 @@ steps:
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
-# stage1 bootstrapfs for PlanetLab updates.
-# NOTE: this must run after stage2 so that the epoxy_client is available.
-- name: epoxy-images-builder
-  args: [
-    '/workspace/builder.sh', 'stage1_bootstrapfs'
-  ]
-
 # stage3_coreos images.
 - name: epoxy-images-builder
   args: [
@@ -64,14 +57,6 @@ steps:
 # the target bucket. Currently, the cloudbuilder 'artifacts' directive does
 # not support multiple target locations. So, the steps below are explicit.
 ############################################################################
-
-# stage1_bootstrapfs.
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r', '/workspace/output/bootstrapfs-MeasurementLabUpdate.tar.bz2*',
-    'gs://epoxy-$PROJECT_ID/stage1_bootstrapfs/'
-  ]
 
 # stage3_coreos.
 - name: gcr.io/cloud-builders/gsutil

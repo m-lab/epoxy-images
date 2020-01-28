@@ -40,17 +40,6 @@ function stage1_mlxrom() {
   rm -rf "${builddir}"
 }
 
-function stage1_bootstrapfs() {
-  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
-
-  ${SOURCE_DIR}/setup_stage1_bootstrapfs.sh \
-      /go/bin/epoxy_client \
-      ${artifacts}/bootstrapfs-MeasurementLabUpdate.tar.bz2
-
-  rm -rf "${builddir}"
-}
-
 function stage2() {
   local target=${TARGET:?Please specify a target configuration name}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
@@ -160,9 +149,6 @@ mkdir -p ${ARTIFACTS}
 case "${TARGET}" in
   stage1_mlxrom)
       stage1_mlxrom
-      ;;
-  stage1_bootstrapfs)
-      stage1_bootstrapfs
       ;;
   stage1_minimal)
       stage1_minimal
