@@ -2,8 +2,8 @@
 #
 # setup_stage1_isos.sh generates per-machine ISO images.
 #
-# setup_stage1_isos.sh should only be run after setup_stage2.sh has run
-# successfully and the stage2_vmlinuz kernel is available.
+# setup_stage1_isos.sh should only be run after setup_stage1_minimal.sh has run
+# successfully and the vmlinuz_stage1_minimal kernel is available.
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 

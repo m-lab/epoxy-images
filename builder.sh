@@ -40,26 +40,6 @@ function stage1_mlxrom() {
   rm -rf "${builddir}"
 }
 
-function stage2() {
-  local target=${TARGET:?Please specify a target configuration name}
-  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-
-  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
-
-  ${SOURCE_DIR}/setup_stage2.sh "${builddir}" "${SOURCE_DIR}/vendor" \
-     "${SOURCE_DIR}/configs/${target}" \
-     "${artifacts}/stage2_initramfs.cpio.gz" \
-     "${artifacts}/stage2_vmlinuz" \
-      /go/bin/epoxy_client \
-     "${SOURCE_DIR}/stage2.log" \
-     "${SOURCE_DIR}/travis/one_line_per_minute.awk" \
-  || (
-     tail -100 ${SOURCE_DIR}/stage2.log && false
-  )
-
-  rm -rf "${builddir}"
-}
-
 # Build coreos custom initram image.
 function stage3_coreos() {
   local target=${TARGET:?Please specify a target configuration name}
@@ -158,9 +138,6 @@ case "${TARGET}" in
       ;;
   stage1_usbs)
       stage1_usbs
-      ;;
-  stage2)
-      stage2
       ;;
   stage3_coreos)
       stage3_coreos
