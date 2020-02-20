@@ -2,10 +2,10 @@
 # relevant settings.
 
 # stage3 coreos
-export COREOS_VERSION=2247.7.0
-export K8S_VERSION=v1.15.6
-export CRI_VERSION=v1.16.1
-export CNI_VERSION=v0.8.3
+export COREOS_VERSION=2303.4.0
+export K8S_VERSION=v1.15.10
+export CRI_VERSION=v1.17.0
+export CNI_VERSION=v0.8.5
 
 # stage1 mlxrom
 export MLXROM_VERSION=3.4.816
