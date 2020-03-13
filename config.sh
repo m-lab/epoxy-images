@@ -16,11 +16,3 @@ export CNI_VERSION=v0.8.5
 
 # stage1 mlxrom
 export MLXROM_VERSION=3.4.816
-export MLXROM_REGEXP_mlab_sandbox='mlab[1-4].[a-z]{3}[0-9]t.*'
-export MLXROM_REGEXP_mlab_staging='mlab4.[a-z]{3}[0-9]{2}.*'
-export MLXROM_REGEXP_mlab_oti='mlab[1-3].[a-z]{3}[0-9]{2}.*'
-
-# stage1 isos
-export ISO_REGEXP_mlab_sandbox='mlab[1-4].[a-z]{3}[0-9]t.*'
-export ISO_REGEXP_mlab_staging='mlab4.[a-z]{3}[0-9]{2}.*'
-export ISO_REGEXP_mlab_oti='mlab[1-3].[a-z]{3}[0-9]{2}.*'
