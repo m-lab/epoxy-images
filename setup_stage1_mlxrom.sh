@@ -15,8 +15,8 @@ PROJECT=${1:?Please specify the GCP project to contact: $USAGE}
 BUILD_DIR=${2:?Please specify a build directory: $USAGE}
 OUTPUT_DIR=${3:?Please specify an output directory: $USAGE}
 CONFIG_DIR=${4:?Please specify a configuration directory: $USAGE}
-ROM_VERSION=${6:?Please specify the ROM version as "3.4.800": $USAGE}
-CERTS=${7:?Please specify trusted certs to embed in ROM: $USAGE}
+ROM_VERSION=${5:?Please specify the ROM version as "3.4.800": $USAGE}
+CERTS=${6:?Please specify trusted certs to embed in ROM: $USAGE}
 
 # unpack checks whether the given directory exists and if it does not unpacks
 # the given tar archive (which should create the directory).
