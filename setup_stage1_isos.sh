@@ -14,7 +14,6 @@ PROJECT=${1:?Please provide the GCP Project: $USAGE}
 BUILD_DIR=${2:?Please specify a build directory: $USAGE}
 OUTPUT_DIR=${3:?Please provide an output directory: $USAGE}
 CONFIG_DIR=${4:?Please specify a config directory: $USAGE}
-HOSTNAMES=${5:?Please specify a hostname pattern: $USAGE}
 
 # Report all commands to log file (set -x writes to stderr).
 set -xuo pipefail
@@ -27,8 +26,9 @@ pushd ${BUILD_DIR}
       ./mlabconfig.py
   mkdir -p ${OUTPUT_DIR}/scripts
   python ./mlabconfig.py --format=server-network-config \
+      --sites "${SITES}" \
       --physical \
-      --select "${HOSTNAMES}" \
+      --project "${PROJECT}" \
       --label "project=${PROJECT}" \
       --template_input "${CONFIG_DIR}/create-stage1-iso-template.sh" \
       --template_output "${BUILD_DIR}/create-stage1-iso-{{hostname}}.sh"

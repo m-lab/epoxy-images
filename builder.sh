@@ -97,12 +97,11 @@ function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local regex_name="ISO_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   ${SOURCE_DIR}/setup_stage1_isos.sh "${project}" "${builddir}" "${artifacts}" \
-      "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
+      "${SOURCE_DIR}/configs/${target}"
 
   rm -rf "${builddir}"
   return
