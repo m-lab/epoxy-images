@@ -66,7 +66,7 @@ function prepare_flexboot_source() {
 function generate_stage1_ipxe_scripts() {
   local build_dir=$1
   local config_dir=$2
-  local output_dir=$4
+  local output_dir=$3
 
   # Create all stage1.ipxe scripts.
   pushd ${build_dir}
