@@ -2,7 +2,7 @@
 # relevant settings.
 
 # Use v2 sites.json for everything except mlab-oti.
-if [[ "${PROJECT}" != "mlab-oti" ]]; then
+if [[ "${PROJECT}" == "mlab-sandbox" ]]; then
   export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json"
 else
   export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v1/sites/sites.json"
