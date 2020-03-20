@@ -15,21 +15,21 @@ PROJECT=${1:?Please provide the GCP Project: $USAGE}
 BUILD_DIR=${2:?Please specify a build directory: $USAGE}
 OUTPUT_DIR=${3:?Please provide an output directory: $USAGE}
 CONFIG_DIR=${4:?Please specify a config directory: $USAGE}
-HOSTNAMES=${5:?Please specify a hostname pattern: $USAGE}
 
 # Report all commands to log file (set -x writes to stderr).
 set -xuo pipefail
 
-# Use mlabconfig to fill in the template for every machine matching the given
-# HOSTNAMES pattern.
+# Use mlabconfig to fill in the template for every machine in the given
+# PROJECT name.
 pushd "${BUILD_DIR}"
   # TODO: Replace curl with a native go-get once mlabconfig is rewritten in Go.
   curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
       ./mlabconfig.py
   mkdir -p "${OUTPUT_DIR}/scripts"
   python ./mlabconfig.py --format=server-network-config \
+      --sites "${SITES}" \
       --physical \
-      --select "${HOSTNAMES}" \
+      --project "${PROJECT}" \
       --label "project=${PROJECT}" \
       --template_input "${CONFIG_DIR}/create-stage1-usb-template.sh" \
      --template_output "${BUILD_DIR}/create-stage1-usb-{{hostname}}.sh"

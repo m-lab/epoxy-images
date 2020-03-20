@@ -22,7 +22,6 @@ function stage1_mlxrom() {
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
   local version=${MLXROM_VERSION:?Please define the MLXROM_VERSION to build}
-  local regex_name="MLXROM_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
@@ -34,8 +33,7 @@ function stage1_mlxrom() {
   TRUSTED_CERTS+=",${SOURCE_DIR}/configs/${target}/gtsgiag3.pem"
 
   ${SOURCE_DIR}/setup_stage1_mlxrom.sh "${project}" "${builddir}" "${artifacts}" \
-      "${SOURCE_DIR}/configs/${target}" "${!regex_name}" "${version}" \
-      "${TRUSTED_CERTS}"
+      "${SOURCE_DIR}/configs/${target}" "${version}" "${TRUSTED_CERTS}"
 
   rm -rf "${builddir}"
 }
@@ -99,12 +97,11 @@ function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local regex_name="ISO_REGEXP_${PROJECT//-/_}"
 
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   ${SOURCE_DIR}/setup_stage1_isos.sh "${project}" "${builddir}" "${artifacts}" \
-      "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
+      "${SOURCE_DIR}/configs/${target}"
 
   rm -rf "${builddir}"
   return

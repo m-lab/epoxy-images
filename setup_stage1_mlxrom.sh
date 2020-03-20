@@ -15,9 +15,8 @@ PROJECT=${1:?Please specify the GCP project to contact: $USAGE}
 BUILD_DIR=${2:?Please specify a build directory: $USAGE}
 OUTPUT_DIR=${3:?Please specify an output directory: $USAGE}
 CONFIG_DIR=${4:?Please specify a configuration directory: $USAGE}
-HOSTNAMES=${5:?Please specify a hostname pattern: $USAGE}
-ROM_VERSION=${6:?Please specify the ROM version as "3.4.800": $USAGE}
-CERTS=${7:?Please specify trusted certs to embed in ROM: $USAGE}
+ROM_VERSION=${5:?Please specify the ROM version as "3.4.800": $USAGE}
+CERTS=${6:?Please specify trusted certs to embed in ROM: $USAGE}
 
 # unpack checks whether the given directory exists and if it does not unpacks
 # the given tar archive (which should create the directory).
@@ -67,8 +66,7 @@ function prepare_flexboot_source() {
 function generate_stage1_ipxe_scripts() {
   local build_dir=$1
   local config_dir=$2
-  local hostname_pattern=$3
-  local output_dir=$4
+  local output_dir=$3
 
   # Create all stage1.ipxe scripts.
   pushd ${build_dir}
@@ -78,8 +76,9 @@ function generate_stage1_ipxe_scripts() {
         ./mlabconfig.py
     mkdir -p ${output_dir}
     python ./mlabconfig.py --format=server-network-config \
+        --sites "${SITES}" \
         --physical \
-        --select "${hostname_pattern}" \
+        --project "${PROJECT}" \
         --label "project=${PROJECT}" \
         --template_input "${config_dir}/stage1-template.ipxe" \
         --template_output "${output_dir}/stage1-{{hostname}}.ipxe"
@@ -234,7 +233,6 @@ prepare_flexboot_source \
 generate_stage1_ipxe_scripts \
     ${BUILD_DIR} \
     ${CONFIG_DIR} \
-    "${HOSTNAMES}" \
     "${SCRIPTDIR}"
 
 build_roms \
