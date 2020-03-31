@@ -12,3 +12,5 @@ vim
 openssh-server
 linux-generic
 linux-base
+docker.io
+cloud-init

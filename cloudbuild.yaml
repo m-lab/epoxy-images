@@ -8,9 +8,9 @@ options:
   env:
     - 'PROJECT=$PROJECT_ID'
     - 'ARTIFACTS=/workspace/output'
-    - 'MFT_VERSION=4.14.0-105'
+    - 'MFT_VERSION=4.4.0-44'
 substitutions:
-  _MFT_VERSION: 4.14.0-105'
+  _MFT_VERSION: 4.4.0-44'
 
 ############################################################################
 # BUILD ARTIFACTS
