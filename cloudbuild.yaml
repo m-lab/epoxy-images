@@ -8,6 +8,9 @@ options:
   env:
     - 'PROJECT=$PROJECT_ID'
     - 'ARTIFACTS=/workspace/output'
+    - 'MFT_VERSION=4.14.0-105'
+  substitutions:
+    - '_MFT_VERSION=4.14.0-105'
 
 ############################################################################
 # BUILD ARTIFACTS
@@ -43,7 +46,7 @@ steps:
 # the vendor-mlab-oti bucket.
 - name: gcr.io/cloud-builders/gsutil
   args: [
-    'cp', 'gs://vendor-mlab-oti/epoxy-images/mft-4.14.0-105.tgz', '/workspace/vendor'
+    'cp', 'gs://vendor-mlab-oti/epoxy-images/mft-${_MFT_VERSION}.tgz', '/workspace/vendor'
   ]
 - name: epoxy-images-builder
   args: [

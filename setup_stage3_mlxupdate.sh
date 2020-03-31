@@ -69,7 +69,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
     rm -rf $BOOTSTRAP/dev
     # Disable interactive prompt from grub-pc or other packages.
     export DEBIAN_FRONTEND=noninteractive
-    debootstrap --arch amd64 xenial $BOOTSTRAP
+    debootstrap --arch amd64 focal $BOOTSTRAP
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
 fi
 
@@ -77,10 +77,10 @@ fi
 # TODO: attempt to update mft version to one of the latest. The download is
 # smaller and includes pre-built deb files. For example:
 #     http://www.mellanox.com/downloads/MFT/mft-4.8.0-26-x86_64-deb.tgz
-if ! test -d $BOOTSTRAP/root/mft-4.4.0-44 ; then
+if ! test -d $BOOTSTRAP/root/mft-${MFT_VERSION} ; then
     pushd $BUILD_DIR
-        unpack_url mft-4.4.0-44 http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz
-        cp -ar mft-4.4.0-44 $BOOTSTRAP/root
+        unpack_url mft-${MFT_VERSION} http://www.mellanox.com/downloads/MFT/mft-${MFT_VERSION}.tgz
+        cp -ar mft-${MFT_VERSION} $BOOTSTRAP/root
     popd
 fi
 
@@ -112,18 +112,18 @@ mount_proc_and_sys $BOOTSTRAP
 
     # Update install.sh to use installed (not the running) kernel version.
     sed -i -e 's/g_kernel_version=.*/g_kernel_version="'$KERNEL_VERSION'"/g' \
-        $BOOTSTRAP/root/mft-4.4.0-44/install.sh
+        $BOOTSTRAP/root/mft-${MFT_VERSION}/install.sh
 
     # Run the mlx firmware tools installation script.
-    chroot $BOOTSTRAP bash -c "cd /root/mft-4.4.0-44 && ./install.sh"
+    chroot $BOOTSTRAP bash -c "cd /root/mft-${MFT_VERSION} && ./install.sh"
 
     # dynamic kernel module support (dkms) builds for the currently running
     # kernel, so explicitly build for the kernel installed in the bootstrapfs.
-    chroot $BOOTSTRAP dkms install kernel-mft-dkms/4.4.0 -k $KERNEL_VERSION
+    chroot $BOOTSTRAP dkms install kernel-mft-dkms/${MFT_VERSION%%-*} -k $KERNEL_VERSION
 
     echo "Removing unnecessary packages and files from $BOOTSTRAP"
     # Remove mft directory since the unnecessary binary packages are large.
-    chroot $BOOTSTRAP rm -rf /root/mft-4.4.0-44
+    chroot $BOOTSTRAP rm -rf /root/mft-${MFT_VERSION}
 
     # NOTE: DO NOT "autoremove" gcc or make, as this uninstalls dkms and the
     # mft module built and installed above.
