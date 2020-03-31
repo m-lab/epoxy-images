@@ -59,7 +59,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
 
     # Create comma-separated list.
     PACKAGES=$(
-      cat ${CONFIG_DIR}/extra.packages | xargs echo | tr ' ' ','
+      cat ${CONFIG_DIR}/build/extra.packages | xargs echo | tr ' ' ','
     )
 
     # Create 'minbase' bootstrap fs.
@@ -92,7 +92,6 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get install -y ipmitool
 
     # Remove unnecessary packages to save space.
-
     chroot $BOOTSTRAP apt-get remove -y \
         linux-headers-generic \
         linux-generic \
@@ -122,37 +121,42 @@ trap '' EXIT
 ################################################################################
 # Kernel panics if /init is undefined. Use systemd for init.
 ln --force --symbolic sbin/init $BOOTSTRAP/init
-install -D --mode 644 $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
+install -D --mode 644 $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
 
 # Install simple rc.local script for post-setup processing.
 # NOTE: rc.local.service runs after networking.service
 # NOTE: This script does not need to be explicitly enabled. There is a default
 # systemd compatibility unit rc-local.service that automatically gets enabled
 # if /etc/rc.local exists and is executable.
-install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
+install -D --mode 755 $CONFIG_DIR/etc/rc.local $BOOTSTRAP/etc/rc.local
 
 # Add mlab user, setup .ssh directory.
 chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
 chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
-
-# Autologin the mlab user on tty1
-install -D --mode 644 $CONFIG_DIR/getty@tty1.override.conf $BOOTSTRAP/etc/systemd/system/getty@tty1.service.d/override.conf
 
 # Disable graphical interface.
 chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
 
 
 ################################################################################
+# Systemd
+################################################################################
+cp -a $CONFIG_DIR/systemd/* $BOOTSTRAP/etc/systemd/system/
+for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
+  chroot $BOOTSTRAP bash -c "systemctl enable $unit"
+done
+
+################################################################################
 # Network
 ################################################################################
-
 # TODO: use systemd for network configuration entirely.
 rm -f $BOOTSTRAP/etc/resolv.conf
-install -D --mode 644 $CONFIG_DIR/resolv.conf $BOOTSTRAP/etc/resolv.conf
+install -D --mode 644 $CONFIG_DIR/etc/resolv.conf $BOOTSTRAP/etc/resolv.conf
 
 # Set a default root passwd.
 # TODO: disable root login except by ssh?
 chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
+
 
 ################################################################################
 # SSH
@@ -175,16 +179,18 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 # Copy the authorized_keys file.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
-install -D --mode 644 $CONFIG_DIR/authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
+install -D --mode 644 $CONFIG_DIR/user/authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
+
 
 ################################################################################
 # M-Lab resources
 ################################################################################
-# Make sure /usr/share/oem exists
-mkdir -p $BOOTSTRAP/usr/share/oem
+# Make sure /opt/mlab/bin exists
+mkdir -p $BOOTSTRAP/opt/mlab/bin
 
-# Copy resources to the "/usr/share/oem" directory.
-cp -a ${CONFIG_DIR}/resources/* $BOOTSTRAP/usr/share/oem
+# Copy binaries and scripts to the "/opt/mlab/bin" directory.
+cp -a ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
+
 
 ################################################################################
 # Kubernetes
@@ -202,7 +208,7 @@ for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # the symlink should reference in the final image filesystem.
     ln -s /opt/shimcni/bin/shim.sh $(basename "$i")
 done
-cp -a ${CONFIG_DIR}/shim.sh .
+cp -a ${CONFIG_DIR}/bin/shim.sh .
 chmod +x shim.sh
 popd
 
