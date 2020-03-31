@@ -133,8 +133,10 @@ install -D --mode 644 $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
 # Enable simple rc.local script for post-setup processing.
 # NOTE: rc.local.service runs after networking.service
+# NOTE: This script does not need to be explicitly enabled. There is a default
+# systemd compatibility unit rc-local.service that automatically gets enabled
+# if /etc/rc.local exists and is executable.
 install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
-chroot $BOOTSTRAP systemctl enable rc.local.service
 
 ################################################################################
 # Network
