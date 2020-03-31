@@ -1,4 +1,5 @@
 FROM ubuntu:20.04
+ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update --fix-missing
 RUN apt-get install -y unzip python3-pip git vim-nox make autoconf gcc mkisofs \
     lzma-dev liblzma-dev autopoint pkg-config libtool autotools-dev upx-ucl \
