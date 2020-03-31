@@ -1,0 +1,17 @@
+[Unit]
+Description=A post-boot setup command.
+# Both directives are required.
+# https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Requires=
+# "Note that requirement dependencies do not influence the order in
+# which services are started or stopped. This has to be configured
+# independently with the After= or Before= options. If a unit
+# foo.service requires a unit bar.service as configured with Requires=
+# and no ordering is configured with After= or Before=, then both units
+# will be started simultaneously and without any delay between them [...]"
+Requires=network-online.target
+After=systemd-networkd-wait-online.service systemd-resolved.service format-cache.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/setup_after_boot.sh
+

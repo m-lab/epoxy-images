@@ -1,0 +1,15 @@
+[Unit]
+Description=Mount Docker Data Volume
+Before=docker.service
+After=format-cache.service
+Requires=format-cache.service
+
+[Mount]
+What=/dev/disk/by-label/cache-docker
+Where=/cache/docker
+Type=xfs
+Options=defaults
+
+[Install]
+RequiredBy=docker.service
+

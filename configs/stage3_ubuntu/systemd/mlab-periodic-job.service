@@ -1,0 +1,8 @@
+[Unit]
+Description=Runs periodic jobs.
+Requires=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/bin/run-parts /etc/periodic/15min
+

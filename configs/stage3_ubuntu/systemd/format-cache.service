@@ -1,0 +1,28 @@
+[Unit]
+Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
+RequiresMountsFor=/cache
+ConditionPathExists=!/cache/docker
+ConditionPathExists=!/cache/data
+ConditionPathExists=!/cache/core
+[Service]
+Type=oneshot
+# Create cache directory in root filesystem.
+ExecStart=/usr/bin/mkdir -p /cache
+
+# Clear any remaining LVM configs from prior installations.
+ExecStart=/usr/sbin/dmsetup remove_all --force
+
+# For a 1TB disk, this is roughly:
+#  * 900G for core and experiment data.
+#  * 100G for docker image cache.
+# Note: systemd translates double percent (%%) to a single percent.
+ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
+    mklabel gpt \
+    mkpart data xfs 0%% 90%% \
+    mkpart docker xfs 90%% 100%%
+
+# Format and label each partition.
+# Note: the labels could make the formatting conditional in the future.
+ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
+ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
+

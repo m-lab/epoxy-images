@@ -1,0 +1,9 @@
+[Unit]
+Description=Runs mlab-periodic-job.service every 15 minutes.
+
+[Timer]
+OnCalendar=*:0/15
+
+[Install]
+WantedBy=multi-user.target
+
