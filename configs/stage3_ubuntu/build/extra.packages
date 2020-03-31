@@ -1,0 +1,15 @@
+ca-certificates
+curl
+docker.io
+iproute2
+kexec-tools
+less
+linux-base
+linux-generic
+net-tools
+openssh-server
+pciutils
+systemd-sysv
+usbutils
+vim
+wget
