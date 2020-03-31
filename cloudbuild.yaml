@@ -32,10 +32,10 @@ steps:
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
-# stage3_coreos images.
+# stage3_ubuntu images.
 - name: epoxy-images-builder
   args: [
-    '/workspace/builder.sh', 'stage3_coreos'
+    '/workspace/builder.sh', 'stage3_ubuntu'
   ]
 
 # stage3_mlxupdate images.
@@ -58,18 +58,18 @@ steps:
 # not support multiple target locations. So, the steps below are explicit.
 ############################################################################
 
-# stage3_coreos.
+# stage3_ubuntu.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r',
     '/workspace/output/vmlinuz_stage1_minimal',
     '/workspace/output/initramfs_stage1_minimal.cpio.gz',
-    '/workspace/output/coreos_custom_pxe_image.cpio.gz',
-    '/workspace/output/coreos_production_pxe.vmlinuz',
+    '/workspace/output/initramfs_stage3_ubuntu.cpio.gz',
+    '/workspace/output/stage3_ubuntu.vmlinuz',
     '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_coreos/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_coreos/'
+    '/workspace/actions/stage3_ubuntu/*.json',
+    'gs://epoxy-$PROJECT_ID/stage3_ubuntu/'
   ]
 
 # stage3_mlxupdate.

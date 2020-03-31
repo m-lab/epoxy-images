@@ -93,6 +93,20 @@ function stage1_minimal() {
   rm -rf ${builddir}
 }
 
+function stage3_ubuntu() {
+  local target=${TARGET:?Please specify a target configuration name}
+  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
+  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
+
+  umask 0022
+  echo 'Starting stage3_ubuntu build'
+  ${SOURCE_DIR}/setup_stage3_ubuntu.sh \
+      ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
+      /go/bin/epoxy_client
+
+  rm -rf ${builddir}
+}
+
 function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
@@ -138,6 +152,9 @@ case "${TARGET}" in
       ;;
   stage3_coreos)
       stage3_coreos
+      ;;
+  stage3_ubuntu)
+      stage3_ubuntu
       ;;
   stage3_mlxupdate)
       stage3_mlxupdate

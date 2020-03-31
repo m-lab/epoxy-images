@@ -1,0 +1,129 @@
+#!/bin/bash
+
+function logrun() {
+    echo $@
+    $@
+}
+
+function get_cmdline() {
+  local key=$1
+  local result=$2
+  # Extract the boot parameter ${key}=
+  for field in $( cat /proc/cmdline ) ; do
+    if [[ "${key}" == "${field%%=*}" ]] ; then
+      result=${field##${key}=}
+      break
+    fi
+  done
+  echo $result
+}
+
+# TODO: epoxyclient should interpret this command line parameter instead.
+function setup_network() {
+  # Set a default local network configuration.
+  ipcfg=192.168.0.2::192.168.0.1:255.255.255.0:default-net:eth0::8.8.8.8:
+
+  ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+  hostname=$( get_cmdline epoxy.hostname "default-net" )
+  interface=$( get_cmdline epoxy.interface "eth0" )
+
+  count=1
+  # Note: while using a generic kernel, we must wait for the modules to load
+  # automatically before the network configuration commands will work.  This
+  # delay could be avoided by explicitly loading the modules here (fragile) or
+  # using a custom kernel that embeds the mellanox drivers.
+  until ifconfig ${interface} 2> /dev/null || [[ $count -gt 60 ]]; do
+      echo "Waiting 1 second for ${interface} to initialize.."
+      sleep 1
+      count=$(( $count + 1 ))
+  done
+
+  echo "Applying network configuration: $ipv4"
+  echo $ipv4 | tr ',' ' ' | (
+      read addr gateway _
+      echo ifconfig ${interface} ${addr}
+      echo route add default gw ${gateway}
+      echo hostname ${hostname}
+      ifconfig ${interface} ${addr}
+      route add default gw ${gateway}
+      hostname ${hostname}
+  )
+  ifconfig ${interface}
+}
+
+function setup_drac() {
+  (
+    set -o pipefail
+
+    # These can fail if there is no IPMI device.
+    if ! modprobe ipmi_si; then
+      return 1
+    fi
+
+    if ! modprobe ipmi_devintf; then
+      return 1
+    fi
+
+    local drac_ipv4=$( get_cmdline drac.ipv4 "" )
+    if [ -z "$drac_ipv4" ]; then
+      echo "Cannot read DRAC's IPv4 from /proc/cmdline."
+      return 1
+    fi
+
+    local ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
+    if [ $? -ne 0 ] || [ -z "$ipmi_ipv4" ]; then
+      echo "Cannot read current IPv4 address via ipmitool."
+      return 1
+    fi
+
+    echo "Configured IPv4 address: $drac_ipv4"
+    echo "Current IPv4 address: $ipmi_ipv4"
+    if [ "$ipmi_ipv4" != "$drac_ipv4" ]; then
+      echo "Configuring DRAC..."
+      local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
+
+      echo $epoxy_ipv4 | tr ',' ' ' | (
+        read _ gateway _
+        logrun ipmitool user set name 2 admin
+        logrun ipmitool user set password 2 "m3@sur3m3nt" 20
+        logrun ipmitool lan set 1 ipsrc static
+        logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        # On Dell R640 and iDRAC 9, setting the IP address takes longer than
+        # ipmitool's timeout, thus the command above returns a non-zero exit
+        # code. Since the DRAC configuration normally only happens once,
+        # there is no harm in waiting some more time and retrying, here.
+        if [ $? -ne 0 ]; then
+          echo "DRAC's IP address has not changed yet. Retrying in 30s..."
+          sleep 30
+          logrun ipmitool lan set 1 ipaddr $drac_ipv4
+        fi
+        logrun ipmitool lan set 1 netmask 255.255.255.192
+        logrun ipmitool lan set 1 defgw ipaddr $gateway
+      )
+    else
+      echo "DRAC is configured already. Skipping configuration."
+    fi
+  )
+}
+
+
+echo "Loading mlx modules"
+modprobe mlx4_en
+modprobe mlx5_core
+modprobe mlxfw
+
+
+echo "Configuring network..."
+setup_network
+
+echo "Checking if DRAC needs to be configured..."
+setup_drac
+
+echo "Downloading next stage from ePoxy"
+if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage1 -add-kargs
+elif grep epoxy.stage2 /proc/cmdline > /dev/null ; then
+  epoxy_client -action epoxy.stage2
+else
+  echo "WARNING: unknown or no stage found in /proc/cmdline"
+fi

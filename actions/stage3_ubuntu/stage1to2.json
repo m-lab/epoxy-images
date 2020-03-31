@@ -1,0 +1,41 @@
+{
+   "v1": {
+      "env": {
+         "PATH": "/bin:/usr/bin:/usr/local/bin"
+      },
+      "files": {
+         "vmlinuz": {
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_ubuntu/vmlinuz_stage1_minimal"
+         },
+         "initram": {
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_ubuntu/initramfs_stage1_minimal.cpio.gz"
+         }
+      },
+      "vars": {
+         "kargs": [
+            "epoxy.ip={{kargs `epoxy.ip`}}",
+            "epoxy.ipv4={{kargs `epoxy.ipv4`}}",
+            "epoxy.ipv6={{kargs `epoxy.ipv6`}}",
+            "epoxy.interface={{kargs `epoxy.interface`}}",
+            "epoxy.hostname={{kargs `epoxy.hostname`}}",
+            "epoxy.stage2={{kargs `epoxy.stage2`}}",
+            "epoxy.stage3={{kargs `epoxy.stage3`}}",
+            "epoxy.report={{kargs `epoxy.report`}}",
+            "epoxy.allocate_k8s_token={{kargs `epoxy.allocate_k8s_token`}}",
+            "epoxy.server={{kargs `epoxy.server`}}",
+            "epoxy.project={{kargs `epoxy.project`}}"
+         ],
+         "cmdline": "net.ifnames=0 autoconf=0"
+      },
+      "commands": [
+         "# Run kexec using the downloaded initram and vmlinuz files.",
+         [
+            "/sbin/kexec",
+            "--force",
+            "--command-line={{.vars.kargs}} {{.vars.cmdline}}",
+            "--initrd={{.files.initram.name}}",
+            "{{.files.vmlinuz.name}}"
+         ]
+      ]
+   }
+}
