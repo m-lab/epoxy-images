@@ -25,7 +25,7 @@ pushd ${BUILD_DIR}
   curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
       ./mlabconfig.py
   mkdir -p ${OUTPUT_DIR}/scripts
-  python ./mlabconfig.py --format=server-network-config \
+  python3 ./mlabconfig.py --format=server-network-config \
       --sites "${SITES}" \
       --physical \
       --project "${PROJECT}" \
