@@ -10,7 +10,7 @@ options:
     - 'ARTIFACTS=/workspace/output'
     - 'MFT_VERSION=4.14.0-105'
 substitutions:
-  - '_MFT_VERSION=4.14.0-105'
+  _MFT_VERSION: 4.14.0-105'
 
 ############################################################################
 # BUILD ARTIFACTS
