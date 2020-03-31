@@ -110,8 +110,8 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get autoclean
 
     # Free up a little more space.
-    #NPKrm -f $BOOTSTRAP/boot/vmlinuz*
-    #NPKrm -f $BOOTSTRAP/boot/initrd*
+    rm -f $BOOTSTRAP/boot/vmlinuz*
+    rm -f $BOOTSTRAP/boot/initrd*
 
 umount_proc_and_sys $BOOTSTRAP
 trap '' EXIT
@@ -131,6 +131,17 @@ install -D --mode 644 $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 # if /etc/rc.local exists and is executable.
 install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
 
+# Add mlab user, setup .ssh directory.
+chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
+chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
+
+# Autologin the mlab user on tty1
+install -D --mode 644 $CONFIG_DIR/getty@tty1.override.conf $BOOTSTRAP/etc/systemd/system/getty@tty1.service.d/override.conf
+
+# Disable graphical interface.
+chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
+
+
 ################################################################################
 # Network
 ################################################################################
@@ -146,9 +157,15 @@ chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
 ################################################################################
 # SSH
 ################################################################################
-# Disable root login with password via ssh.
-if ! grep -q -E '^PermitRootLogin prohibit-password' $BOOTSTRAP/etc/ssh/sshd_config ; then
-    sed -i -e 's/.*PermitRootLogin .*/PermitRootLogin prohibit-password/g' \
+# Disable root login via ssh.
+if ! grep -q -E '^PermitRootLogin no' $BOOTSTRAP/etc/ssh/sshd_config ; then
+    sed -i -e 's/.*PermitRootLogin .*/PermitRootLogin no/g' \
+        $BOOTSTRAP/etc/ssh/sshd_config
+fi
+
+# Disable password login via ssh.
+if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; then
+    sed -i -e 's/.*PasswordAuthentication .*/PasswordAuthentication no/g' \
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
@@ -158,7 +175,7 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 # Copy the authorized_keys file.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
-install -D --mode 644 $CONFIG_DIR/authorized_keys $BOOTSTRAP/root/.ssh/authorized_keys
+install -D --mode 644 $CONFIG_DIR/authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
 
 ################################################################################
 # M-Lab resources
