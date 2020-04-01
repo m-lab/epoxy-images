@@ -65,8 +65,8 @@ function stage3_mlxupdate() {
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   umask 0022
-  install -D -m 644 ${SOURCE_DIR}/vendor/mft-4.4.0-44.tgz \
-      ${builddir}/mft-4.4.0-44.tgz
+  install -D -m 644 ${SOURCE_DIR}/vendor/mft-${MFT_VERSION}.tgz \
+      ${builddir}/mft-${MFT_VERSION}.tgz
 
   echo 'Starting stage3_mlxupdate build'
   ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
