@@ -194,6 +194,9 @@ ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim
 # Cause tcp_bbr module to be loaded at boot.
 cp -a $CONFIG_DIR/etc/module-tcp_bbr.conf $BOOTSTRAP/etc/modules-load.d/tcp_bbr.conf
 
+# Load ahci module.
+cp -a $CONFIG_DIR/etc/module-ahci.conf $BOOTSTRAP/etc/modules-load.d/ahci.conf
+
 # Allow the mlab user to use sudo to do anything, without a password
 install -D --mode 644 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab.conf
 
