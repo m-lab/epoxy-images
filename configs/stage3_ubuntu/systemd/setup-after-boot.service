@@ -15,3 +15,6 @@ After=systemd-networkd-wait-online.service systemd-resolved.service format-cache
 Type=oneshot
 ExecStart=/opt/mlab/bin/setup_after_boot.sh
 
+[Install]
+WantedBy=multi-user.target
+
