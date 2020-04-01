@@ -11,6 +11,7 @@ net-tools
 openssh-server
 parted
 pciutils
+sudo
 systemd-sysv
 usbutils
 vim
