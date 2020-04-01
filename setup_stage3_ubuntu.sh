@@ -240,7 +240,7 @@ rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
 # Install the kube* commands.
 # Installation commands adapted from:
 #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-echo ${K8S_VERSION} > ${BOOTSTRAP}/usr/share/oem/installed_k8s_version.txt
+echo ${K8S_VERSION} > ${BOOTSTRAP}/etc/installed_k8s_version.txt
 pushd ${BOOTSTRAP}/opt/bin
 curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod 755 {kubeadm,kubelet,kubectl}
