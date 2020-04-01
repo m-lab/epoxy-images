@@ -130,7 +130,7 @@ mount_proc_and_sys $BOOTSTRAP
         linux-generic \
         linux-headers-${KERNEL_VERSION} \
         linux-headers-${KERNEL_VERSION%%-generic} \
-        linux-firmware \
+        linux-firmware
     done
 
     chroot $BOOTSTRAP apt-get clean -y
