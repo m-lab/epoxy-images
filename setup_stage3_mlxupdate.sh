@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# setup_stage3_mlxupdate.sh builds an initram filesystem based on the ubuntu
-# xenial OS, that includes the Mellanox Firmware Tools and requisite kernel
+# setup_stage3_mlxupdate.sh builds an initram filesystem based on the Ubuntu
+# Focal Fossa OS, that includes the Mellanox Firmware Tools and requisite kernel
 # modules. With this image it is possible to flash a new ROM to a Mellanox NIC.
 #
 # Example:
@@ -96,7 +96,7 @@ mount_proc_and_sys $BOOTSTRAP
 
     # Add extra apt sources to install latest kernel image and headers.
     # TODO: only append the source once.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ xenial-updates universe main multiuniverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates universe main multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
