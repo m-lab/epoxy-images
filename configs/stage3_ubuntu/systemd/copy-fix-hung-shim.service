@@ -1,8 +1,0 @@
-[Unit]
-Description=Copy fix-hung-shim script to /etc/periodic/15min
-
-[Service]
-Type=oneshot
-ExecStart=install -D --mode=0755 --owner=root --group=root \
-  --target-directory=/etc/periodic/15min/ /opt/mlab/bin/fix-hung-shim.sh
-
