@@ -1,5 +1,6 @@
 ca-certificates
 curl
+dmsetup
 docker.io
 iproute2
 kexec-tools
@@ -8,8 +9,10 @@ linux-base
 linux-generic
 net-tools
 openssh-server
+parted
 pciutils
 systemd-sysv
 usbutils
 vim
 wget
+xfsprogs

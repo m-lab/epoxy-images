@@ -192,7 +192,7 @@ mkdir -p $BOOTSTRAP/etc/periodic/15min
 ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
 
 # Cause tcp_bbr module to be loaded at boot.
-cp -a $CONFIG_DIR/etc/modprobe-tcp_bbr.conf $BOOTSTRAP/etc/modprobe.d/
+cp -a $CONFIG_DIR/etc/module-tcp_bbr.conf $BOOTSTRAP/etc/modules-load.d/tcp_bbr.conf
 
 ################################################################################
 # Kubernetes
