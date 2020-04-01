@@ -42,12 +42,6 @@ steps:
   ]
 
 # stage3_mlxupdate images.
-# NOTE: all project cloudbuild service accounts must be granted READ access to
-# the vendor-mlab-oti bucket.
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    'cp', 'gs://vendor-mlab-oti/epoxy-images/mft-${_MFT_VERSION}.tgz', '/workspace/vendor'
-  ]
 - name: epoxy-images-builder
   args: [
     '/workspace/builder.sh', 'stage3_mlxupdate'

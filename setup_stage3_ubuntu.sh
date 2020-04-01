@@ -124,7 +124,7 @@ ln --force --symbolic sbin/init $BOOTSTRAP/init
 install -D --mode 644 $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
 
 # Install simple rc.local script for post-setup processing.
-# NOTE: rc.local.service runs after networking.service
+# NOTE: rc-local.service runs after networking.service
 # NOTE: This script does not need to be explicitly enabled. There is a default
 # systemd compatibility unit rc-local.service that automatically gets enabled
 # if /etc/rc.local exists and is executable.
@@ -134,9 +134,8 @@ install -D --mode 755 $CONFIG_DIR/etc/rc.local $BOOTSTRAP/etc/rc.local
 chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
 chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
 
-# Disable graphical interface.
+# Don't go beyond multi-user.target as these are headless systems.
 chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
-
 
 ################################################################################
 # Systemd
@@ -156,7 +155,6 @@ install -D --mode 644 $CONFIG_DIR/etc/resolv.conf $BOOTSTRAP/etc/resolv.conf
 # Set a default root passwd.
 # TODO: disable root login except by ssh?
 chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
-
 
 ################################################################################
 # SSH
@@ -181,16 +179,20 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
 install -D --mode 644 $CONFIG_DIR/user/authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
 
-
 ################################################################################
 # M-Lab resources
 ################################################################################
 # Make sure /opt/mlab/bin exists
 mkdir -p $BOOTSTRAP/opt/mlab/bin
-
 # Copy binaries and scripts to the "/opt/mlab/bin" directory.
 cp -a ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
 
+# Link fix-hung-shim.sh to /etec/periodic/15min directory.
+mkdir -p $BOOTSTRAP/etc/periodic/15min
+ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
+
+# Cause tcp_bbr module to be loaded at boot.
+cp -a $CONFIG_DIR/etc/modprobe-tcp_bbr.conf $BOOTSTRAP/etc/modprobe.d/
 
 ################################################################################
 # Kubernetes
