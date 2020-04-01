@@ -4,5 +4,8 @@ Requires=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/bin/run-parts /etc/periodic/15min
+ExecStart=/opt/mlab/bin/run-parts /etc/periodic/15min
+
+[Install]
+WantedBy=multi-user.target
 

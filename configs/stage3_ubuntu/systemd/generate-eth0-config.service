@@ -1,3 +1,11 @@
+[Unit]
+Before=network-pre.target
+Wants=network-pre.target
+
 [Service]
 Type=oneshot
-ExecStart=/usr/share/oem/generate_network_config.sh /etc/systemd/network/00-eth0.network
+ExecStart=/opt/mlab/bin/generate_network_config.sh /etc/systemd/network/00-eth0.network
+
+[Install]
+WantedBy=multi-user.target
+

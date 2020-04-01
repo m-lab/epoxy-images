@@ -7,3 +7,6 @@ After=systemd-networkd-wait-online.service systemd-resolved.service format-cache
 Type=oneshot
 ExecStart=/opt/mlab/bin/configure_tc_fq.sh
 
+[Install]
+WantedBy=multi-user.target
+

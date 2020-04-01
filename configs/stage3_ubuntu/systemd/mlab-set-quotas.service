@@ -5,3 +5,6 @@ Description=Configures quotas for M-Lab experiment data directories.
 Type=oneshot
 ExecStart=/opt/mlab/bin/mlab_set_quotas.sh /etc/mlab_quotas /cache/data
 
+[Install]
+WantedBy=multi-user.target
+

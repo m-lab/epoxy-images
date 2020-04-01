@@ -4,6 +4,7 @@ RequiresMountsFor=/cache
 ConditionPathExists=!/cache/docker
 ConditionPathExists=!/cache/data
 ConditionPathExists=!/cache/core
+
 [Service]
 Type=oneshot
 # Create cache directory in root filesystem.
@@ -25,4 +26,7 @@ ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
 # Note: the labels could make the formatting conditional in the future.
 ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
 ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
+
+[Install]
+WantedBy=multi-user.target
 
