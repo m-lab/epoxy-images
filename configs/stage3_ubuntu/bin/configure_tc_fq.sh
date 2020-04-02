@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SITE=$(dnsdomainname | cut -d. -f1)
+SITE=${HOSTNAME:6:5}
 SPEED=$(curl --silent --show-error --location \
     https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
     | jq -r ".${SITE}.uplink_speed")
@@ -17,4 +17,3 @@ fi
 /sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
 
 echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
-
