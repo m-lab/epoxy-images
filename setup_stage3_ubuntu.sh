@@ -119,10 +119,6 @@ trap '' EXIT
 ################################################################################
 # Init
 ################################################################################
-# Kernel panics if /init is undefined. Use systemd for init.
-ln --force --symbolic sbin/init $BOOTSTRAP/init
-install -D --mode 644 $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
-
 # Install simple rc.local script for post-setup processing.
 # NOTE: rc-local.service runs after networking.service
 # NOTE: This script does not need to be explicitly enabled. There is a default
