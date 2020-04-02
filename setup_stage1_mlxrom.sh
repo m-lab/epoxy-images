@@ -55,6 +55,9 @@ function prepare_flexboot_source() {
 
       # Enable TLS configuration and any other non-standard options.
       git apply ${config_dir}/config_general.h.diff
+
+      # Fix the my-in-my error
+      git apply ${config_dir}/parserom.S.diff
     popd
 
     # Move the working directory to the canonical name to signal we're done.
@@ -183,8 +186,7 @@ function build_roms() {
             EXTRA_CFLAGS="${extra_cflags}" \
             DEBUG=${debug} \
             TRUST=${certs} \
-            EMBED=${stage1} \
-            NO_WERROR=0
+            EMBED=${stage1}
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.
