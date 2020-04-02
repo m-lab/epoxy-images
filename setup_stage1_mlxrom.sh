@@ -187,7 +187,7 @@ function build_roms() {
             DEBUG=${debug} \
             TRUST=${certs} \
             EMBED=${stage1} \
-            NO_WERROR=0
+            NO_WERROR=1
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.
