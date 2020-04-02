@@ -117,15 +117,8 @@ trap '' EXIT
 
 
 ################################################################################
-# Init
+# System / Users
 ################################################################################
-# Install simple rc.local script for post-setup processing.
-# NOTE: rc-local.service runs after networking.service
-# NOTE: This script does not need to be explicitly enabled. There is a default
-# systemd compatibility unit rc-local.service that automatically gets enabled
-# if /etc/rc.local exists and is executable.
-install -D --mode 755 $CONFIG_DIR/etc/rc.local $BOOTSTRAP/etc/rc.local
-
 # Add mlab user, setup .ssh directory.
 chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
 chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
