@@ -151,6 +151,7 @@ function get_extra_flags() {
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_reg_access/
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_nvconfig/
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_vmac/
+    -fno-PIE
 EOM
   echo $extra_flags
 }
