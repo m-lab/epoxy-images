@@ -25,8 +25,8 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP="${BUILD_DIR}/initramfs_${CONFIG_NAME}"
-OUTPUT_KERNEL="${BUILD_DIR}/${CONFIG_NAME}.vmlinuz"
-OUTPUT_INITRAM="${BOOTSTRAP}.cpio.gz"
+OUTPUT_KERNEL="${BUILD_DIR}/stage3_kernel.vmlinuz"
+OUTPUT_INITRAM="stage3_initramfs.cpio.gz"
 
 ##############################################################################
 # Functions
