@@ -186,7 +186,8 @@ function build_roms() {
             EXTRA_CFLAGS="${extra_cflags}" \
             DEBUG=${debug} \
             TRUST=${certs} \
-            EMBED=${stage1}
+            EMBED=${stage1} \
+            NO_WERROR=0
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.
