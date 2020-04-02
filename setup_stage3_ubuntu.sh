@@ -199,7 +199,7 @@ cp -a $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab.conf
 
 ################################################################################
-# Kubernetes
+# Kubernetes / Docker
 ################################################################################
 # Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
@@ -250,6 +250,9 @@ pushd ${BOOTSTRAP}/opt/bin
 curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod 755 {kubeadm,kubelet,kubectl}
 popd
+
+# Adds a configuration file for the Docker daemon.
+install -D --mode 644 $CONFIG_DIR/etc/docker-daemon.json $BOOTSTRAP/etc/docker/daemon.json
 
 ################################################################################
 # Add epoxy client to initramfs
