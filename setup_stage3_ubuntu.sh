@@ -251,6 +251,9 @@ curl --location --remote-name-all https://storage.googleapis.com/kubernetes-rele
 chmod 755 {kubeadm,kubelet,kubectl}
 popd
 
+# The default kubelet.service.d/10-kubeadm.conf looks for kubelet at /usr/bin.
+ln --symbolic --force /opt/bin/kubelet /usr/bin/kubelet
+
 # Adds a configuration file for the Docker daemon.
 install -D --mode 644 $CONFIG_DIR/etc/docker-daemon.json $BOOTSTRAP/etc/docker/daemon.json
 
