@@ -129,7 +129,7 @@ chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
 # Don't go beyond multi-user.target as these are headless systems.
 chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
 
-cp -a $CONFIG_DIR/systemd/* $BOOTSTRAP/etc/systemd/system/
+cp -r $CONFIG_DIR/systemd/* $BOOTSTRAP/etc/systemd/system/
 for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
   chroot $BOOTSTRAP bash -c "systemctl enable $unit"
 done
@@ -187,14 +187,14 @@ install -D --mode 644 $CONFIG_DIR/user/authorized_keys $BOOTSTRAP/home/mlab/.ssh
 # Make sure /opt/mlab/bin exists
 mkdir -p $BOOTSTRAP/opt/mlab/bin
 # Copy binaries and scripts to the "/opt/mlab/bin" directory.
-cp -a ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
+cp ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
 
 # Link fix-hung-shim.sh to /etec/periodic/15min directory.
 mkdir -p $BOOTSTRAP/etc/periodic/15min
 ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
 
 # Load any necessary modules at boot.
-cp -a $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
+cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 
 # Allow the mlab user to use sudo to do anything, without a password
 install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab
@@ -215,8 +215,7 @@ for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # the symlink should reference in the final image filesystem.
     ln -s /opt/shimcni/bin/shim.sh $(basename "$i")
 done
-cp -a ${CONFIG_DIR}/bin/shim.sh .
-chmod +x shim.sh
+cp ${CONFIG_DIR}/bin/shim.sh .
 popd
 
 # Install multus and index2ip.
