@@ -48,7 +48,7 @@ function prepare_flexboot_source() {
     unpack ${version} ${archive_path}
     pushd ${version}/src
       # Use gcc-4.8 since gcc-5 (default in xenial) causes build failure.
-      sed -i -e 's/ gcc/ gcc-4.8/g' -e 's/)gcc/)gcc-4.8/g' Makefile
+      #sed -i -e 's/ gcc/ gcc-4.8/g' -e 's/)gcc/)gcc-4.8/g' Makefile
 
       # Add the 'driver_version' definition to flexboot source.
       git apply ${config_dir}/romprefix.S.diff
