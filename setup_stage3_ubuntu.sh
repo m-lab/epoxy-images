@@ -145,8 +145,20 @@ for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
   chroot $BOOTSTRAP bash -c "systemctl enable $unit"
 done
 
-# Enable various other services
+# Install the kubelet.service unit file.
+curl --silent --show-error --location \
+    "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/kubelet.service"
+    > $BOOSTRAP/etc/systemd/system/kubelet.service
+
+# Install kubelet.service config overrides.
+mkdir --parents $BOOTSTRAP/etc/systemd/system/kubelet.service.d
+curl --silent --show-error --location \
+    "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/10-kubeadm.conf" \
+     > $BOOTSTRAP/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+# Enable various services.
 chroot $BOOTSTRAP systemctl enable docker.service
+chroot $BOOTSTRAP systemctl enable kubelet.service
 chroot $BOOTSTRAP systemctl enable ssh.service
 
 ################################################################################
@@ -250,6 +262,7 @@ pushd ${BOOTSTRAP}/opt/bin
 curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod 755 {kubeadm,kubelet,kubectl}
 popd
+
 
 # The default kubelet.service.d/10-kubeadm.conf looks for kubelet at /usr/bin.
 ln --symbolic --force /opt/bin/kubelet /usr/bin/kubelet
