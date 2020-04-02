@@ -23,26 +23,20 @@ steps:
     'submodule', 'update', '--init', '--recursive'
   ]
 
-# Create the image builder for later steps.
-- name: gcr.io/cloud-builders/docker
-  args: [
-    'build', '-t', 'epoxy-images-builder', '.'
-  ]
-
 # stage1 minimal kernel & initram using stock ubuntu kernel.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
 # stage3_ubuntu images.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage3_ubuntu'
   ]
 
 # stage3_mlxupdate images.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage3_mlxupdate'
   ]
