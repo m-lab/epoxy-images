@@ -26,7 +26,7 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP="${BUILD_DIR}/initramfs_${CONFIG_NAME}"
 OUTPUT_KERNEL="${BUILD_DIR}/stage3_kernel.vmlinuz"
-OUTPUT_INITRAM="stage3_initramfs.cpio.gz"
+OUTPUT_INITRAM="${BUILD_DIR}/stage3_initramfs.cpio.gz"
 
 ##############################################################################
 # Functions
@@ -196,7 +196,7 @@ ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim
 cp -a $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 
 # Allow the mlab user to use sudo to do anything, without a password
-install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab.conf
+install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab
 
 ################################################################################
 # Kubernetes / Docker
