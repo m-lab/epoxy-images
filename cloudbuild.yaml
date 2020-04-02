@@ -35,6 +35,12 @@ steps:
     '/workspace/builder.sh', 'stage3_ubuntu'
   ]
 
+# stage3_coreos images.
+- name: gcr.io/$PROJECT_ID/epoxy-images
+  args: [
+    '/workspace/builder.sh', 'stage3_coreos'
+  ]
+
 # stage3_mlxupdate images.
 - name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
@@ -54,13 +60,27 @@ steps:
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r',
-    '/workspace/output/vmlinuz_stage1_minimal',
-    '/workspace/output/initramfs_stage1_minimal.cpio.gz',
-    '/workspace/output/initramfs_stage3_ubuntu.cpio.gz',
-    '/workspace/output/stage3_ubuntu.vmlinuz',
+    '/workspace/output/stage1_kernel.vmlinuz',
+    '/workspace/output/stage1_initramfs.cpio.gz',
+    '/workspace/output/stage3_kernel.vmlinuz',
+    '/workspace/output/stage3_initramfs.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_ubuntu/*.json',
     'gs://epoxy-$PROJECT_ID/stage3_ubuntu/'
+  ]
+
+# stage3_coreos.
+- name: gcr.io/cloud-builders/gsutil
+  args: [
+    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
+    'cp', '-r',
+    '/workspace/output/stage1_kernel.vmlinuz',
+    '/workspace/output/stage1_initramfs.cpio.gz',
+    '/workspace/output/coreos_custom_pxe_image.cpio.gz',
+    '/workspace/output/coreos_production_pxe.vmlinuz',
+    '/workspace/actions/stage2/stage1to2.ipxe',
+    '/workspace/actions/stage3_coreos/*.json',
+    'gs://epoxy-$PROJECT_ID/stage3_coreos/'
   ]
 
 # stage3_mlxupdate.
