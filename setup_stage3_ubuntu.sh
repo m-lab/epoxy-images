@@ -134,16 +134,20 @@ install -D --mode 755 $CONFIG_DIR/etc/rc.local $BOOTSTRAP/etc/rc.local
 chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
 chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
 
-# Don't go beyond multi-user.target as these are headless systems.
-chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
-
 ################################################################################
 # Systemd
 ################################################################################
+# Don't go beyond multi-user.target as these are headless systems.
+chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
+
 cp -a $CONFIG_DIR/systemd/* $BOOTSTRAP/etc/systemd/system/
 for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
   chroot $BOOTSTRAP bash -c "systemctl enable $unit"
 done
+
+# Enable various other services
+chroot $BOOTSTRAP systemctl enable docker.service
+chroot $BOOTSTRAP systemctl enable ssh.service
 
 ################################################################################
 # Network
@@ -171,9 +175,6 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
-# Enable sshd.
-chroot $BOOTSTRAP systemctl enable ssh.service
-
 # Copy the authorized_keys file.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
@@ -191,14 +192,11 @@ cp -a ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
 mkdir -p $BOOTSTRAP/etc/periodic/15min
 ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
 
-# Cause tcp_bbr module to be loaded at boot.
-cp -a $CONFIG_DIR/etc/module-tcp_bbr.conf $BOOTSTRAP/etc/modules-load.d/tcp_bbr.conf
-
-# Load ahci module.
-cp -a $CONFIG_DIR/etc/module-ahci.conf $BOOTSTRAP/etc/modules-load.d/ahci.conf
+# Load any necessary modules at boot.
+cp -a $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 
 # Allow the mlab user to use sudo to do anything, without a password
-install -D --mode 644 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab.conf
+install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab.conf
 
 ################################################################################
 # Kubernetes
@@ -248,7 +246,6 @@ rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
 # Install the kube* commands.
 # Installation commands adapted from:
 #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
-echo ${K8S_VERSION} > ${BOOTSTRAP}/etc/installed_k8s_version.txt
 pushd ${BOOTSTRAP}/opt/bin
 curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod 755 {kubeadm,kubelet,kubectl}

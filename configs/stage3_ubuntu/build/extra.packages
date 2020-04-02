@@ -3,6 +3,7 @@ curl
 dmsetup
 docker.io
 iproute2
+jq
 kexec-tools
 less
 linux-base
