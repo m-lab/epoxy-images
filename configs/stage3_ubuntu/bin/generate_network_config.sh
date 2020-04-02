@@ -1,0 +1,1 @@
+../../stage3_coreos/resources/generate_network_config.sh

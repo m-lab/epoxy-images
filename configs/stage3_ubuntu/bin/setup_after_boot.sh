@@ -1,0 +1,1 @@
+../../stage3_coreos/resources/setup_after_boot.sh
