@@ -3,6 +3,7 @@ ca-certificates
 curl
 dmsetup
 docker.io
+ethtool
 iproute2
 jq
 kexec-tools
@@ -13,6 +14,7 @@ net-tools
 openssh-server
 parted
 pciutils
+socat
 sudo
 systemd-sysv
 udev
