@@ -124,8 +124,16 @@ ln --force --symbolic sbin/init $BOOTSTRAP/init
 cp $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
 
 # Add mlab user, setup .ssh directory.
-chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
-chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
+if ! chroot $BOOTSTRAP bash -c 'id -u mlab'; then
+  chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
+  chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
+fi
+
+# Add reboot-api user, setup .ssh directory.
+if ! chroot $BOOTSTRAP bash -c 'id -u reboot-api'; then
+  chroot $BOOTSTRAP bash -c 'adduser --system --ingroup sudo --disabled-password --gecos "" reboot-api'
+  chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/reboot-api/.ssh'
+fi
 
 ################################################################################
 # Systemd
@@ -151,8 +159,8 @@ curl --silent --show-error --location \
 
 # Enable various services.
 chroot $BOOTSTRAP systemctl enable docker.service
-chroot $BOOTSTRAP systemctl enable kubelet.service
 chroot $BOOTSTRAP systemctl enable ssh.service
+chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 
 ################################################################################
 # Network
@@ -180,10 +188,11 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
-# Copy the authorized_keys file.
+# Copy the authorized_keys files.
 # TODO: Get ssh keys from some external source.
 # TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
-install -D --mode 644 $CONFIG_DIR/user/authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
+install -D --mode 644 $CONFIG_DIR/user/mlab_authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
+install -D --mode 644 $CONFIG_DIR/user/reboot-api_authorized_keys $BOOTSTRAP/home/reboot-api/.ssh/authorized_keys
 
 ################################################################################
 # M-Lab resources
@@ -195,7 +204,7 @@ cp ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
 
 # Link fix-hung-shim.sh to /etec/periodic/15min directory.
 mkdir -p $BOOTSTRAP/etc/periodic/15min
-ln -s /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
+ln --symbolic --force /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
 
 # Load any necessary modules at boot.
 cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
@@ -217,7 +226,7 @@ pushd ${BOOTSTRAP}/opt/shimcni/bin
 for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # NOTE: the target path does not exist at this moment, but that's the file
     # the symlink should reference in the final image filesystem.
-    ln -s /opt/shimcni/bin/shim.sh $(basename "$i")
+    ln --symbolic --force /opt/shimcni/bin/shim.sh $(basename "$i")
 done
 cp ${CONFIG_DIR}/bin/shim.sh .
 popd
