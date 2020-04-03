@@ -62,8 +62,8 @@ steps:
     'cp', '-r',
     '/workspace/output/stage1_kernel.vmlinuz',
     '/workspace/output/stage1_initramfs.cpio.gz',
-    '/workspace/output/stage3_kernel.vmlinuz',
-    '/workspace/output/stage3_initramfs.cpio.gz',
+    '/workspace/output/stage3_kernel_ubuntu.vmlinuz',
+    '/workspace/output/stage3_initramfs_ubuntu.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_ubuntu/*.json',
     'gs://epoxy-$PROJECT_ID/stage3_ubuntu/'
@@ -90,8 +90,8 @@ steps:
     'cp', '-r',
     '/workspace/output/stage1_kernel.vmlinuz',
     '/workspace/output/stage1_initramfs.cpio.gz',
-    '/workspace/output/vmlinuz_stage3_mlxupdate',
-    '/workspace/output/initramfs_stage3_mlxupdate.cpio.gz',
+    '/workspace/output/stage3_kernel_mlxupdate.vmlinuz',
+    '/workspace/output/stage3_initramfs_mlxupdate.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_mlxupdate/*.json',
     'gs://epoxy-$PROJECT_ID/stage3_mlxupdate/'
