@@ -15,7 +15,7 @@ BUILD_DIR=${1:?Name of build directory}
 BUILD_DIR=$( realpath $BUILD_DIR )
 
 OUTPUT_DIR=${2:?Name of directory to copy output files}
-OUTPUT_DIR=$( realpath $OUTPUT_DIR )
+OUTPUT_DIR=$( realpath $OUTPUT_DIR )/stage3_ubuntu
 
 CONFIG_DIR=${3:?Name of directory containing configuration files}
 CONFIG_DIR=$( realpath $CONFIG_DIR )
@@ -25,8 +25,8 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP="${BUILD_DIR}/initramfs_${CONFIG_NAME}"
-OUTPUT_KERNEL="${BUILD_DIR}/stage3_kernel.vmlinuz"
-OUTPUT_INITRAM="${BUILD_DIR}/stage3_initramfs.cpio.gz"
+OUTPUT_KERNEL="${BUILD_DIR}/stage3_kernel_ubuntu.vmlinuz"
+OUTPUT_INITRAM="${BUILD_DIR}/stage3_initramfs_ubuntu.cpio.gz"
 
 ##############################################################################
 # Functions
@@ -268,7 +268,7 @@ pushd ${BOOTSTRAP}
     find . | cpio -H newc -o | gzip -c > ${OUTPUT_INITRAM}
 popd
 # Copy file to output with all read permissions.
-install -m 0644 ${OUTPUT_KERNEL} ${OUTPUT_INITRAM} ${OUTPUT_DIR}
+install -D -m 0644 ${OUTPUT_KERNEL} ${OUTPUT_INITRAM} ${OUTPUT_DIR}
 
 echo "Success: ${OUTPUT_KERNEL}"
 echo "Success: ${OUTPUT_INITRAM}"

@@ -5,10 +5,10 @@
       },
       "files" : {
          "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/vmlinuz_stage3_mlxupdate"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage3_kernel_mlxupdate.vmlinuz"
          },
          "initram" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/initramfs_stage3_mlxupdate.cpio.gz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage3_initramfs_mlxupdate.cpio.gz"
          }
       },
       "vars" : {

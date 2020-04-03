@@ -3,7 +3,7 @@
 # setup_stage1_usbs.sh generates per-machine USB images.
 #
 # setup_stage1_isos.sh should only be run after setup_stage1_minimal.sh has run
-# successfully and the vmlinuz_stage1_minimal kernel is available.
+# successfully and the stage1_kernel.vmlinuz kernel is available.
 
 SOURCE_DIR=$( dirname "${BASH_SOURCE[0]}" )
 SOURCE_DIR=$( realpath "${SOURCE_DIR}" )

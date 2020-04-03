@@ -1,18 +1,18 @@
 {
-   "v1" : {
-      "env" : {
-         "PATH" : "/bin:/usr/bin:/usr/local/bin"
+   "v1": {
+      "env": {
+         "PATH": "/bin:/usr/bin:/usr/local/bin"
       },
-      "files" : {
-         "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/vmlinuz_stage1_minimal"
+      "files": {
+         "vmlinuz": {
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage1_kernel.vmlinuz"
          },
-         "initram" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_coreos/initramfs_stage1_minimal.cpio.gz"
+         "initram": {
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage1_initramfs.cpio.gz"
          }
       },
-      "vars" : {
-         "kargs" : [
+      "vars": {
+         "kargs": [
             "epoxy.ip={{kargs `epoxy.ip`}}",
             "epoxy.ipv4={{kargs `epoxy.ipv4`}}",
             "epoxy.ipv6={{kargs `epoxy.ipv6`}}",
@@ -25,9 +25,9 @@
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}"
          ],
-         "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
+         "cmdline": "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },
-      "commands" : [
+      "commands": [
          "# Run kexec using the downloaded initram and vmlinuz files.",
          [
             "/sbin/kexec",

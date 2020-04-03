@@ -47,16 +47,13 @@ function prepare_flexboot_source() {
     version=$( basename ${archive_path} .tar.gz )
     unpack ${version} ${archive_path}
     pushd ${version}/src
-      # Use gcc-4.8 since gcc-5 (default in xenial) causes build failure.
-      #sed -i -e 's/ gcc/ gcc-4.8/g' -e 's/)gcc/)gcc-4.8/g' Makefile
-
       # Add the 'driver_version' definition to flexboot source.
       git apply ${config_dir}/romprefix.S.diff
 
       # Enable TLS configuration and any other non-standard options.
       git apply ${config_dir}/config_general.h.diff
 
-      # Fix the my-in-my error
+      # Fixes a my-in-my perl error.
       git apply ${config_dir}/parserom.S.diff
     popd
 

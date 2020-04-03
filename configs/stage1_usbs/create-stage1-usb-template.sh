@@ -19,9 +19,9 @@ if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
   exit 1
 fi
 
-if [[ ! -f "${IMAGE_DIR}/vmlinuz_stage1_minimal" ]] ; then
-    echo 'Error: vmlinuz images not found!'
-    echo "Expected: vmlinuz_stage1_minimal"
+if [[ ! -f "${IMAGE_DIR}/stage1_kernel.vmlinuz" ]] ; then
+    echo 'Error: vmlinuz image not found!'
+    echo "Expected: ${IMAGE_DIR}/stage1_kernel.vmlinuz"
     exit 1
 fi
 
@@ -60,6 +60,6 @@ ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boo
 
 # Generate stage1 USB image.
 "${SOURCE_DIR}"/simpleusb -x "$ARGS" \
-    -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
-    "${IMAGE_DIR}"/vmlinuz_stage1_minimal \
+    -i "${IMAGE_DIR}"/stage1_initramfs.cpio.gz \
+    "${IMAGE_DIR}"/stage1_kernel.vmlinuz \
     "${OUTPUT_DIR}"/{{hostname}}_stage1.fat16.gpt.img

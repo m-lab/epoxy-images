@@ -88,8 +88,8 @@ steps:
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r',
-    '/workspace/output/vmlinuz_stage1_minimal',
-    '/workspace/output/initramfs_stage1_minimal.cpio.gz',
+    '/workspace/output/stage1_kernel.vmlinuz',
+    '/workspace/output/stage1_initramfs.cpio.gz',
     '/workspace/output/vmlinuz_stage3_mlxupdate',
     '/workspace/output/initramfs_stage3_mlxupdate.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
