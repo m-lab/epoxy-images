@@ -15,7 +15,7 @@ BUILD_DIR=${1:?Name of build directory}
 BUILD_DIR=$( realpath $BUILD_DIR )
 
 OUTPUT_DIR=${2:?Name of directory to copy output files}
-OUTPUT_DIR=$( realpath $OUTPUT_DIR )/stage3_ubuntu
+OUTPUT_DIR=$( realpath $OUTPUT_DIR )
 
 CONFIG_DIR=${3:?Name of directory containing configuration files}
 CONFIG_DIR=$( realpath $CONFIG_DIR )
