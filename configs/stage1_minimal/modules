@@ -1,0 +1,4 @@
+# To get the iDRAC virtual console keyboard to work if debugging.
+hid
+hid_generic
+usbhid
