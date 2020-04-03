@@ -27,7 +27,7 @@ function setup_network() {
   # automatically before the network configuration commands will work.  This
   # delay could be avoided by explicitly loading the modules here (fragile) or
   # using a custom kernel that embeds the mellanox drivers.
-  until ifconfig ${interface} 2> /dev/null ; do
+  until ip link show ${interface} 2> /dev/null ; do
       echo "Waiting 1 second for ${interface} to initialize.."
       sleep 1
   done
@@ -35,14 +35,14 @@ function setup_network() {
   echo "Applying network configuration: $ipv4"
   echo $ipv4 | tr ',' ' ' | (
       read addr gateway _
-      echo ifconfig ${interface} ${addr}
-      echo route add default gw ${gateway}
+      echo ip address add ${addr} dev ${interface}
+      echo ip route add default via ${gateway} dev ${interface}
       echo hostname ${hostname}
-      ifconfig ${interface} ${addr}
-      route add default gw ${gateway}
+      ip address add ${addr} dev ${interface}
+      ip route add default via ${gateway} dev ${interface}
       hostname ${hostname}
   )
-  ifconfig ${interface}
+  ip address show ${interface}
 }
 
 
