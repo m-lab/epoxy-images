@@ -76,7 +76,7 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add extra apt sources to install latest kernel image and headers.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates universe main multiuniverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates main universe multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
