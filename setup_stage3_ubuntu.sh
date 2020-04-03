@@ -119,6 +119,10 @@ trap '' EXIT
 ################################################################################
 # System / Users
 ################################################################################
+# Kernel panics unless /init is defined. Use systemd for init.
+ln --force --symbolic sbin/init $BOOTSTRAP/init
+cp $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
+
 # Add mlab user, setup .ssh directory.
 chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
 chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
