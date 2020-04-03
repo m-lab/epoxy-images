@@ -1,6 +1,7 @@
 busybox
 ca-certificates
 curl
+dbus
 dmsetup
 docker.io
 ethtool
