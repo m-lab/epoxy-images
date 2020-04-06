@@ -14,12 +14,6 @@ options:
 ############################################################################
 
 steps:
-# Fetch all submodules.
-- name: gcr.io/cloud-builders/git
-  args: [
-    'submodule', 'update', '--init', '--recursive'
-  ]
-
 # stage1 minimal kernel & initram using stock ubuntu kernel.
 - name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
