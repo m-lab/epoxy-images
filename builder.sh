@@ -4,9 +4,6 @@
 # parameter (target) and multiple parameters from the environment. builder.sh
 # transalates these into calls to specific build scripts.
 
-# Kill background wait loop on exit.
-trap 'kill $(jobs -p)' EXIT
-
 set -eu
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
