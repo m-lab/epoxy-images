@@ -18,4 +18,4 @@ export CNI_VERSION=v0.8.5
 export MFT_VERSION=4.14.0-105
 
 # stage1 mlxrom
-export MLXROM_VERSION=3.4.816
+export MLXROM_VERSION=3.4.817
