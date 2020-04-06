@@ -78,8 +78,8 @@ esac
 # NOTE: "LEGACY_BOOT_PROTOCOL" means use the "PXE" protocol when booting the
 #       option rom on port 1.
 echo "Setting device options to PXE boot on PORT 1."
-mlxconfig --dev "${DEV}" --yes --show_default set BOOT_OPTION_ROM_EN_P1=True
-mlxconfig --dev "${DEV}" --yes --show_default set LEGACY_BOOT_PROTOCOL_P1=PXE
+mlxconfig --dev "${DEV}" --yes --enable_verbosity set BOOT_OPTION_ROM_EN_P1=True
+mlxconfig --dev "${DEV}" --yes --enable_verbosity set LEGACY_BOOT_PROTOCOL_P1=PXE
 
 # For debugging, query the device to report current configuration.
 echo "Before update"
