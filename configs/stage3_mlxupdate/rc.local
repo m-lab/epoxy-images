@@ -50,7 +50,7 @@ function setup_network() {
 echo "Loading mlx modules"
 modprobe mlx4_en
 modprobe mlx5_core
-modprobe mlxf
+modprobe mlxfw
 
 echo "Starting mellanox tools."
 mst start
