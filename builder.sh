@@ -6,8 +6,6 @@
 
 # Kill background wait loop on exit.
 trap 'kill $(jobs -p)' EXIT
-# Print periodic messages for travis.
-while true ; do echo "waiting 300 sec";  sleep 300 ; done &
 
 set -eu
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
