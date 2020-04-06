@@ -202,10 +202,6 @@ mkdir -p $BOOTSTRAP/opt/mlab/bin
 # Copy binaries and scripts to the "/opt/mlab/bin" directory.
 cp ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
 
-# Link fix-hung-shim.sh to /etec/periodic/15min directory.
-mkdir -p $BOOTSTRAP/etc/periodic/15min
-ln --symbolic --force /opt/mlab/bin/fix-hung-shim.sh $BOOTSTRAP/etc/periodic/15min/fix-hung-shim.sh
-
 # Load any necessary modules at boot.
 cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 
