@@ -108,16 +108,8 @@ function setup_drac() {
   )
 }
 
-
-echo "Loading mlx modules"
-modprobe mlx4_en
-modprobe mlx5_core
-modprobe mlxfw
-
-
 echo "Configuring network..."
 setup_network
-
 
 echo "Checking if DRAC needs to be configured..."
 setup_drac
