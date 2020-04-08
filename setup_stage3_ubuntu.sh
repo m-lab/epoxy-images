@@ -153,6 +153,9 @@ for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
   chroot $BOOTSTRAP bash -c "systemctl enable $unit"
 done
 
+# Install the systemd-resolved config.
+cp $CONFIG_DIR/etc/resolved.conf $BOOTSTRAP/etc/systemd/resolved.conf
+
 # Install the kubelet.service unit file.
 curl --silent --show-error --location \
     "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/kubelet.service" \
