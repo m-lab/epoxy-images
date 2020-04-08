@@ -162,6 +162,9 @@ trap '' EXIT
 ln --force --symbolic sbin/init $BOOTSTRAP/init
 cp $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
+# Load any necessary modules at boot.
+cp $CONFIG_DIR/modules $BOOTSTRAP/etc/modules
+
 # Copy simple rc.local script for post-setup processing.
 # rc-local.service runs after networking.service
 install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local

@@ -46,18 +46,11 @@ function setup_network() {
   ip address show ${interface}
 }
 
-
-echo "Loading mlx modules"
-modprobe mlx4_en
-modprobe mlx5_core
-modprobe mlxfw
-
 echo "Starting mellanox tools."
 mst start
 
 echo "Configuring network..."
 setup_network
-
 
 # Note: the stage3 action should be configured in the epoxy server. The nextboot
 # config returned should probably run /usr/local/util/updaterom.sh
