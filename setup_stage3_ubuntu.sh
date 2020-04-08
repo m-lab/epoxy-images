@@ -170,13 +170,6 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 
 ################################################################################
-# Network
-################################################################################
-# TODO: use systemd for network configuration entirely.
-rm -f $BOOTSTRAP/etc/resolv.conf
-install -D --mode 644 $CONFIG_DIR/etc/resolv.conf $BOOTSTRAP/etc/resolv.conf
-
-################################################################################
 # SSH
 ################################################################################
 # Disable root login via ssh.
