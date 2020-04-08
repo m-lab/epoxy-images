@@ -123,17 +123,24 @@ trap '' EXIT
 ln --force --symbolic sbin/init $BOOTSTRAP/init
 cp $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
 
+# Load any necessary modules at boot.
+cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
+
 # Add mlab user, setup .ssh directory.
 if ! chroot $BOOTSTRAP bash -c 'id -u mlab'; then
   chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
   chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
 fi
+# Allow the mlab user to use sudo to do anything, without a password
+install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab
 
 # Add reboot-api user, setup .ssh directory.
 if ! chroot $BOOTSTRAP bash -c 'id -u reboot-api'; then
-  chroot $BOOTSTRAP bash -c 'adduser --system --ingroup sudo --disabled-password --gecos "" reboot-api'
+  chroot $BOOTSTRAP bash -c 'adduser --system --disabled-password --gecos "" reboot-api'
   chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/reboot-api/.ssh'
 fi
+# Allow the reboot-api user to use sudo to run 'systemctl reboot -i', without a password.
+install -D --mode 440 $CONFIG_DIR/etc/sudoers_reboot-api.conf $BOOTSTRAP/etc/sudoers.d/reboot-api
 
 ################################################################################
 # Systemd
@@ -169,10 +176,6 @@ chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 rm -f $BOOTSTRAP/etc/resolv.conf
 install -D --mode 644 $CONFIG_DIR/etc/resolv.conf $BOOTSTRAP/etc/resolv.conf
 
-# Set a default root passwd.
-# TODO: disable root login except by ssh?
-chroot $BOOTSTRAP bash -c 'echo -e "demo\ndemo\n" | passwd'
-
 ################################################################################
 # SSH
 ################################################################################
@@ -201,12 +204,6 @@ install -D --mode 644 $CONFIG_DIR/user/reboot-api_authorized_keys $BOOTSTRAP/hom
 mkdir -p $BOOTSTRAP/opt/mlab/bin
 # Copy binaries and scripts to the "/opt/mlab/bin" directory.
 cp ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
-
-# Load any necessary modules at boot.
-cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
-
-# Allow the mlab user to use sudo to do anything, without a password
-install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab
 
 ################################################################################
 # Kubernetes / Docker
