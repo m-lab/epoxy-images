@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# setup_stage1_minimal.sh builds an initram image based on the ubuntu xenial OS,
-# that includes epoxy_client and configuration suitable for a stage1 boot. With
-# this image it is possible to create UEFI or BIOS boot media for USB or CD.
-#
+# setup_stage1_minimal.sh builds an initram image based on the Ubuntu Focal
+# (20.04) OS, that includes epoxy_client and configuration suitable for a
+# stage1 boot. With this image it ispossible to create UEFI or BIOS boot media
+# for USB or CD.
 # Example:
 #   ./setup_stage1_minimal.sh /build /workspace/output configs/stage1_minimal \
 #       output/epoxy_client
@@ -26,8 +26,8 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP=${BUILD_DIR}/initramfs_${CONFIG_NAME}
-OUTPUT_KERNEL=${BUILD_DIR}/vmlinuz_${CONFIG_NAME}
-OUTPUT_INITRAM=${BOOTSTRAP}.cpio.gz
+OUTPUT_KERNEL=${BUILD_DIR}/stage1_kernel.vmlinuz
+OUTPUT_INITRAM=${BUILD_DIR}/stage1_initramfs.cpio.gz
 
 ##############################################################################
 # Functions
@@ -65,7 +65,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
-      --arch amd64 xenial $BOOTSTRAP
+       --components=main,universe,multiverse --arch amd64 focal $BOOTSTRAP
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
@@ -76,7 +76,7 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add extra apt sources to install latest kernel image and headers.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ xenial-updates universe main multiuniverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates main universe multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
@@ -131,10 +131,18 @@ trap '' EXIT
 ln --force --symbolic sbin/init $BOOTSTRAP/init
 install -D --mode 644 $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
+# Don't go beyond multi-user.target as these are headless systems.
+chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
+
 # Enable simple rc.local script for post-setup processing.
 # NOTE: rc.local.service runs after networking.service
+# NOTE: This script does not need to be explicitly enabled. There is a default
+# systemd compatibility unit rc-local.service that automatically gets enabled
+# if /etc/rc.local exists and is executable.
 install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
-chroot $BOOTSTRAP systemctl enable rc.local.service
+
+# For enabling various kernel modules.
+cp $CONFIG_DIR/modules $BOOTSTRAP/etc/modules
 
 ################################################################################
 # Network

@@ -1,0 +1,1 @@
+reboot-api ALL=(root) NOPASSWD: /usr/bin/systemctl reboot -i

@@ -1,7 +1,7 @@
 Building a custom ROM
 ==
 
-An example command that will be integrated into the travis build.
+An example command that will be integrated into the build.
 
 ```
 ./setup_stage1.sh \

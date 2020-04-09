@@ -2,8 +2,8 @@
 
 # Use a relative URL for the vmlinuz image.
 # NOTE: the image must be in the same directory as this iPXE script.
-set vmlinuz_url vmlinuz_stage1_minimal
-set initram_url initramfs_stage1_minimal.cpio.gz
+set vmlinuz_url stage1_kernel.vmlinuz
+set initram_url stage1_initramfs.cpio.gz
 
 echo Starting stage1to2 script
 

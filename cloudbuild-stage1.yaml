@@ -14,33 +14,21 @@ options:
 ############################################################################
 
 steps:
-# Fetch all submodules.
-- name: gcr.io/cloud-builders/git
-  args: [
-    'submodule', 'update', '--init', '--recursive'
-  ]
-
-# Create the image builder for later steps.
-- name: gcr.io/cloud-builders/docker
-  args: [
-    'build', '-t', 'epoxy-images-builder', '.'
-  ]
-
 # stage1 minimal kernel & initram using stock ubuntu kernel.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
 # stage1 ROMs.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage1_mlxrom'
   ]
 
 # stage1 ISOs
 # NOTE: must run after stage1_minimal so that kernel & initram are available.
-- name: epoxy-images-builder
+- name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
     '/workspace/builder.sh', 'stage1_isos'
   ]

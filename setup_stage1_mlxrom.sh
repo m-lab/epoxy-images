@@ -47,14 +47,14 @@ function prepare_flexboot_source() {
     version=$( basename ${archive_path} .tar.gz )
     unpack ${version} ${archive_path}
     pushd ${version}/src
-      # Use gcc-4.8 since gcc-5 (default in xenial) causes build failure.
-      sed -i -e 's/ gcc/ gcc-4.8/g' -e 's/)gcc/)gcc-4.8/g' Makefile
-
       # Add the 'driver_version' definition to flexboot source.
       git apply ${config_dir}/romprefix.S.diff
 
       # Enable TLS configuration and any other non-standard options.
       git apply ${config_dir}/config_general.h.diff
+
+      # Fixes a my-in-my perl error.
+      git apply ${config_dir}/parserom.S.diff
     popd
 
     # Move the working directory to the canonical name to signal we're done.
@@ -75,7 +75,7 @@ function generate_stage1_ipxe_scripts() {
     curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
         ./mlabconfig.py
     mkdir -p ${output_dir}
-    python ./mlabconfig.py --format=server-network-config \
+    python3 ./mlabconfig.py --format=server-network-config \
         --sites "${SITES}" \
         --physical \
         --project "${PROJECT}" \
@@ -148,6 +148,7 @@ function get_extra_flags() {
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_reg_access/
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_nvconfig/
     -Idrivers/infiniband/mlx_utils/mlx_lib/mlx_vmac/
+    -fno-PIE
 EOM
   echo $extra_flags
 }
@@ -183,7 +184,8 @@ function build_roms() {
             EXTRA_CFLAGS="${extra_cflags}" \
             DEBUG=${debug} \
             TRUST=${certs} \
-            EMBED=${stage1}
+            EMBED=${stage1} \
+            NO_WERROR=1
 
         # Copy it to a structured location.
         # Note: the update image depends on this structure to locate an image.

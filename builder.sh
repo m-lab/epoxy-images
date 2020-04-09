@@ -4,11 +4,6 @@
 # parameter (target) and multiple parameters from the environment. builder.sh
 # transalates these into calls to specific build scripts.
 
-# Kill background wait loop on exit.
-trap 'kill $(jobs -p)' EXIT
-# Print periodic messages for travis.
-while true ; do echo "waiting 300 sec";  sleep 300 ; done &
-
 set -eu
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 
@@ -65,9 +60,6 @@ function stage3_mlxupdate() {
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   umask 0022
-  install -D -m 644 ${SOURCE_DIR}/vendor/mft-4.4.0-44.tgz \
-      ${builddir}/mft-4.4.0-44.tgz
-
   echo 'Starting stage3_mlxupdate build'
   ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
@@ -87,6 +79,20 @@ function stage1_minimal() {
   umask 0022
   echo 'Starting stage1_minimal build'
   ${SOURCE_DIR}/setup_stage1_minimal.sh \
+      ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
+      /go/bin/epoxy_client
+
+  rm -rf ${builddir}
+}
+
+function stage3_ubuntu() {
+  local target=${TARGET:?Please specify a target configuration name}
+  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
+  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
+
+  umask 0022
+  echo 'Starting stage3_ubuntu build'
+  ${SOURCE_DIR}/setup_stage3_ubuntu.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
       /go/bin/epoxy_client
 
@@ -138,6 +144,9 @@ case "${TARGET}" in
       ;;
   stage3_coreos)
       stage3_coreos
+      ;;
+  stage3_ubuntu)
+      stage3_ubuntu
       ;;
   stage3_mlxupdate)
       stage3_mlxupdate

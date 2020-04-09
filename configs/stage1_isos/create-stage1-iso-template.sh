@@ -20,9 +20,9 @@ if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
   exit 1
 fi
 
-if [[ ! -f "${IMAGE_DIR}/vmlinuz_stage1_minimal" ]] ; then
-    echo 'Error: vmlinuz images not found!'
-    echo "Expected: stage2_vmlinuz"
+if [[ ! -f "${IMAGE_DIR}/stage1_kernel.vmlinuz" ]] ; then
+    echo 'Error: vmlinuz image not found!'
+    echo "Expected: ${IMAGE_DIR}/stage1_kernel.vmlinuz."
     exit 1
 fi
 
@@ -58,6 +58,6 @@ ARGS+="epoxy.stage1=https://epoxy-boot-api.{{project}}.measurementlab.net/v1/boo
 ARGS+="drac.ipv4={{drac_ipv4_address}}"
 
 ${SOURCE_DIR}/simpleiso -x "$ARGS" \
-    -i "${IMAGE_DIR}"/initramfs_stage1_minimal.cpio.gz \
-    "${IMAGE_DIR}/vmlinuz_stage1_minimal" \
+    -i "${IMAGE_DIR}"/stage1_initramfs.cpio.gz \
+    "${IMAGE_DIR}/stage1_kernel.vmlinuz" \
     ${OUTPUT_DIR}/{{hostname}}_stage1.iso

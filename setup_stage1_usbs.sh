@@ -3,7 +3,7 @@
 # setup_stage1_usbs.sh generates per-machine USB images.
 #
 # setup_stage1_isos.sh should only be run after setup_stage1_minimal.sh has run
-# successfully and the vmlinuz_stage1_minimal kernel is available.
+# successfully and the stage1_kernel.vmlinuz kernel is available.
 
 SOURCE_DIR=$( dirname "${BASH_SOURCE[0]}" )
 SOURCE_DIR=$( realpath "${SOURCE_DIR}" )
@@ -26,7 +26,7 @@ pushd "${BUILD_DIR}"
   curl --location "https://raw.githubusercontent.com/m-lab/siteinfo/master/cmd/mlabconfig.py" > \
       ./mlabconfig.py
   mkdir -p "${OUTPUT_DIR}/scripts"
-  python ./mlabconfig.py --format=server-network-config \
+  python3 ./mlabconfig.py --format=server-network-config \
       --sites "${SITES}" \
       --physical \
       --project "${PROJECT}" \

@@ -51,7 +51,7 @@ pushd $IMAGEDIR
   unsquashfs -no-xattrs initrd-contents/usr.squashfs
 
   # Copy resources to the "/usr/share/oem" directory.
-  cp -a ${CONFIG_DIR}/resources/* squashfs-root/share/oem/
+  cp ${CONFIG_DIR}/resources/* squashfs-root/share/oem/
 
   # Copy epoxy client to squashfs bin.
   install -D -m 755 ${EPOXY_CLIENT} squashfs-root/bin/
@@ -72,8 +72,7 @@ pushd $IMAGEDIR
       # the symlink should reference in the final image filesystem.
       ln -s /usr/shimcni/bin/shim.sh $(basename "$i")
     done
-    cp -a ${CONFIG_DIR}/shim.sh .
-    chmod +x shim.sh
+    cp ${CONFIG_DIR}/shim.sh .
   popd
 
   # Install multus and index2ip.

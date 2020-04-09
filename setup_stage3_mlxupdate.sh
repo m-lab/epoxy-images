@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# setup_stage3_mlxupdate.sh builds an initram filesystem based on the ubuntu
-# xenial OS, that includes the Mellanox Firmware Tools and requisite kernel
+# setup_stage3_mlxupdate.sh builds an initram filesystem based on the Ubuntu
+# Focal Fossa OS, that includes the Mellanox Firmware Tools and requisite kernel
 # modules. With this image it is possible to flash a new ROM to a Mellanox NIC.
 #
 # Example:
@@ -25,8 +25,8 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP=${BUILD_DIR}/initramfs_${CONFIG_NAME}
-OUTPUT_KERNEL=${BUILD_DIR}/vmlinuz_${CONFIG_NAME}
-OUTPUT_INITRAM=${BOOTSTRAP}.cpio.gz
+OUTPUT_KERNEL=${BUILD_DIR}/stage3_kernel_mlxupdate.vmlinuz
+OUTPUT_INITRAM=${BUILD_DIR}/stage3_initramfs_mlxupdate.cpio.gz
 
 ##############################################################################
 # Functions
@@ -69,18 +69,16 @@ if ! test -f $BOOTSTRAP/build.date ; then
     rm -rf $BOOTSTRAP/dev
     # Disable interactive prompt from grub-pc or other packages.
     export DEBIAN_FRONTEND=noninteractive
-    debootstrap --arch amd64 xenial $BOOTSTRAP
+    debootstrap --arch amd64 focal $BOOTSTRAP
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
 fi
 
 
-# TODO: attempt to update mft version to one of the latest. The download is
-# smaller and includes pre-built deb files. For example:
-#     http://www.mellanox.com/downloads/MFT/mft-4.8.0-26-x86_64-deb.tgz
-if ! test -d $BOOTSTRAP/root/mft-4.4.0-44 ; then
+# Get MFT (Mellanox Firmware Tools)
+if ! test -d $BOOTSTRAP/root/mft-${MFT_VERSION}-x86_64-deb ; then
     pushd $BUILD_DIR
-        unpack_url mft-4.4.0-44 http://www.mellanox.com/downloads/MFT/mft-4.4.0-44.tgz
-        cp -ar mft-4.4.0-44 $BOOTSTRAP/root
+        unpack_url mft-${MFT_VERSION}-x86_64-deb https://www.mellanox.com/downloads/MFT/mft-${MFT_VERSION}-x86_64-deb.tgz
+        cp -ar mft-${MFT_VERSION}-x86_64-deb $BOOTSTRAP/root
     popd
 fi
 
@@ -96,7 +94,7 @@ mount_proc_and_sys $BOOTSTRAP
 
     # Add extra apt sources to install latest kernel image and headers.
     # TODO: only append the source once.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ xenial-updates universe main multiuniverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates main universe multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
@@ -110,22 +108,18 @@ mount_proc_and_sys $BOOTSTRAP
         KERNEL_VERSION=${KERNEL_VERSION##vmlinuz-}
     popd
 
-    # Update install.sh to use installed (not the running) kernel version.
-    sed -i -e 's/g_kernel_version=.*/g_kernel_version="'$KERNEL_VERSION'"/g' \
-        $BOOTSTRAP/root/mft-4.4.0-44/install.sh
+    # Symlink name of currently running kernel to the bootstrap kernel source so
+    # that all builds build against the bootstrap kernel source.
+    ln -s $KERNEL_VERSION $BOOTSTRAP/lib/modules/$(uname -r)
 
     # Run the mlx firmware tools installation script.
-    chroot $BOOTSTRAP bash -c "cd /root/mft-4.4.0-44 && ./install.sh"
-
-    # dynamic kernel module support (dkms) builds for the currently running
-    # kernel, so explicitly build for the kernel installed in the bootstrapfs.
-    chroot $BOOTSTRAP dkms install kernel-mft-dkms/4.4.0 -k $KERNEL_VERSION
+    chroot $BOOTSTRAP bash -c "cd /root/mft-${MFT_VERSION}-x86_64-deb && ./install.sh"
 
     echo "Removing unnecessary packages and files from $BOOTSTRAP"
     # Remove mft directory since the unnecessary binary packages are large.
-    chroot $BOOTSTRAP rm -rf /root/mft-4.4.0-44
+    chroot $BOOTSTRAP rm -rf /root/mft-${MFT_VERSION}-x86_64-deb
 
-    # NOTE: DO NOT "autoremove" gcc or make, as this uninstalls dkms and the
+    # NOTE: DO NOT "autoremove" gcc or make or python3, as this uninstalls dkms and the
     # mft module built and installed above.
     #
     # Remove unnecessary packages to save space.
@@ -136,13 +130,7 @@ mount_proc_and_sys $BOOTSTRAP
         linux-generic \
         linux-headers-${KERNEL_VERSION} \
         linux-headers-${KERNEL_VERSION%%-generic} \
-        linux-firmware \
-        python3 \
-        grub-pc \
-        grub-common \
-        grub2-common \
-        grub-gfxpayload-lists \
-        grub-pc-bin
+        linux-firmware
     done
 
     chroot $BOOTSTRAP apt-get clean -y
@@ -174,10 +162,12 @@ trap '' EXIT
 ln --force --symbolic sbin/init $BOOTSTRAP/init
 cp $CONFIG_DIR/fstab $BOOTSTRAP/etc/fstab
 
-# Enable simple rc.local script for post-setup processing.
-# rc.local.service runs after networking.service
-cp $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
-chroot $BOOTSTRAP systemctl enable rc.local.service
+# Load any necessary modules at boot.
+cp $CONFIG_DIR/modules $BOOTSTRAP/etc/modules
+
+# Copy simple rc.local script for post-setup processing.
+# rc-local.service runs after networking.service
+install -D --mode 755 $CONFIG_DIR/rc.local $BOOTSTRAP/etc/rc.local
 
 ################################################################################
 # Network
