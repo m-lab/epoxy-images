@@ -57,10 +57,10 @@ if ! test -f $BOOTSTRAP/build.date ; then
     # Disable interactive prompt from grub-pc or other packages.
     export DEBIAN_FRONTEND=noninteractive
 
-    # Create comma-separated list.
-    PACKAGES=$(
-      cat ${CONFIG_DIR}/build/extra.packages | xargs echo | tr ' ' ','
-    )
+    # A comma-separated list of additional packages we want installed.
+    PACKAGES="busybox,ca-certificates,curl,dbus,dmsetup,docker.io,ethtool,iproute2,"
+    PACKAGES+="jq,kexec-tools,less,linux-base,linux-generic,net-tools,openssh-server,"
+    PACKAGES+="parted,pciutils,socat,sudo,systemd-sysv,udev,usbutils,vim,wget,xfsprogs"
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
@@ -117,30 +117,25 @@ trap '' EXIT
 
 
 ################################################################################
-# System / Users
+# System / Users / M-Lab
 ################################################################################
+# Copy in all custom M-Lab files.
+cp --recursive --preserve=mode $CONFIG_DIR/* $BOOTSTRAP/
+
 # Kernel panics unless /init is defined. Use systemd for init.
 ln --force --symbolic sbin/init $BOOTSTRAP/init
-cp $CONFIG_DIR/etc/fstab $BOOTSTRAP/etc/fstab
-
-# Load any necessary modules at boot.
-cp $CONFIG_DIR/etc/modules $BOOTSTRAP/etc/modules
 
 # Add mlab user, setup .ssh directory.
 if ! chroot $BOOTSTRAP bash -c 'id -u mlab'; then
   chroot $BOOTSTRAP bash -c 'adduser --disabled-password --gecos "" mlab'
-  chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/mlab/.ssh'
+  chroot $BOOTSTRAP bash -c 'chown -R mlab:mlab /home/mlab'
 fi
-# Allow the mlab user to use sudo to do anything, without a password
-install -D --mode 440 $CONFIG_DIR/etc/sudoers_mlab.conf $BOOTSTRAP/etc/sudoers.d/mlab
 
 # Add reboot-api user, setup .ssh directory.
 if ! chroot $BOOTSTRAP bash -c 'id -u reboot-api'; then
   chroot $BOOTSTRAP bash -c 'adduser --system --disabled-password --gecos "" reboot-api'
-  chroot $BOOTSTRAP bash -c 'mkdir --mode 0755 --parents /home/reboot-api/.ssh'
+  chroot $BOOTSTRAP bash -c 'chown -R reboot-api:nogroup /home/reboot-api'
 fi
-# Allow the reboot-api user to use sudo to run 'systemctl reboot -i', without a password.
-install -D --mode 440 $CONFIG_DIR/etc/sudoers_reboot-api.conf $BOOTSTRAP/etc/sudoers.d/reboot-api
 
 ################################################################################
 # Systemd
@@ -148,13 +143,9 @@ install -D --mode 440 $CONFIG_DIR/etc/sudoers_reboot-api.conf $BOOTSTRAP/etc/sud
 # Don't go beyond multi-user.target as these are headless systems.
 chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
 
-cp -r $CONFIG_DIR/systemd/* $BOOTSTRAP/etc/systemd/system/
-for unit in $(find $CONFIG_DIR/systemd/ -maxdepth 1 -type f -printf "%f\n"); do
+for unit in $(find $CONFIG_DIR/etc/systemd/system -maxdepth 1 -type f -printf "%f\n"); do
   chroot $BOOTSTRAP bash -c "systemctl enable $unit"
 done
-
-# Install the systemd-resolved config.
-cp $CONFIG_DIR/etc/resolved.conf $BOOTSTRAP/etc/systemd/resolved.conf
 
 # Install the kubelet.service unit file.
 curl --silent --show-error --location \
@@ -187,20 +178,6 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
-# Copy the authorized_keys files.
-# TODO: Get ssh keys from some external source.
-# TODO: investigate ssh-import-id as an alternative here, or a copy from GCS.
-install -D --mode 644 $CONFIG_DIR/user/mlab_authorized_keys $BOOTSTRAP/home/mlab/.ssh/authorized_keys
-install -D --mode 644 $CONFIG_DIR/user/reboot-api_authorized_keys $BOOTSTRAP/home/reboot-api/.ssh/authorized_keys
-
-################################################################################
-# M-Lab resources
-################################################################################
-# Make sure /opt/mlab/bin exists
-mkdir -p $BOOTSTRAP/opt/mlab/bin
-# Copy binaries and scripts to the "/opt/mlab/bin" directory.
-cp ${CONFIG_DIR}/bin/* $BOOTSTRAP/opt/mlab/bin/
-
 ################################################################################
 # Kubernetes / Docker
 ################################################################################
@@ -217,7 +194,6 @@ for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # the symlink should reference in the final image filesystem.
     ln --symbolic --force /opt/shimcni/bin/shim.sh $(basename "$i")
 done
-cp ${CONFIG_DIR}/bin/shim.sh .
 popd
 
 # Install multus and index2ip.
@@ -255,9 +231,6 @@ popd
 
 # The default kubelet.service.d/10-kubeadm.conf looks for kubelet at /usr/bin.
 ln --symbolic --force /opt/bin/kubelet $BOOTSTRAP/usr/bin/kubelet
-
-# Adds a configuration file for the Docker daemon.
-install -D --mode 644 $CONFIG_DIR/etc/docker-daemon.json $BOOTSTRAP/etc/docker/daemon.json
 
 ################################################################################
 # Add epoxy client to initramfs
