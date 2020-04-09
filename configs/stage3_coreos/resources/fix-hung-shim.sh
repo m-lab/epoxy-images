@@ -1,1 +1,1 @@
-../../stage3_ubuntu/bin/fix-hung-shim.sh
+../../stage3_ubuntu/opt/mlab/bin/fix-hung-shim.sh

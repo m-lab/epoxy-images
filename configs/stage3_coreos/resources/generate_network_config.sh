@@ -1,1 +1,1 @@
-../../stage3_ubuntu/bin/generate_network_config.sh
+../../stage3_ubuntu/opt/mlab/bin/generate_network_config.sh

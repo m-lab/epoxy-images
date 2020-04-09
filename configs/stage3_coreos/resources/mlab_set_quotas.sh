@@ -1,1 +1,1 @@
-../../stage3_ubuntu/bin/mlab_set_quotas.sh
+../../stage3_ubuntu/opt/mlab/bin/mlab_set_quotas.sh

@@ -1,1 +1,1 @@
-../../stage3_ubuntu/bin/setup_after_boot.sh
+../../stage3_ubuntu/opt/mlab/bin/setup_after_boot.sh

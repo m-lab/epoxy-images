@@ -1,1 +1,1 @@
-../stage3_ubuntu/bin/shim.sh
+../stage3_ubuntu/opt/mlab/bin/shim.sh
