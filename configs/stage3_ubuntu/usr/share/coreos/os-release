@@ -1,0 +1,11 @@
+NAME="Container Linux by CoreOS"
+ID=coreos
+VERSION=2303.4.0
+VERSION_ID=2303.4.0
+BUILD_ID=2020-02-06-1305
+PRETTY_NAME="Container Linux by CoreOS 2303.4.0 (Rhyolite)"
+ANSI_COLOR="38;5;75"
+HOME_URL="https://coreos.com/"
+BUG_REPORT_URL="https://issues.coreos.com"
+COREOS_BOARD="amd64-usr"
+
