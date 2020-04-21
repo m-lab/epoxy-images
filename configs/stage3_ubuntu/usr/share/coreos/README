@@ -1,0 +1,11 @@
+This directory and its contents are here as a way to temporarily shoehorn
+Container Linux Update Operator (CLUO) into an Ubuntu environment. This
+directory gets mounted into the filesystem of the update-agent pods, as it
+expects to find these files and will not work without them.
+
+The os-release file was sourced from an existing CoreOS platform node at the
+time of this writing, and the same for the update.conf file, with the
+exception that I updated the SERVER variable to point to a Flatcar Linux
+update server, since eventually Redhat will shut down the CoreOS update
+servers.
+
