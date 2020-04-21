@@ -9,3 +9,5 @@ exception that I updated the SERVER variable to point to a Flatcar Linux
 update server, since eventually Redhat will shut down the CoreOS update
 servers.
 
+https://github.com/m-lab/k8s-support/issues/418
+
