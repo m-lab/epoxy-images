@@ -60,9 +60,25 @@ racadm serveraction powerdown
 
 sleep 10
 
-# Get the NIC #1's BIOS key
-OUTPUT=$(racadm get nic.nicconfig.1)
-NIC_BIOS_KEY=$(echo "${OUTPUT}" | egrep -o 'NIC\.Slot\.[0-9]{1}-[0-9]{1}-[0-9]{1}')
+# Check the first boot device. If it's already the NIC, then skip this node.
+# Else, record the first boot device and make the it 2nd boot device after the
+# NIC later on.
+OUTPUT=$(racadm get bios.biosbootsettings.bootseq | grep BootSeq)
+ORIG_FIRST_BOOT_DEVICE=$(echo "${OUTPUT}" | cut -d= -f2 | cut -d, -f1)
+if [[ $ORIG_FIRST_BOOT_DEVICE == NIC* ]]; then
+  echo "First boot device is already the NIC. Nothing to do."
+  exit 0
+fi
+
+# If the NIC is already in the boot list, then we grab the BIOS key here.
+NIC_IN_BOOT_LIST=$(echo $OUTPUT | grep NIC)
+if [[ -n $NIC_IN_BOOT_LIST ]]; then
+  NIC_BIOS_KEY=$(echo "${OUTPUT}" | egrep -o 'NIC\.Slot\.[0-9]{1}-[0-9]{1}-[0-9]{1}')
+else
+  # Get the NIC #1's BIOS key
+  OUTPUT=$(racadm get nic.nicconfig.1)
+  NIC_BIOS_KEY=$(echo "${OUTPUT}" | egrep -o 'NIC\.Slot\.[0-9]{1}-[0-9]{1}-[0-9]{1}')
+fi
 
 # Delete any existing jobs, first gently, then forcibly.
 racadm jobqueue delete --all
@@ -83,7 +99,7 @@ sleep 10
 # set the NIC as the first boot device. If either one of these options doesn't
 # exist in the BIOS, then the command should benignly fail, but this makes sure
 # that at least one of them, maybe both, get set.
-# 
+#
 # First make sure that the option exists and that the value isn't what we want
 # already. If it does exist and isn't set correctly then, try MAX_RETRIES to set
 # it to what we want. We attempt this multiple times due to observed flakiness
@@ -94,38 +110,41 @@ sleep 10
 # error.
 MOD_COUNT=0
 
-STATUS=$(racadm get nic.nicconfig.1.bootoptionrom)
-if [[ "$?" -eq "0" ]]; then
-  if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled' && \
-      ! echo "${STATUS}" | grep ERROR; then
-    retry_racadm "set nic.nicconfig.1.bootoptionrom Enabled" \
-        "Max retry count reached for setting BootOptionRom to Enabled."
-    MOD_COUNT=$((MOD_COUNT + 1))
+# If the NIC is already in the boot list, then we don't need to do any of the following.
+if [[ -z $NIC_IN_BOOT_LIST ]]; then
+  STATUS=$(racadm get nic.nicconfig.1.bootoptionrom)
+  if [[ "$?" -eq "0" ]]; then
+    if ! echo "${STATUS}" | grep 'bootoptionrom=Enabled' && \
+        ! echo "${STATUS}" | grep ERROR; then
+      retry_racadm "set nic.nicconfig.1.bootoptionrom Enabled" \
+          "Max retry count reached for setting BootOptionRom to Enabled."
+      MOD_COUNT=$((MOD_COUNT + 1))
+    fi
   fi
-fi
 
-sleep 5
+  sleep 5
 
-STATUS=$(racadm get nic.nicconfig.1.legacybootproto)
-if [[ "$?" -eq "0" ]]; then
-  if ! echo "${STATUS}" | grep 'legacybootproto=PXE' && \
-      ! echo "${STATUS}" | grep ERROR; then
-    retry_racadm "set nic.nicconfig.1.legacybootproto PXE" \
-        "Max retry count reached for setting LegacyBootProto to PXE."
-    MOD_COUNT=$((MOD_COUNT + 1))
+  STATUS=$(racadm get nic.nicconfig.1.legacybootproto)
+  if [[ "$?" -eq "0" ]]; then
+    if ! echo "${STATUS}" | grep 'legacybootproto=PXE' && \
+        ! echo "${STATUS}" | grep ERROR; then
+      retry_racadm "set nic.nicconfig.1.legacybootproto PXE" \
+          "Max retry count reached for setting LegacyBootProto to PXE."
+      MOD_COUNT=$((MOD_COUNT + 1))
+    fi
   fi
-fi
 
-sleep 5
+  sleep 5
 
-# Create the jobqueue entry, then powerup, but only if we actually made any
-# changes.
-if [[ "${MOD_COUNT}" -gt 0 ]]; then
-  retry_racadm "jobqueue create $NIC_BIOS_KEY -r pwrcycle -s TIME_NOW" \
-      "Max retry count reached for setting ${NIC_BIOS_KEY} jobqueue job."
-  # Give the machine a while to powerup and make the BIOS config change. 180
-  # seconds is arbitrary, and may be too much, though likely not too little.
-  sleep 180
+  # Create the jobqueue entry, then powerup, but only if we actually made any
+  # changes.
+  if [[ "${MOD_COUNT}" -gt 0 ]]; then
+    retry_racadm "jobqueue create $NIC_BIOS_KEY -r pwrcycle -s TIME_NOW" \
+        "Max retry count reached for setting ${NIC_BIOS_KEY} jobqueue job."
+    # Give the machine a while to powerup and make the BIOS config change. 180
+    # seconds is arbitrary, and may be too much, though likely not too little.
+    sleep 180
+  fi
 fi
 
 # Power the machine back down and set the first boot device to be the NIC.
