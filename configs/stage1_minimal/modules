@@ -7,3 +7,7 @@ usbhid
 mlx4_en
 mlx5_core
 mlxfw
+
+# Load tg3 module to support NICs in the few remaining R620s.
+tg3
+
