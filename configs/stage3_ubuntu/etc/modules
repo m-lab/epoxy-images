@@ -1,3 +1,9 @@
+# SATA support
 ahci
+
+# BBR for ndt7
 tcp_bbr
+
+# Support for NICs in older R620 machines.
+tg3
 
