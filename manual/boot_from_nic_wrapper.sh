@@ -1,10 +1,10 @@
 #!/bin/bash
-# 
+#
 # A wrapper script for the boot_from_nic.sh script to orchestrate reading a
 # node list, putting a node into lame-duck mode, running the boot_from_nic.sh
 # script and then making sure the node came back up before moving on to the
 # next node.
-# 
+#
 # This script makes a *lot* of assumptions about the filesystem layout and tools
 # that are in your path, but this is probably okay because once the platform is
 # converted to booting from ePoxy, we likely won't ever need this script again.
@@ -14,15 +14,20 @@
 
 set -ux
 
-USAGE="$0 <nodelist file>"
-NODE_LIST_FILE=${1:? Please provide a file with a list of nodes: ${USAGE}}
+USAGE="$0 <project> <nodelist file>"
+PROJECT=${1:?Please provide a GCP project.}
+NODE_LIST_FILE=${2:? Please provide a file with a list of nodes: ${USAGE}}
 
 MAX_ERRORS=5
 SLACK_WEBHOOK_URL=""
-LAME_DUCK_DIR=""
 
 function send_slack_message() {
   local msg=$1
+
+  if [[ -z $SLACK_WEBHOOK_URL ]]; then
+    echo "No SLACK_WEBHOOK_URL configured for message: $msg"
+    return
+  fi
 
   # Increment the error counter.
   ERRORS=$(($ERRORS + 1))
@@ -35,17 +40,6 @@ function send_slack_message() {
       --data "{'text':'$msg'}" \
       "$SLACK_WEBHOOK_URL"
 }
-
-# Don't proceed if SLACK_WEBHOOK_URL is unset, or if the
-# LAME_DUCK_DIR doesn't exist.
-if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
-  echo "Please configure a SLACK_WEBHOOK_URL."
-  exit 1
-fi
-if [[ ! -d "$LAME_DUCK_DIR" ]]; then
-  echo "LAME_DUCK_DIR is not a valid directory: $LAME_DUCK_DIR"
-  exit 1
-fi
 
 ERRORS=0
 while read -r node
@@ -62,6 +56,15 @@ do
     continue
   fi
 
+  # If the separator is a dash, then we assume this a v2 node name, else it's a
+  # v1 node name.
+  separator=${node:5:1}
+  if [[ $separator == "-" ]]; then
+    node_fqdn="${node}.${PROJECT}.measurement-lab.org"
+  else
+    node_fqdn="${node}.measurement-lab.org"
+  fi
+
   # Discover the IP and password of the DRAC on this node.
   DRAC_INFO=$(bmctool get "$node")
   if [[ "$?" -ne "0" ]]; then
@@ -71,16 +74,9 @@ do
   DRAC_IP=$(echo "$DRAC_INFO" | jq -r '.address')
   DRAC_PASSWD=$(echo "$DRAC_INFO" | jq -r '.password')
 
-  # Put the node into lame-duck mode.
-  pushd $LAME_DUCK_DIR
-  if ! ansible-playbook -i $node, lame_duck.yaml --extra-vars "mode=set"; then
-    send_slack_message "Failed to set lame-duck mode for $node."
-    popd
-    continue
-  fi
-  popd
+  kubectl --context ${project} taint node ${node_fqdn} lame-duck=nic-first:NoSchedule
 
-  # Give mlab-ns 2.5 minutes to notice the node is in lame-duck mode
+  # Give mlab-ns 2.5 minutes to notice the node is lame-ducked.
   sleep 150
 
   if ! docker run --rm --volume $PWD:/scripts -t epoxy-racadm \
@@ -110,14 +106,6 @@ do
     continue
   fi
 
-  # Take the node out of lame-duck mode.
-  pushd $LAME_DUCK_DIR
-  if ! ansible-playbook -i $node, lame_duck.yaml --extra-vars "mode=unset"; then
-    send_slack_message "Failed to take $node out of lame-duck mode."
-    popd
-    continue
-  fi
-  popd
+  kubectl --context ${project} taint node ${node_fqdn} lame-duck-
 
 done < "$NODE_LIST_FILE"
-

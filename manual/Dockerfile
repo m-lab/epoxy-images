@@ -1,4 +1,4 @@
-FROM centos
+FROM centos:7
 
 RUN yum -y update && yum -y install openssl openssl-devel pciutils wget
 # Latest as of 2018-06-12:
