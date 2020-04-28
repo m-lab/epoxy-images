@@ -30,3 +30,4 @@ ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
 
 [Install]
 WantedBy=multi-user.target
+
