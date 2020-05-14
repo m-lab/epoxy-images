@@ -24,7 +24,7 @@ fi
 iso_url="https://storage.googleapis.com/epoxy-${PROJECT}/stage1_isos/${HOSTNAME}_stage1.iso"
 
 # Fetch the ISO from GCS.
-wget ${iso_url}
+wget --no-verbose ${iso_url}
 
 # The previous wget command should deposit an ISO file in this directory. If
 # for some reason it didn't then exit.
