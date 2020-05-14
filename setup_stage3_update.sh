@@ -208,6 +208,7 @@ chroot $BOOTSTRAP systemctl enable ssh.service
 mkdir -p $BOOTSTRAP/usr/local/util
 cp $CONFIG_DIR/flashrom.sh $BOOTSTRAP/usr/local/util
 cp $CONFIG_DIR/updaterom.sh $BOOTSTRAP/usr/local/util
+cp $CONFIG_DIR/updateusb.sh $BOOTSTRAP/usr/local/util
 ################################################################################
 # Add epoxy client to initramfs
 ################################################################################
