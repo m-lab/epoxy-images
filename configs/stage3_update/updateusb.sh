@@ -39,5 +39,3 @@ if [[ -z $usb_device ]]; then
 fi
 
 dd if=${ISO_FILE} of=${usb_device} bs=1M conv=fdatasync
-
-systemctl reboot
