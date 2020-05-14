@@ -4,6 +4,5 @@ pciutils
 perl-modules
 systemd-sysv
 usbutils
-util-linux
 vim
 wget

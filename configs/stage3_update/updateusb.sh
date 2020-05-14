@@ -36,7 +36,7 @@ fi
 # The existing USB drive will already be formatted and at least one partition
 # should be of type "vfat". No other disk on the system should have a partition
 # type of "vfat".
-USB_DEVICE=$(blkid | grep vfat | egrep -o '^\/dev\/sd[a-z]')
+USB_DEVICE=$(/usr/sbin/blkid | grep vfat | egrep -o '^\/dev\/sd[a-z]')
 
 if [[ -z ${USB_DEVICE} ]]; then
   echo "ERROR: Unable to identify the device of the USB drive. Giving up."
