@@ -51,10 +51,12 @@ URL=https://storage.googleapis.com/epoxy-${PROJECT}
 # model and constructs the full path ROM based on the system hostname.
 ARGS+="epoxy.mrom=$URL/stage1_mlxrom/${ROM_VERSION} "
 
+# Adds a URL for the USB ISO image.
+ARGS+="epoxy.usbiso=${URL}/stage1_isos/${HOSTNAME}_stage1.iso"
+
 # Note: Add a epoxy.stage3 action so the update can automatically run
 # updaterom.sh after boot.
 ARGS+="epoxy.stage3=$URL/stage3_update/stage3post.json "
-
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 ${SOURCE_DIR}/simpleiso -x "$ARGS" \
