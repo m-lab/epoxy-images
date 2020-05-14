@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # create_update_iso.sh generates a bootable ISO image from the kernel and
-# initram built by setup_stage3_mlxupdate.sh build scripts. Given the machine
+# initram built by setup_stage3_update.sh build scripts. Given the machine
 # hostname, IPv4 address and gateway, this script constructs an epoxy network
 # configuration for the kernel command line, which allows standard network
 # scripts to setup the network at boot time.
@@ -19,11 +19,11 @@ IPV4_GATEWAY=${7:?Error: please specify the server IPv4 gateway address: $USAGE}
 DNS1=${8:-8.8.8.8}
 DNS2=${9:-8.8.4.4}
 
-if [[ ! -f ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz || \
-      ! -f ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate ]] ; then
+if [[ ! -f ${IMAGE_DIR}/initramfs_stage3_update.cpio.gz || \
+      ! -f ${IMAGE_DIR}/vmlinuz_stage3_update ]] ; then
     echo 'Error: vmlinuz and initramfs images not found!'
-    echo "Expected: ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz"
-    echo "Expected: ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate"
+    echo "Expected: ${IMAGE_DIR}/initramfs_stage3_update.cpio.gz"
+    echo "Expected: ${IMAGE_DIR}/vmlinuz_stage3_update"
     exit 1
 fi
 
@@ -51,13 +51,13 @@ URL=https://storage.googleapis.com/epoxy-${PROJECT}
 # model and constructs the full path ROM based on the system hostname.
 ARGS+="epoxy.mrom=$URL/stage1_mlxrom/${ROM_VERSION} "
 
-# Note: Add a epoxy.stage3 action so the mlxupdate can automatically run
+# Note: Add a epoxy.stage3 action so the update can automatically run
 # updaterom.sh after boot.
-ARGS+="epoxy.stage3=$URL/stage3_mlxupdate/stage3post.json "
+ARGS+="epoxy.stage3=$URL/stage3_update/stage3post.json "
 
 
 SOURCE_DIR=$( realpath $( dirname "${BASH_SOURCE[0]}" ) )
 ${SOURCE_DIR}/simpleiso -x "$ARGS" \
-    -i ${IMAGE_DIR}/initramfs_stage3_mlxupdate.cpio.gz \
-    ${IMAGE_DIR}/vmlinuz_stage3_mlxupdate \
-    ${OUTPUT_DIR}/${HOSTNAME}_mlxupdate.iso
+    -i ${IMAGE_DIR}/initramfs_stage3_update.cpio.gz \
+    ${IMAGE_DIR}/vmlinuz_stage3_update \
+    ${OUTPUT_DIR}/${HOSTNAME}_update.iso

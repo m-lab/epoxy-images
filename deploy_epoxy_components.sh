@@ -15,17 +15,17 @@
 #   * stage2 kernel with embedded initram image
 #   * actions scripts for all stages
 #
-# - /stage3_mlxupdate
-#   * debian-based initramfs with epoxy_client and Mellanox ROM update scripts
-#   * debian kernel, stock
+# - /stage3_update
+#   * Ubuntu-based initramfs with epoxy_client and update scripts
+#   * Ubuntu kernel, stock
 #   * stage2 kernel with embedded initram image
 #   * actions scripts for all stages
 #
-# - /stage3_mlxupdate_iso
-#   * stage3 mlxupdate bootable ISOs for first-time setup. (boot via DRAC)
+# - /stage3_update_iso
+#   * stage3 update bootable ISOs for first-time setup. (boot via DRAC)
 #
 # - /stage1_mlxrom
-#   * stage1 mellanox ROMs, used by mlxupdate images
+#   * stage1 mellanox ROMs, used by update images
 #
 # Example:
 #
@@ -57,19 +57,19 @@ ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
   ${SOURCE_DIR}/actions/stage3_coreos/*.json \
   ${BUCKET}/stage3_coreos/
 
-# Deploy all stage3_mlxupdate images and actions.
+# Deploy all stage3_update images and actions.
 ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
   ${SOURCE_DIR}/output/stage2_vmlinuz \
-  ${SOURCE_DIR}/output/vmlinuz_stage3_mlxupdate \
-  ${SOURCE_DIR}/output/initramfs_stage3_mlxupdate.cpio.gz \
+  ${SOURCE_DIR}/output/vmlinuz_stage3_update \
+  ${SOURCE_DIR}/output/initramfs_stage3_update.cpio.gz \
   ${SOURCE_DIR}/actions/stage2/stage1to2.ipxe \
-  ${SOURCE_DIR}/actions/stage3_mlxupdate/*.json \
-  ${BUCKET}/stage3_mlxupdate/
+  ${SOURCE_DIR}/actions/stage3_update/*.json \
+  ${BUCKET}/stage3_update/
 
-# Deploy stage3_mlxupdate_iso images.
+# Deploy stage3_update_iso images.
 ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \
   ${SOURCE_DIR}/output/*.iso \
-  ${BUCKET}/stage3_mlxupdate_iso/
+  ${BUCKET}/stage3_update_iso/
 
 # Deploy stage1_mlxrom images preserving version directory.
 ${SOURCE_DIR}/travis/deploy_gcs.sh ${KEYNAME} \

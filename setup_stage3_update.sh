@@ -1,11 +1,12 @@
 #!/bin/bash
 #
-# setup_stage3_mlxupdate.sh builds an initram filesystem based on the Ubuntu
+# setup_stage3_update.sh builds an initram filesystem based on the Ubuntu
 # Focal Fossa OS, that includes the Mellanox Firmware Tools and requisite kernel
-# modules. With this image it is possible to flash a new ROM to a Mellanox NIC.
+# modules. With this image it is possible to flash a new ROM to a Mellanox NIC,
+# or to run any arbitrary script for updating a node.
 #
 # Example:
-#   ./setup_stage3_mlxupdate.sh /build config/stage3_mlxupdate
+#   ./setup_stage3_update.sh /build config/stage3_update
 
 set -x
 set -e
@@ -25,8 +26,8 @@ EPOXY_CLIENT=$( realpath $EPOXY_CLIENT )
 
 CONFIG_NAME=$( basename $CONFIG_DIR )
 BOOTSTRAP=${BUILD_DIR}/initramfs_${CONFIG_NAME}
-OUTPUT_KERNEL=${BUILD_DIR}/stage3_kernel_mlxupdate.vmlinuz
-OUTPUT_INITRAM=${BUILD_DIR}/stage3_initramfs_mlxupdate.cpio.gz
+OUTPUT_KERNEL=${BUILD_DIR}/stage3_kernel_update.vmlinuz
+OUTPUT_INITRAM=${BUILD_DIR}/stage3_initramfs_update.cpio.gz
 
 ##############################################################################
 # Functions
