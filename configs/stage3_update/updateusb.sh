@@ -7,7 +7,6 @@ set -eux
 ISO_BACKUP="usb_backup.iso"
 ISO_FILE="${HOSTNAME}_stage1.iso"
 HEADERS_FILE="iso_headers"
-PROJECT=""
 USB_DEVICE=""
 TEMPDIR=$(mktemp --directory)
 
@@ -15,20 +14,18 @@ trap "rm -rf ${TEMPDIR}" EXIT
 
 pushd ${TEMPDIR}
 
+iso_url=""
 for field in $( cat /proc/cmdline ) ; do
-  if [[ "epoxy.project" == "${field%%=*}" ]] ; then
-    PROJECT=${field##epoxy.project=}
+  if [[ "epoxy.usbiso" == "${field%%=*}" ]] ; then
+    iso_url=${field##epoxy.usbiso=}
     break
   fi
 done
 
-if [[ -z ${PROJECT} ]]; then
-  echo "ERROR: could not determine the GCP project. Giving up."
+if [[ -z ${iso_url} ]]; then
+  echo "ERROR: could not find the ISO URL in the kernel params. Giving up."
   exit 1
 fi
-
-# Construct the ISO URL.
-iso_url="https://storage.googleapis.com/epoxy-${PROJECT}/stage1_isos/${HOSTNAME}_stage1.iso"
 
 # Fetch the ISO from GCS.
 curl --silent --remote-name --dump-header ${HEADERS_FILE} ${iso_url}
