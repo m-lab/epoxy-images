@@ -1,0 +1,14 @@
+{
+   "v1" : {
+      "env" : {
+         "PATH" : "/bin:/usr/bin:/usr/local/bin"
+      },
+      "commands" : [
+         "# Run the updateusb utility.",
+         [
+            "/usr/local/util/updateusb.sh",
+            "reboot"
+         ]
+      ]
+   }
+}
