@@ -12,13 +12,11 @@
 # - /stage3_coreos
 #   * coreos initramfs with epoxy_client and custom cloud-config.yaml
 #   * coreos kernel, stock
-#   * stage2 kernel with embedded initram image
 #   * actions scripts for all stages
 #
 # - /stage3_update
 #   * Ubuntu-based initramfs with epoxy_client and update scripts
 #   * Ubuntu kernel, stock
-#   * stage2 kernel with embedded initram image
 #   * actions scripts for all stages
 #
 # - /stage3_update_iso
