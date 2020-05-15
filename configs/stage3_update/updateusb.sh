@@ -4,9 +4,9 @@
 
 set -eux
 
-ISO_URL=${1:?Please pass a stage1 ISO URL to this script. Exiting.}
+ISO_URL=${1:?ERROR: stage1 ISO URL was not passed to the script. Exiting.}
 ISO_BACKUP="usb_backup.iso"
-ISO_FILE="${HOSTNAME}_stage1.iso"
+ISO_FILE=$(basename ${ISO_URL})
 HEADERS_FILE="iso_headers"
 USB_DEVICE=""
 TEMPDIR=$(mktemp --directory)
@@ -30,7 +30,9 @@ fi
 # remaining \r.
 md5_actual=$(grep "x-goog-hash: md5" ${HEADERS_FILE} | cut -d= -f2- | tr -d '\r')
 
-# Calculate the md5 locally.
+# Calculate the md5 locally. Note: here we use openssl instead of something
+# simple like md5sum because apparently the -binary output option is necessary
+# for this to work as intended.
 md5_calc=$(openssl dgst -md5 -binary ${ISO_FILE} | openssl enc -base64)
 
 # Compare the md5 hashes.
