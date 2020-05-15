@@ -4,6 +4,7 @@
 
 set -eux
 
+ISO_URL=${1:?Please pass a stage1 ISO URL to this script. Exiting.}
 ISO_BACKUP="usb_backup.iso"
 ISO_FILE="${HOSTNAME}_stage1.iso"
 HEADERS_FILE="iso_headers"
@@ -14,24 +15,11 @@ trap "rm -rf ${TEMPDIR}" EXIT
 
 pushd ${TEMPDIR}
 
-iso_url=""
-for field in $( cat /proc/cmdline ) ; do
-  if [[ "epoxy.usbiso" == "${field%%=*}" ]] ; then
-    iso_url=${field##epoxy.usbiso=}
-    break
-  fi
-done
-
-if [[ -z ${iso_url} ]]; then
-  echo "ERROR: could not find the ISO URL in the kernel params. Giving up."
-  exit 1
-fi
-
 # Fetch the ISO from GCS.
-curl --silent --remote-name --dump-header ${HEADERS_FILE} ${iso_url}
+curl --silent --location --remote-name --dump-header ${HEADERS_FILE} ${ISO_URL}
 
-# The previous wget command should deposit an ISO file in this directory. If
-# for some reason it didn't then exit.
+# The previous command should deposit an ISO file in this directory. If for
+# some reason it didn't then exit.
 if ! [[ -f ${ISO_FILE} ]]; then
   echo "ERROR: Fetching the ISO image failed. Giving up."
   exit 1

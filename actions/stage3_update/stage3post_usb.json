@@ -6,7 +6,7 @@
       "commands" : [
          "# Run the updateusb utility.",
          [
-            "/usr/local/util/updateusb.sh",
+            "/usr/local/util/updateusb.sh {{kargs `epoxy.usbiso`}}",
             "reboot"
          ]
       ]
