@@ -2,7 +2,7 @@
 #
 # A small script to write an ISO image to a USB flash drive attached to an M-Lab node.
 
-set -ux
+set -eux
 
 ISO_BACKUP="usb_backup.iso"
 ISO_FILE="${HOSTNAME}_stage1.iso"
