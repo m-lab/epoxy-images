@@ -30,7 +30,7 @@ Mellanox ROM update ISOs are created by a separate process, and uploaded to a
 GCS bucket. Before you start this process, download the ISO for the machine in
 question from GCS. Images are stored in GCS in this bucket:
 ```
-epoxy-<project>/stage3_mlxupdate_iso
+epoxy-<project>/stage3_update_iso
 ```
 
 ## Turn off IP-blocking on the iDRAC
@@ -68,7 +68,7 @@ example, in ~/Downloads (use whichever directory your ISO image resides in).
 ```
 docker run --rm --volume ~/Downloads:/images --volume $PWD:/scripts -it epoxy-racadm \
     /scripts/mount_update_iso.sh ${DRAC_IP} ${DRAC_PASSWORD} \
-    /images/<node>.<site>.measurement-lab.org_mlxupdate.iso
+    /images/<node>.<site>.measurement-lab.org_update.iso
 ```
 
 ## Start a virtual console to the node

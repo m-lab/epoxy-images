@@ -5,10 +5,10 @@
       },
       "files" : {
          "vmlinuz" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage3_kernel_mlxupdate.vmlinuz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_update/stage3_kernel_update.vmlinuz"
          },
          "initram" : {
-            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_mlxupdate/stage3_initramfs_mlxupdate.cpio.gz"
+            "url" : "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_update/stage3_initramfs_update.cpio.gz"
          }
       },
       "vars" : {
@@ -22,7 +22,8 @@
             "epoxy.report={{kargs `epoxy.report`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}",
-            "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest"
+            "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest",
+            "epoxy.usbiso=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_isos/{{kargs `epoxy.hostname`}}_stage1.iso"
          ],
          "cmdline" : "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },

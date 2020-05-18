@@ -61,15 +61,15 @@ gsutil cp gs://vendor-mlab-oti/epoxy-images/mft-4.4.0-44.tgz ${PWD}
 
 docker run -it --privileged -v ${PWD}:/images -w /images epoxy-images-builder \
   bash -c "umask 0022; install -D -m 644 /images/mft-4.4.0-44.tgz /build/mft-4.4.0-44.tgz \
-    && echo 'Starting stage3_mlxupdate build' \
-    && /images/setup_stage3_mlxupdate.sh \
-        /build /images/output /images/configs/stage3_mlxupdate \
+    && echo 'Starting stage3_update build' \
+    && /images/setup_stage3_update.sh \
+        /build /images/output /images/configs/stage3_update \
         /images/output/epoxy_client \
-      &> /images/stage3_mlxupdate.log \
+      &> /images/stage3_update.log \
     && echo 'Starting ROM & ISO build' \
-    && /images/setup_stage3_mlxupdate_isos.sh \
+    && /images/setup_stage3_update_isos.sh \
       ${PROJECT} /build /images/output '${NODE_REGEXP}.*' 3.4.809 \
-        /images/stage3_mlxupdate_iso.log /images/travis/one_line_per_minute.awk"
+        /images/stage3_update_iso.log /images/travis/one_line_per_minute.awk"
 
 # Copy all artifacts to GCS.
 
@@ -83,15 +83,15 @@ gsutil -h "${GSUTIL_HEADER}" cp -r \
 
 gsutil -h "${GSUTIL_HEADER}" cp -r \
   ${PWD}/output/stage2_vmlinuz \
-  ${PWD}/output/vmlinuz_stage3_mlxupdate \
-  ${PWD}/output/initramfs_stage3_mlxupdate.cpio.gz \
+  ${PWD}/output/vmlinuz_stage3_update \
+  ${PWD}/output/initramfs_stage3_update.cpio.gz \
   ${PWD}/actions/stage2/stage1to2.ipxe \
-  ${PWD}/actions/stage3_mlxupdate/*.json \
-  ${GCS_BUCKET}/stage3_mlxupdate/
+  ${PWD}/actions/stage3_update/*.json \
+  ${GCS_BUCKET}/stage3_update/
 
 gsutil -h "${GSUTIL_HEADER}" cp -r \
   ${PWD}/output/*.iso \
-  ${GCS_BUCKET}/stage3_mlxupdate_iso/
+  ${GCS_BUCKET}/stage3_update_iso/
 
 gsutil -h "${GSUTIL_HEADER}" cp -r \
   ${PWD}/output/stage1_mlxrom/* \

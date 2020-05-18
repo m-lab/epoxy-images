@@ -1,8 +1,8 @@
-usbutils
+curl
+openssh-server
 pciutils
 perl-modules
 systemd-sysv
-wget
-curl
+usbutils
 vim
-openssh-server
+wget

@@ -32,10 +32,10 @@ steps:
     '/workspace/builder.sh', 'stage3_coreos'
   ]
 
-# stage3_mlxupdate images.
+# stage3_update images.
 - name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
-    '/workspace/builder.sh', 'stage3_mlxupdate'
+    '/workspace/builder.sh', 'stage3_update'
   ]
 
 ############################################################################
@@ -74,16 +74,16 @@ steps:
     'gs://epoxy-$PROJECT_ID/stage3_coreos/'
   ]
 
-# stage3_mlxupdate.
+# stage3_update.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r',
     '/workspace/output/stage1_kernel.vmlinuz',
     '/workspace/output/stage1_initramfs.cpio.gz',
-    '/workspace/output/stage3_kernel_mlxupdate.vmlinuz',
-    '/workspace/output/stage3_initramfs_mlxupdate.cpio.gz',
+    '/workspace/output/stage3_kernel_update.vmlinuz',
+    '/workspace/output/stage3_initramfs_update.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_mlxupdate/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_mlxupdate/'
+    '/workspace/actions/stage3_update/*.json',
+    'gs://epoxy-$PROJECT_ID/stage3_update/'
   ]

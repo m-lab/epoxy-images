@@ -54,18 +54,18 @@ function stage3_coreos() {
   rm -rf ${builddir}
 }
 
-function stage3_mlxupdate() {
+function stage3_update() {
   local target=${TARGET:?Please specify a target configuration name}
   local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
   local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
 
   umask 0022
-  echo 'Starting stage3_mlxupdate build'
-  ${SOURCE_DIR}/setup_stage3_mlxupdate.sh \
+  echo 'Starting stage3_update build'
+  ${SOURCE_DIR}/setup_stage3_update.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_mlxupdate.log \
+      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_update.log \
   || (
-      tail -100 ${SOURCE_DIR}/stage3_mlxupdate.log && false
+      tail -100 ${SOURCE_DIR}/stage3_update.log && false
   )
 
   rm -rf ${builddir}
@@ -113,21 +113,6 @@ function stage1_isos() {
   return
 }
 
-function stage1_usbs() {
-  local target=${TARGET:?Please specify a target configuration name}
-  local project=${PROJECT:?Please specify the PROJECT}
-  local artifacts=${ARTIFACTS:?Please define an ARTIFACTS output directory}
-  local regex_name="USB_REGEXP_${PROJECT//-/_}"
-
-  local builddir=$( mktemp -d -t build-${TARGET}.XXXXXX )
-
-  ${SOURCE_DIR}/setup_stage1_usbs.sh "${project}" "${builddir}" "${artifacts}" \
-      "${SOURCE_DIR}/configs/${target}" "${!regex_name}"
-
-  rm -rf "${builddir}"
-  return
-}
-
 mkdir -p ${ARTIFACTS}
 case "${TARGET}" in
   stage1_mlxrom)
@@ -139,17 +124,14 @@ case "${TARGET}" in
   stage1_isos)
       stage1_isos
       ;;
-  stage1_usbs)
-      stage1_usbs
-      ;;
   stage3_coreos)
       stage3_coreos
       ;;
   stage3_ubuntu)
       stage3_ubuntu
       ;;
-  stage3_mlxupdate)
-      stage3_mlxupdate
+  stage3_update)
+      stage3_update
       ;;
   *)
       echo "Unknown target: ${TARGET}"
