@@ -1,5 +1,5 @@
 [Unit]
-Before=docker.service cache-docker.mount cache-data.mount cache-core.mount
+DefaultDependencies=no
 RequiresMountsFor=/cache
 ConditionPathExists=!/cache/docker
 ConditionPathExists=!/cache/data
