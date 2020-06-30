@@ -1,8 +1,8 @@
 [Unit]
-RequiresMountsFor=/cache
+Before=cache-data.mount cache-docker.mount
+RequiredBy=cache-data.mount cache-docker.mount
 ConditionPathExists=!/cache/docker
 ConditionPathExists=!/cache/data
-ConditionPathExists=!/cache/core
 
 [Service]
 Type=oneshot
