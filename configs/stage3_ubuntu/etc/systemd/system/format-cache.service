@@ -1,5 +1,6 @@
 [Unit]
 After=dev-sda.device
+Requires=dev-sda.device
 DefaultDependencies=no
 RequiresMountsFor=/cache
 ConditionPathExists=!/cache/docker
