@@ -1,5 +1,6 @@
 [Unit]
 After=dev-sda.device
+Before=cache-data.mount cache-docker.mount
 DefaultDependencies=no
 RequiresMountsFor=/cache
 ConditionPathExists=!/cache/docker
