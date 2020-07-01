@@ -1,4 +1,5 @@
 [Unit]
+# We want this unit to run before we mount to be sure that disk gets formatted first.
 Before=cache-data.mount cache-docker.mount
 ConditionPathExists=!/cache/data
 ConditionPathExists=!/cache/docker
@@ -27,6 +28,7 @@ ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
 ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
 
 [Install]
+# This requirement should cause these mounts to fail if this unit fails.
 RequiredBy=cache-data.mount cache-docker.mount
 WantedBy=multi-user.target
 
