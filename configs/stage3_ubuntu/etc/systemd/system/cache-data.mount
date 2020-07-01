@@ -1,8 +1,5 @@
 [Unit]
 Description=Mount Experiment Data Volume
-Before=docker.service
-After=format-cache.service
-Requires=format-cache.service
 
 [Mount]
 What=/dev/disk/by-label/cache-data
