@@ -1,8 +1,8 @@
 [Unit]
 Before=cache-data.mount cache-docker.mount
-RequiredBy=cache-data.mount cache-docker.mount
-ConditionPathExists=!/cache/docker
 ConditionPathExists=!/cache/data
+ConditionPathExists=!/cache/docker
+DefaultDependencies=no
 
 [Service]
 Type=oneshot
@@ -27,5 +27,6 @@ ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
 ExecStart=/usr/sbin/mkfs.xfs -f -L cache-docker /dev/sda2
 
 [Install]
+RequiredBy=cache-data.mount cache-docker.mount
 WantedBy=multi-user.target
 
