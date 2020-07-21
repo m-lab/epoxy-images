@@ -3,11 +3,10 @@
 
 export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json"
 
-# stage3 coreos
-export COREOS_VERSION=2303.4.0
-export K8S_VERSION=v1.16.7
+# K8S component versions
+export K8S_VERSION=v1.17.8
 export CRI_VERSION=v1.18.0
-export CNI_VERSION=v0.8.5
+export CNI_VERSION=v0.8.6
 
 # stage3 mlxupdate
 export MFT_VERSION=4.14.0-105
