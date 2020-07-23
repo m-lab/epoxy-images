@@ -1,7 +1,9 @@
 [Unit]
 Description=Configures TCP pacing properly depending on the site's uplink speed
-Requires=network-online.target
-After=systemd-networkd-wait-online.service systemd-resolved.service format-cache.service
+# The script that configures fair queueing has to do a name lookup, and will
+# fail if name resolution is not 100% functional.
+# https://www.freedesktop.org/software/systemd/man/systemd.special.html#nss-lookup.target
+After=nss-lookup.target
 
 [Service]
 Type=oneshot
