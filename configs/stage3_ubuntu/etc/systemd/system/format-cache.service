@@ -1,6 +1,7 @@
 [Unit]
 # We want this unit to run before we mount to be sure that disk gets formatted first.
 Before=cache-data.mount cache-docker.mount
+After=dev-sda.device
 ConditionPathExists=!/cache/data
 ConditionPathExists=!/cache/docker
 DefaultDependencies=no
