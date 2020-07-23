@@ -1,6 +1,7 @@
 [Unit]
 Description=Configures TCP pacing properly depending on the site's uplink speed
-After=systemd-networkd-wait-online.service
+Requires=network-online.target
+After=systemd-networkd-wait-online.service systemd-resolved.service
 
 [Service]
 Type=oneshot
