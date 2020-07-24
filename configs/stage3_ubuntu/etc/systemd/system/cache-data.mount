@@ -1,5 +1,6 @@
 [Unit]
 Description=Mount Experiment Data Volume
+DefaultDependencies=no
 
 [Mount]
 What=/dev/disk/by-label/cache-data
