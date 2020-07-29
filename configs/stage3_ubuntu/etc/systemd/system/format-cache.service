@@ -26,7 +26,7 @@ ExecStart=/usr/sbin/parted --align=optimal --script /dev/sda \
 
 # There is potentially a delay between parted creating partitions and those
 # partitions devices (e.g., /dev/sda1) showing in in /dev.
-ExecStart=sleep 3
+ExecStart=sleep 1
 
 # Format and label each partition.
 # Note: the labels could make the formatting conditional in the future.
