@@ -7,3 +7,5 @@ tcp_bbr
 # Support for NICs in older R620 machines.
 tg3
 
+# Support access envelope ip6table operations.
+ip6table_filter
