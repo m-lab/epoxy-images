@@ -61,7 +61,7 @@ function setup_drac() {
     local bmc_store_password_url=$( get_cmdline epoxy.bmc_store_password "" )
     local drac_ipv4=$( get_cmdline drac.ipv4 "" )
     local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
-    local ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
+    local ipmi_ipv4
     local password
     local password_length="20"
 
@@ -79,6 +79,7 @@ function setup_drac() {
       return 1
     fi
 
+    ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
     if [ $? -ne 0 ] || [ -z "$ipmi_ipv4" ]; then
       echo "Cannot read current IPv4 address via ipmitool."
       return 1
