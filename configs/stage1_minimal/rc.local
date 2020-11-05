@@ -91,7 +91,10 @@ function setup_drac() {
       echo "Configuring DRAC..."
 
       # Generate a semi-random password for the DRAC.
+      # Temporarily disable pipefail for read of urandom.
+      set +o pipefail
       password=$( tr -dc A-Z-a-z-0-9 < /dev/urandom | head -c "$password_length" )
+      set -o pipefail
       if [[ -z $password ]]; then
         echo "Failed to generate a random password for the BMC."
         return 1
