@@ -19,3 +19,4 @@ ln -s flannel /var/lib/cni/networks/flannel-experiment-conf
 
 echo "Running epoxy client"
 /usr/bin/epoxy_client -action epoxy.stage3
+
