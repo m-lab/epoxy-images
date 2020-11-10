@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BMC_STAGE1_USERNAME="stageone"
+BMC_DEFAULT_USERNAME="admin"
 BMC_DEFAULT_PASSWORD="me@sur3m3nt"
 
 function logrun() {
@@ -96,7 +98,7 @@ function setup_drac_stage1() {
 
       echo $epoxy_ipv4 | tr ',' ' ' | (
         read _ gateway _
-        logrun ipmitool user set name 2 stage1
+        logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
         logrun ipmitool user set password 2 "$BMC_DEFAULT_PASSWORD" 20
         logrun ipmitool lan set 1 ipsrc static
         logrun ipmitool lan set 1 ipaddr $drac_ipv4
@@ -134,7 +136,7 @@ function setup_drac_stage2() {
       return 1
     fi
 
-    if [ "$ipmi_user" != "admin" ]; then
+    if [[ $ipmi_user != $BMC_DEFAULT_USERNAME ]]; then
       echo "Configuring DRAC default user..."
 
       # Generate a semi-random password for the DRAC. Read plenty of chars from
