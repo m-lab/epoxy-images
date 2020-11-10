@@ -17,11 +17,6 @@ mkdir -p /var/lib/cni/networks/flannel
 ln -s flannel /var/lib/cni/networks/flannel-conf
 ln -s flannel /var/lib/cni/networks/flannel-experiment-conf
 
-# Explicitly set the CPU scaling governor to "performance" for all CPUs, since
-# the OS default is "powersave".
-for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
-  echo performance > $cpu/cpufreq/scaling_governor
-done
-
 echo "Running epoxy client"
 /usr/bin/epoxy_client -action epoxy.stage3
+
