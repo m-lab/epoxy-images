@@ -141,7 +141,7 @@ function setup_drac_stage2() {
 
       # Generate a semi-random password for the DRAC. Read plenty of chars from
       # urandom to be 100% sure we get enough desired chars for the password.
-      password=$( head -c 250 /dev/urandom | tr -dc A-Z-a-z-0-9 | head -c 20 )
+      password=$( head -c 250 /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
       if [[ -z $password ]]; then
         echo "Failed to generate a random password for the BMC."
         return 1
@@ -167,7 +167,7 @@ function setup_drac_stage2() {
         return 1
       fi
     else
-      echo "DRAC default user is already named admin. Doing nothing..."
+      echo "DRAC default user is already named $BMC_DEFAULT_USERNAME. Doing nothing..."
     fi
   )
 }
