@@ -157,7 +157,7 @@ function setup_drac_stage2() {
 
       bmc_store_password_status=$(
         curl --fail --silent --show-error -XPOST --data-binary "{}" \
-        --write-out "%{http_code}" "${bmc_store_password_url}?q=${password}"
+        --write-out "%{http_code}" "${bmc_store_password_url}?p=${password}"
       )
       if [[ $bmc_store_password_status != "200" ]]; then
         # If the return code was not 200, attempt to set the BMC password back
