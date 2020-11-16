@@ -170,7 +170,6 @@ function setup_drac_stage2() {
       return 1
     fi
 
-
     logrun ipmitool user set name 2 admin
     logrun ipmitool user set password 2 "$password" 20
 
