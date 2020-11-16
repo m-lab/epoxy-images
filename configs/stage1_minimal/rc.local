@@ -145,39 +145,35 @@ function setup_drac_stage2() {
       return 1
     fi
 
-    if [[ $ipmi_user != $BMC_DEFAULT_USERNAME ]]; then
-      echo "Configuring DRAC default user..."
+    echo "Configuring DRAC default user..."
 
-      # Generate a semi-random password for the DRAC. Read plenty of chars from
-      # urandom to be 100% sure we get enough desired chars for the password.
-      password=$( head -c 250 /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
-      if [[ -z $password ]]; then
-        echo "Failed to generate a random password for the BMC."
-        return 1
-      fi
+    # Generate a semi-random password for the DRAC. Read plenty of chars from
+    # urandom to be 100% sure we get enough desired chars for the password.
+    password=$( head -c 250 /dev/urandom | tr -dc A-Za-z0-9 | head -c 20 )
+    if [[ -z $password ]]; then
+      echo "Failed to generate a random password for the BMC."
+      return 1
+    fi
 
-      if [[ -z bmc_store_password_url ]]; then
-        echo "No kernel param named epoxy.bmc_store_password."
-        return 1
-      fi
+    if [[ -z bmc_store_password_url ]]; then
+      echo "No kernel param named epoxy.bmc_store_password."
+      return 1
+    fi
 
-      logrun ipmitool user set name 2 admin
-      logrun ipmitool user set password 2 "$password" 20
+    logrun ipmitool user set name 2 admin
+    logrun ipmitool user set password 2 "$password" 20
 
-      bmc_store_password_status=$(
-        curl --fail --silent --show-error -XPOST --data-binary "{}" \
-        --write-out "%{http_code}" "${bmc_store_password_url}?p=${password}"
-      )
-      if [[ $bmc_store_password_status != "200" ]]; then
-        # If the return code was not 200, attempt to set the BMC user/password
-        # back to known presets.
-        logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
-        logrun ipmitool user set password 2 "$BMC_DEFAULT_PASSWORD" 20
-        echo "Failed to store BMC password in GCD. Got HTTP status code: ${bmc_store_password_status}"
-        return 1
-      fi
-    else
-      echo "DRAC default user is already named $BMC_DEFAULT_USERNAME. Doing nothing..."
+    bmc_store_password_status=$(
+      curl --fail --silent --show-error -XPOST --data-binary "{}" \
+      --write-out "%{http_code}" "${bmc_store_password_url}?p=${password}"
+    )
+    if [[ $bmc_store_password_status != "200" ]]; then
+      # If the return code was not 200, attempt to set the BMC user/password
+      # back to known presets.
+      logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
+      logrun ipmitool user set password 2 "$BMC_DEFAULT_PASSWORD" 20
+      echo "Failed to store BMC password in GCD. Got HTTP status code: ${bmc_store_password_status}"
+      return 1
     fi
   )
 }
@@ -191,8 +187,13 @@ if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
   setup_drac_stage1
   epoxy_client -action epoxy.stage1 -add-kargs
 elif grep epoxy.stage2 /proc/cmdline > /dev/null ; then
-  echo "Checking if stage2 DRAC configuration is needed..."
-  setup_drac_stage2
+  # If the user name is _not_ the default/final one, then we presume that we
+  # need to configure the user name and password.
+  if [[ $ipmi_user != $BMC_DEFAULT_USERNAME ]]; then
+    setup_drac_stage2
+  else
+    echo "DRAC default user is already named $BMC_DEFAULT_USERNAME. Doing nothing..."
+  fi
   epoxy_client -action epoxy.stage2
 else
   echo "WARNING: unknown or no stage found in /proc/cmdline"
