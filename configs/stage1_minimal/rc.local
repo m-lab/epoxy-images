@@ -78,11 +78,6 @@ function setup_drac_stage1() {
     local epoxy_ipv4=$( get_cmdline epoxy.ipv4 "192.168.0.2/24,192.168.0.1,8.8.8.8,8.8.4.4" )
     local ipmi_ipv4
 
-    load_ipmi_modules
-    if [[ $? -ne 0 ]]; then
-      return 1
-    fi
-
     if [ -z "$drac_ipv4" ]; then
       echo "Cannot read DRAC's IPv4 from /proc/cmdline."
       return 1
@@ -91,6 +86,11 @@ function setup_drac_stage1() {
     ipmi_ipv4=$( ipmitool lan print 1 | awk -F: '/^IP Address  /{print $2}' | tr -d '[:space:]' )
     if [ $? -ne 0 ] || [ -z "$ipmi_ipv4" ]; then
       echo "Cannot read current IPv4 address via ipmitool."
+      return 1
+    fi
+
+    load_ipmi_modules
+    if [[ $? -ne 0 ]]; then
       return 1
     fi
 
@@ -131,14 +131,14 @@ function setup_drac_stage2() {
     local bmc_store_password_url=$( get_cmdline epoxy.bmc_store_password "" )
     local password
 
-    load_ipmi_modules
-    if [[ $? -ne 0 ]]; then
-      return 1
-    fi
-
     ipmi_user=$( ipmitool user list 1 | grep '^2' | awk '{print $2}' | tr -d '[:space:]' )
     if [ $? -ne 0 ] || [ -z "$ipmi_user" ]; then
       echo "Cannot read current DRAC username via ipmitool."
+      return 1
+    fi
+
+    load_ipmi_modules
+    if [[ $? -ne 0 ]]; then
       return 1
     fi
 
