@@ -156,13 +156,13 @@ function setup_drac_stage2() {
         return 1
       fi
 
-      logrun ipmitool user set name 2 admin
-      logrun ipmitool user set password 2 "$password" 20
-
       if [[ -z bmc_store_password_url ]]; then
         echo "No kernel param named epoxy.bmc_store_password."
         return 1
       fi
+
+      logrun ipmitool user set name 2 admin
+      logrun ipmitool user set password 2 "$password" 20
 
       bmc_store_password_status=$(
         curl --fail --silent --show-error -XPOST --data-binary "{}" \
