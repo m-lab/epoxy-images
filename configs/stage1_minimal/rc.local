@@ -169,8 +169,9 @@ function setup_drac_stage2() {
         --write-out "%{http_code}" "${bmc_store_password_url}?p=${password}"
       )
       if [[ $bmc_store_password_status != "200" ]]; then
-        # If the return code was not 200, attempt to set the BMC password back
-        # to known preset.
+        # If the return code was not 200, attempt to set the BMC user/password
+        # back to known presets.
+        logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
         logrun ipmitool user set password 2 "$BMC_DEFAULT_PASSWORD" 20
         echo "Failed to store BMC password in GCD. Got HTTP status code: ${bmc_store_password_status}"
         return 1
