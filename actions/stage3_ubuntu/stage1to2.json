@@ -22,6 +22,7 @@
             "epoxy.stage3={{kargs `epoxy.stage3`}}",
             "epoxy.report={{kargs `epoxy.report`}}",
             "epoxy.allocate_k8s_token={{kargs `epoxy.allocate_k8s_token`}}",
+            "epoxy.bmc_store_password={{kargs `epoxy.bmc_store_password`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}"
          ],
