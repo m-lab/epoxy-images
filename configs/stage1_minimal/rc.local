@@ -136,18 +136,21 @@ function setup_drac_stage2() {
     local bmc_store_password_url=$( get_cmdline epoxy.bmc_store_password "" )
     local password
 
-    echo "Configuring DRAC default user..."
-
     ipmi_user=$( ipmitool user list 1 | grep '^2' | awk '{print $2}' | tr -d '[:space:]' )
     if [ $? -ne 0 ] || [ -z "$ipmi_user" ]; then
       echo "Cannot read current DRAC username via ipmitool."
       return 1
     fi
 
-    load_ipmi_modules
-    if [[ $? -ne 0 ]]; then
-      return 1
+    # If the user name is _not_ the default/final one, then we presume that we
+    # need to configure the user name and password.
+    echo "Checking if stage2 DRAC configuration is needed..."
+    if [[ $ipmi_user == $BMC_DEFAULT_USERNAME ]]; then
+      echo "DRAC default user is already named $BMC_DEFAULT_USERNAME. Doing nothing..."
+      return 0
     fi
+
+    echo "Configuring DRAC default user..."
 
     # Generate a semi-random password for the DRAC. Read plenty of chars from
     # urandom to be 100% sure we get enough desired chars for the password.
@@ -161,6 +164,12 @@ function setup_drac_stage2() {
       echo "No kernel param named epoxy.bmc_store_password."
       return 1
     fi
+
+    load_ipmi_modules
+    if [[ $? -ne 0 ]]; then
+      return 1
+    fi
+
 
     logrun ipmitool user set name 2 admin
     logrun ipmitool user set password 2 "$password" 20
@@ -188,14 +197,7 @@ if grep epoxy.stage1 /proc/cmdline > /dev/null ; then
   setup_drac_stage1
   epoxy_client -action epoxy.stage1 -add-kargs
 elif grep epoxy.stage2 /proc/cmdline > /dev/null ; then
-  # If the user name is _not_ the default/final one, then we presume that we
-  # need to configure the user name and password.
-  echo "Checking if stage2 DRAC configuration is needed..."
-  if [[ $ipmi_user != $BMC_DEFAULT_USERNAME ]]; then
-    setup_drac_stage2
-  else
-    echo "DRAC default user is already named $BMC_DEFAULT_USERNAME. Doing nothing..."
-  fi
+  setup_drac_stage2
   epoxy_client -action epoxy.stage2
 else
   echo "WARNING: unknown or no stage found in /proc/cmdline"
