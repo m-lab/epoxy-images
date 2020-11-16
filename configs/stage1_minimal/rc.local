@@ -101,6 +101,9 @@ function setup_drac_stage1() {
 
       echo $epoxy_ipv4 | tr ',' ' ' | (
         read _ gateway _
+        # Here we set the default user name to something unique for stage1 DRAC
+        # configuration, this becomes a flag to the stage2 configuration to
+        # modify the change the user name and set final password.
         logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
         logrun ipmitool user set password 2 "$BMC_DEFAULT_PASSWORD" 20
         logrun ipmitool lan set 1 ipsrc static
