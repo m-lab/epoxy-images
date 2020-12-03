@@ -165,7 +165,7 @@ function setup_drac_stage2() {
       return 1
     fi
 
-    if [[ -z bmc_store_password_url ]]; then
+    if [[ -z $bmc_store_password_url ]]; then
       echo "No kernel param named epoxy.bmc_store_password."
       return 1
     fi
