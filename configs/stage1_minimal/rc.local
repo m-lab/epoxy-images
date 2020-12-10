@@ -1,13 +1,15 @@
 #!/bin/bash
 
+# Log all commands
+set -x
+
 BMC_STAGE1_USERNAME="stageone"
 BMC_STAGE1_PASSWORD="me@sur3m3nt"
 BMC_FINAL_USERNAME="admin"
 
-function logrun() {
-    echo $@
-    $@
-}
+# The maximum number of times to retry an ipmitool command for success before
+# giving up.
+MAX_RETRIES=10
 
 function get_cmdline() {
   local key=$1
@@ -70,6 +72,22 @@ function load_ipmi_modules() {
     fi
 }
 
+# ipmitool commands sometimes fail for unknown reasons. This function retries a
+# command for MAX_TRIES times before giving up.
+function retry_command() {
+  local command=$1
+  local count=0
+
+  until $command; do
+    count=$((count + 1))
+    if [[ "${count}" -ge "${MAX_RETRIES}" ]]; then
+      echo "Exceeded MAX_TRIES (${MAX_RETRIES}) for ${command}"
+      return 1
+    fi
+    sleep 3
+  done
+}
+
 function setup_drac_stage1() {
   (
     set -o pipefail
@@ -106,21 +124,12 @@ function setup_drac_stage1() {
         # Here we set the user name to something unique for stage1 DRAC
         # configuration. This stage1 name becomes a flag to the stage2
         # configuration process to set the final user name and password.
-        logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
-        logrun ipmitool user set password 2 "$BMC_STAGE1_PASSWORD" 20
-        logrun ipmitool lan set 1 ipsrc static
-        logrun ipmitool lan set 1 ipaddr $drac_ipv4
-        # On Dell R640 and iDRAC 9, setting the IP address takes longer than
-        # ipmitool's timeout, thus the command above returns a non-zero exit
-        # code. Since the DRAC configuration normally only happens once,
-        # there is no harm in waiting some more time and retrying, here.
-        if [ $? -ne 0 ]; then
-          echo "DRAC's IP address has not changed yet. Retrying in 30s..."
-          sleep 30
-          logrun ipmitool lan set 1 ipaddr $drac_ipv4
-        fi
-        logrun ipmitool lan set 1 netmask 255.255.255.192
-        logrun ipmitool lan set 1 defgw ipaddr $gateway
+        retry_command "ipmitool user set name 2 ${BMC_STAGE1_USERNAME}"
+        retry_command "ipmitool user set password 2 ${BMC_STAGE1_PASSWORD} 20"
+        retry_command "ipmitool lan set 1 ipsrc static"
+        retry_command "ipmitool lan set 1 ipaddr ${drac_ipv4}"
+        retry_command "ipmitool lan set 1 netmask 255.255.255.192"
+        retry_command "ipmitool lan set 1 defgw ipaddr ${gateway}"
       )
     else
       echo "DRAC is configured already. Skipping configuration."
@@ -170,8 +179,8 @@ function setup_drac_stage2() {
       return 1
     fi
 
-    logrun ipmitool user set name 2 "$BMC_FINAL_USERNAME"
-    logrun ipmitool user set password 2 "$password" 20
+    retry_command "ipmitool user set name 2 ${BMC_FINAL_USERNAME}"
+    retry_command "ipmitool user set password 2 ${password} 20"
 
     bmc_store_password_status=$(
       curl --fail --silent --show-error -XPOST --data-binary "{}" \
@@ -181,8 +190,8 @@ function setup_drac_stage2() {
       # If the return code was not 200, attempt to set the BMC user/password
       # back to the stage1 values so that configuration will be reattemped on
       # the next boot.
-      logrun ipmitool user set name 2 "$BMC_STAGE1_USERNAME"
-      logrun ipmitool user set password 2 "$BMC_STAGE1_PASSWORD" 20
+      retry_command "ipmitool user set name 2 ${BMC_STAGE1_USERNAME}"
+      retry_command "ipmitool user set password 2 ${BMC_STAGE1_PASSWORD} 20"
       echo "Failed to store BMC password in GCD. Got HTTP status code: ${bmc_store_password_status}"
       return 1
     fi
