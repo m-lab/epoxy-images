@@ -160,11 +160,11 @@ curl --silent --show-error --location \
      > $BOOTSTRAP/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Enable various services.
-chroot $BOOTSTRAP systemctl enable docker.service
 chroot $BOOTSTRAP systemctl enable ssh.service
 chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 
 # Disable various services
+chroot $BOOTSTRAP systemctl disable docker.service
 chroot $BOOTSTRAP systemctl disable ondemand.service
 
 ################################################################################

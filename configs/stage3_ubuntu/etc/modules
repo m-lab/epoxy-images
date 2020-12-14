@@ -9,3 +9,8 @@ tg3
 
 # Support access envelope ip6table operations.
 ip6table_filter
+
+# Modules needed by containerd/runc
+overlay
+br_netfilter
+
