@@ -1,8 +1,6 @@
 version = 2
-# We no longer use Docker, but this directory name is a holdover from when we
-# did use Docker.
-root = "/cache/docker"
-state = "/run/containerd"
+root = "/cache/containerd/root"
+state = "/cache/containerd/state"
 plugin_dir = ""
 disabled_plugins = []
 required_plugins = []

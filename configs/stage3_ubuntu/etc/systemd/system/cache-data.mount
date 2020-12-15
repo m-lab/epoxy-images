@@ -9,5 +9,5 @@ Type=xfs
 Options=defaults,prjquota
 
 [Install]
-RequiredBy=docker.service
+RequiredBy=containerd.service
 
