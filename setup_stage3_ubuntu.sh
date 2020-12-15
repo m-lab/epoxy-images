@@ -165,6 +165,8 @@ chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 
 # Disable various services
 chroot $BOOTSTRAP systemctl disable docker.service
+chroot $BOOTSTRAP systemctl disable docker.socket
+chroot $BOOTSTRAP systemctl mask docker.service
 chroot $BOOTSTRAP systemctl disable ondemand.service
 
 ################################################################################
