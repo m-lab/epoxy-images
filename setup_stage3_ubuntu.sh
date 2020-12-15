@@ -138,6 +138,13 @@ if ! chroot $BOOTSTRAP bash -c 'id -u reboot-api'; then
   chroot $BOOTSTRAP bash -c 'chown -R reboot-api:nogroup /home/reboot-api'
 fi
 
+# Add /opt/bin to root's PATH
+echo -e "\nexport PATH=$PATH:/opt/bin" >> $BOOTSTRAP/root/.bashrc
+
+# For root, let crictl know where to find the CRI socket.
+echo -e "\nCONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" \
+  >> $BOOTSTRAP/root/.bashrc
+
 ################################################################################
 # Systemd
 ################################################################################
@@ -188,7 +195,7 @@ fi
 sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
 
 ################################################################################
-# Kubernetes / Docker
+# Kubernetes / CNI / crictl
 ################################################################################
 # Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
