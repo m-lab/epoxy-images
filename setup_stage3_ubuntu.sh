@@ -142,7 +142,7 @@ fi
 echo -e "\nexport PATH=$PATH:/opt/bin" >> $BOOTSTRAP/root/.bashrc
 
 # For root, let crictl know where to find the CRI socket.
-echo -e "\nCONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" \
+echo -e "\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" \
   >> $BOOTSTRAP/root/.bashrc
 
 ################################################################################
