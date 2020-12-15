@@ -30,8 +30,8 @@ ExecStart=sleep 1
 
 # Format and label each partition.
 # Note: the labels could make the formatting conditional in the future.
-ExecStart=/usr/sbin/mkfs.xfs -f -L cache-data /dev/sda1
-ExecStart=/usr/sbin/mkfs.xfs -f -L cache-containerd /dev/sda2
+ExecStart=/usr/sbin/mkfs.xfs -f -L data /dev/sda1
+ExecStart=/usr/sbin/mkfs.xfs -f -L containerd /dev/sda2
 
 [Install]
 # This requirement should cause these mounts to fail if this unit fails.
