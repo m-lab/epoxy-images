@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount containerd Data Volume
+DefaultDependencies=no
+
+[Mount]
+What=/dev/disk/by-label/containerd
+Where=/cache/containerd
+Type=xfs
+Options=defaults
+
+[Install]
+RequiredBy=containerd.service
+

@@ -138,6 +138,13 @@ if ! chroot $BOOTSTRAP bash -c 'id -u reboot-api'; then
   chroot $BOOTSTRAP bash -c 'chown -R reboot-api:nogroup /home/reboot-api'
 fi
 
+# Add /opt/bin to root's PATH
+echo -e "\nexport PATH=$PATH:/opt/bin" >> $BOOTSTRAP/root/.bashrc
+
+# For root, let crictl know where to find the CRI socket.
+echo -e "\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" \
+  >> $BOOTSTRAP/root/.bashrc
+
 ################################################################################
 # Systemd
 ################################################################################
@@ -160,11 +167,20 @@ curl --silent --show-error --location \
      > $BOOTSTRAP/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Enable various services.
-chroot $BOOTSTRAP systemctl enable docker.service
 chroot $BOOTSTRAP systemctl enable ssh.service
 chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 
 # Disable various services
+chroot $BOOTSTRAP systemctl disable docker.service
+chroot $BOOTSTRAP systemctl disable docker.socket
+# Not only do we disable docker.service and docker.socket, but we also mask it
+# to be 100% sure it doesn't get started through any sort of dependency. The
+# reason we absolutely don't want Docker running is that kubeadm tries to
+# autodetect which CRI is in use by looking for common socket paths. If it
+# finds a Docker socket it will use that. In our case, we want it to find the
+# containerd socket and auto configure the kubelet to use that socket for the
+# CRI.
+chroot $BOOTSTRAP systemctl mask docker.service
 chroot $BOOTSTRAP systemctl disable ondemand.service
 
 ################################################################################
@@ -186,7 +202,7 @@ fi
 sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
 
 ################################################################################
-# Kubernetes / Docker
+# Kubernetes / CNI / crictl
 ################################################################################
 # Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
