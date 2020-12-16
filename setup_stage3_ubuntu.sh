@@ -173,6 +173,13 @@ chroot $BOOTSTRAP systemctl enable systemd-networkd.service
 # Disable various services
 chroot $BOOTSTRAP systemctl disable docker.service
 chroot $BOOTSTRAP systemctl disable docker.socket
+# Not only do we disable docker.service and docker.socket, but we also mask it
+# to be 100% sure it doesn't get started through any sort of dependency. The
+# reason we absolutely don't want Docker running is that kubeadm tries to
+# autodetect which CRI is in use by looking for common socket paths. If it
+# finds a Docker socket it will use that. In our case, we want it to find the
+# containerd socket and auto configure the kubelet to use that socket for the
+# CRI.
 chroot $BOOTSTRAP systemctl mask docker.service
 chroot $BOOTSTRAP systemctl disable ondemand.service
 
