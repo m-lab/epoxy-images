@@ -4,7 +4,7 @@
 export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json"
 
 # K8S component versions
-export K8S_VERSION=v1.18.5
+export K8S_VERSION=v1.18.15
 export CRI_VERSION=v1.18.0
 export CNI_VERSION=v0.9.0
 
