@@ -157,13 +157,13 @@ done
 
 # Install the kubelet.service unit file.
 curl --silent --show-error --location \
-    "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/kubelet.service" \
+    "https://raw.githubusercontent.com/kubernetes/release/master/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" \
     > $BOOTSTRAP/etc/systemd/system/kubelet.service
 
 # Install kubelet.service config overrides.
 mkdir --parents $BOOTSTRAP/etc/systemd/system/kubelet.service.d
 curl --silent --show-error --location \
-    "https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/build/debs/10-kubeadm.conf" \
+    "https://raw.githubusercontent.com/kubernetes/release/master/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" \
      > $BOOTSTRAP/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Enable various services.
