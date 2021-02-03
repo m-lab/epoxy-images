@@ -1,0 +1,9 @@
+[Unit]
+Description=Run check-reboot.service daily
+
+[Timer]
+OnCalendar=daily
+
+[Install]
+WantedBy=multi-user.target
+

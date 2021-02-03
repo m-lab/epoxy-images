@@ -1,0 +1,10 @@
+[Unit]
+Description=Check system uptime, and reboot the machine if it is too long
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/check-reboot.sh
+
+[Install]
+WantedBy=multi-user.target
+
