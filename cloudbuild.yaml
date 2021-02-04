@@ -20,6 +20,15 @@ steps:
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
+# Copy the admin kubeconfig into the workspace so that builder.sh can verify the
+# cluster k8s version before building stage3 images.
+- name: gcr.io/cloud-builders/gsutil
+  args: [
+    'cp',
+    'gs://k8s-support-$PROJECT/admin.conf',
+    '/workspace/admin.conf',
+  ]
+
 # stage3_ubuntu images.
 - name: gcr.io/$PROJECT_ID/epoxy-images
   args: [

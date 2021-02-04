@@ -92,6 +92,19 @@ function stage3_ubuntu() {
 
   umask 0022
   echo 'Starting stage3_ubuntu build'
+  # Install kubectl.
+  curl -L --output /usr/bin/kubectl \
+    https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
+  chmod +x /usr/bin/kubectl
+
+  # Check k8s cluster version to be sure that it is equal to the configured k8s
+  # version in this repo before continuing.
+  CLUSTER_VERSION=$(kubectl --kubeconfig admin.conf version --short | grep -i server | awk '{print $3}')
+  if [[ $CLUSTER_VERSION != $K8S_VERSION ]]; then
+    echo "Cluster k8s version is ${CLUSTER_VERSION}, but configured k8s version in this repo is ${K8S_VERSION}. Exiting..."
+    exit 1
+  fi
+
   ${SOURCE_DIR}/setup_stage3_ubuntu.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
       /go/bin/epoxy_client
