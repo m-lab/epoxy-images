@@ -25,7 +25,7 @@ steps:
 - name: gcr.io/cloud-builders/gsutil
   args: [
     'cp',
-    'gs://k8s-support-$PROJECT/admin.conf',
+    'gs://k8s-support-$PROJECT_ID/admin.conf',
     '/workspace/admin.conf',
   ]
 
