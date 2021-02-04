@@ -49,6 +49,17 @@ function umount_proc_and_sys() {
 # Main script
 ##############################################################################
 
+# Check k8s cluster version to be sure that it is equal to the configured k8s
+# version in this repo before continuing.
+curl -L --silent --output /usr/bin/kubectl \
+  https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl
+chmod +x /usr/bin/kubectl
+CLUSTER_VERSION=$(kubectl --kubeconfig admin.conf version --short | grep -i server | awk '{print $3}')
+if [[ $CLUSTER_VERSION != $K8S_VERSION ]]; then
+  echo "Cluster k8s version is ${CLUSTER_VERSION}, but configured k8s version in this repo is ${K8S_VERSION}. Exiting..."
+  exit 1
+fi
+
 # Note: this step cannot be performed by docker build because it requires
 # --privileged mode to mount /proc.
 if ! test -f $BOOTSTRAP/build.date ; then
