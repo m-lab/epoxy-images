@@ -14,6 +14,13 @@ options:
 ############################################################################
 
 steps:
+# Verify that cluster k8s version is the same as configured version in this
+# repo.
+- name: gcr.io/$PROJECT_ID/epoxy-images
+  args: [
+    '/workspace/check_cluster_k8s_version.sh'
+  ]
+
 # stage1 minimal kernel & initram using stock ubuntu kernel.
 - name: gcr.io/$PROJECT_ID/epoxy-images
   args: [
