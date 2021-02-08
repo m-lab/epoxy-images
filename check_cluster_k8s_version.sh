@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euxo pipefail
+
 source ./config.sh
 
 # Check k8s cluster version to be sure that it is equal to the configured k8s
