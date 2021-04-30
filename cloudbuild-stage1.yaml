@@ -100,5 +100,5 @@ steps:
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r', '/workspace/output/stage1_isos/*',
-    'gs://epoxy-$PROJECT_ID/TAG_NAME/stage1_isos/'
+    'gs://epoxy-$PROJECT_ID/latest/stage1_isos/'
   ]
