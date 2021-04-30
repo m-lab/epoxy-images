@@ -76,7 +76,21 @@ steps:
 # not support multiple target locations. So, the steps below are explicit.
 ############################################################################
 
-# stage3_ubuntu.
+# stage3_ubuntu, versioned.
+- name: gcr.io/cloud-builders/gsutil
+  args: [
+    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
+    'cp', '-r',
+    '/workspace/output/stage1_kernel.vmlinuz',
+    '/workspace/output/stage1_initramfs.cpio.gz',
+    '/workspace/output/stage3_kernel_ubuntu.vmlinuz',
+    '/workspace/output/stage3_initramfs_ubuntu.cpio.gz',
+    '/workspace/actions/stage2/stage1to2.ipxe',
+    '/workspace/actions/stage3_ubuntu/*.json',
+    'gs://epoxy-$PROJECT_ID/$TAG_NAME/stage3_ubuntu/'
+  ]
+
+# stage3_ubuntu, latest.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
@@ -90,7 +104,21 @@ steps:
     'gs://epoxy-$PROJECT_ID/latest/stage3_ubuntu/'
   ]
 
-# stage3_update.
+# stage3_update, versioned.
+- name: gcr.io/cloud-builders/gsutil
+  args: [
+    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
+    'cp', '-r',
+    '/workspace/output/stage1_kernel.vmlinuz',
+    '/workspace/output/stage1_initramfs.cpio.gz',
+    '/workspace/output/stage3_kernel_update.vmlinuz',
+    '/workspace/output/stage3_initramfs_update.cpio.gz',
+    '/workspace/actions/stage2/stage1to2.ipxe',
+    '/workspace/actions/stage3_update/*.json',
+    'gs://epoxy-$PROJECT_ID/$TAG_NAME/stage3_update/'
+  ]
+
+# stage3_update, latest.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
