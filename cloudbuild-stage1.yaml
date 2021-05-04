@@ -81,7 +81,7 @@ steps:
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r', '/workspace/output/stage1_mlxrom/*',
-    'gs://epoxy-$PROJECT_ID/latest/stage1_mlxrom/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_mlxrom/'
   ]
 
 # Deploy stage1_mlxrom images again to the 'latest' directory (without version).
@@ -93,12 +93,12 @@ steps:
    - >
      gsutil -h "Cache-Control:private, max-age=0, no-transform" -m
      cp -r /workspace/output/stage1_mlxrom/*/*
-     gs://epoxy-$PROJECT_ID/latest/stage1_mlxrom/latest/
+     gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_mlxrom/latest/
 
 # stage1_isos.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r', '/workspace/output/stage1_isos/*',
-    'gs://epoxy-$PROJECT_ID/latest/stage1_isos/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_isos/'
   ]
