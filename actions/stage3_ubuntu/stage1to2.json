@@ -5,10 +5,10 @@
       },
       "files": {
          "vmlinuz": {
-            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_ubuntu/stage1_kernel.vmlinuz"
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/{{kargs `epoxy.images_version`}}/stage3_ubuntu/stage1_kernel.vmlinuz"
          },
          "initram": {
-            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage3_ubuntu/stage1_initramfs.cpio.gz"
+            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/{{kargs `epoxy.images_version`}}/stage3_ubuntu/stage1_initramfs.cpio.gz"
          }
       },
       "vars": {
@@ -24,7 +24,8 @@
             "epoxy.allocate_k8s_token={{kargs `epoxy.allocate_k8s_token`}}",
             "epoxy.bmc_store_password={{kargs `epoxy.bmc_store_password`}}",
             "epoxy.server={{kargs `epoxy.server`}}",
-            "epoxy.project={{kargs `epoxy.project`}}"
+            "epoxy.project={{kargs `epoxy.project`}}",
+            "epoxy.images_version={{kargs `epoxy.images_version`}}"
          ],
          "cmdline": "net.ifnames=0 autoconf=0"
       },
