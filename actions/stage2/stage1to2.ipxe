@@ -74,6 +74,7 @@ set kargs ${kargs} epoxy.allocate_k8s_token=${allocate_k8s_token_url}
 set kargs ${kargs} epoxy.bmc_store_password=${bmc_store_password_url}
 set kargs ${kargs} epoxy.server=${epoxyaddress}
 set kargs ${kargs} epoxy.project=${project}
+set kargs ${kargs} epoxy.images_version=${images_version}
 
 boot vmlinuz ${kargs} || shell
 
