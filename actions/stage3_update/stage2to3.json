@@ -23,8 +23,8 @@
             "epoxy.server={{kargs `epoxy.server`}}",
             "epoxy.project={{kargs `epoxy.project`}}",
             "epoxy.images_version={{kargs `epoxy.images_version`}}",
-            "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_mlxrom/latest",
-            "epoxy.usbiso=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/stage1_isos/{{kargs `epoxy.hostname`}}_stage1.iso"
+            "epoxy.mrom=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/{{kargs `epoxy.images_version`}}/stage1_mlxrom/latest",
+            "epoxy.usbiso=https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/{{kargs `epoxy.images_version`}}/stage1_isos/{{kargs `epoxy.hostname`}}_stage1.iso"
          ],
          "cmdline": "net.ifnames=0 coreos.autologin=tty1 autoconf=0"
       },
