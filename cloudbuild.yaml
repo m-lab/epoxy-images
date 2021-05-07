@@ -33,42 +33,6 @@ steps:
   ]
 
 ############################################################################
-# DEPLOY ARTIFACTS
-#
-# Note: the artifacts built above need to be copied to specific locations in
-# the target bucket. Currently, the cloudbuilder 'artifacts' directive does
-# not support multiple target locations. So, the steps below are explicit.
-############################################################################
-
-# stage3_ubuntu.
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r',
-    '/workspace/output/stage1_kernel.vmlinuz',
-    '/workspace/output/stage1_initramfs.cpio.gz',
-    '/workspace/output/stage3_kernel_ubuntu.vmlinuz',
-    '/workspace/output/stage3_initramfs_ubuntu.cpio.gz',
-    '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_ubuntu/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_ubuntu/'
-  ]
-
-# stage3_update.
-- name: gcr.io/cloud-builders/gsutil
-  args: [
-    '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
-    'cp', '-r',
-    '/workspace/output/stage1_kernel.vmlinuz',
-    '/workspace/output/stage1_initramfs.cpio.gz',
-    '/workspace/output/stage3_kernel_update.vmlinuz',
-    '/workspace/output/stage3_initramfs_update.cpio.gz',
-    '/workspace/actions/stage2/stage1to2.ipxe',
-    '/workspace/actions/stage3_update/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_update/'
-  ]
-
-############################################################################
 # DEPLOY VERSIONED ARTIFACTS
 #
 # Note: the artifacts built above need to be copied to specific locations in
