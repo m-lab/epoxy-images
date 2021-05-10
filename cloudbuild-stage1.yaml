@@ -34,19 +34,19 @@ steps:
   ]
 
 ############################################################################
-# DEPLOY ARTIFACTS
+# DEPLOY VERSIONED ARTIFACTS
 #
 # Note: the artifacts built above need to be copied to specific locations in
 # the target bucket. Currently, the cloudbuilder 'artifacts' directive does
 # not support multiple target locations. So, the steps below are explicit.
 ############################################################################
 
-# stage1_mlxrom.
+# stage1_mlxrom
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r', '/workspace/output/stage1_mlxrom/*',
-    'gs://epoxy-$PROJECT_ID/stage1_mlxrom/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_mlxrom/'
   ]
 
 # Deploy stage1_mlxrom images again to the 'latest' directory (without version).
@@ -58,12 +58,12 @@ steps:
    - >
      gsutil -h "Cache-Control:private, max-age=0, no-transform" -m
      cp -r /workspace/output/stage1_mlxrom/*/*
-     gs://epoxy-$PROJECT_ID/stage1_mlxrom/latest/
+     gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_mlxrom/latest/
 
 # stage1_isos.
 - name: gcr.io/cloud-builders/gsutil
   args: [
     '-h', 'Cache-Control:private, max-age=0, no-transform', '-m',
     'cp', '-r', '/workspace/output/stage1_isos/*',
-    'gs://epoxy-$PROJECT_ID/stage1_isos/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage1_isos/'
   ]

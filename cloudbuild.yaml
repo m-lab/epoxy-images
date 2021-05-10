@@ -33,7 +33,7 @@ steps:
   ]
 
 ############################################################################
-# DEPLOY ARTIFACTS
+# DEPLOY VERSIONED ARTIFACTS
 #
 # Note: the artifacts built above need to be copied to specific locations in
 # the target bucket. Currently, the cloudbuilder 'artifacts' directive does
@@ -51,7 +51,7 @@ steps:
     '/workspace/output/stage3_initramfs_ubuntu.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_ubuntu/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_ubuntu/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage3_ubuntu/'
   ]
 
 # stage3_update.
@@ -65,5 +65,5 @@ steps:
     '/workspace/output/stage3_initramfs_update.cpio.gz',
     '/workspace/actions/stage2/stage1to2.ipxe',
     '/workspace/actions/stage3_update/*.json',
-    'gs://epoxy-$PROJECT_ID/stage3_update/'
+    'gs://epoxy-$PROJECT_ID/$_IMAGES_VERSION/stage3_update/'
   ]
