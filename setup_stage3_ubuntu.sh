@@ -218,7 +218,7 @@ sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
 ################################################################################
 # Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
-curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-amd64-${CNI_VERSION}.tgz" \
+curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
 # Make all the shims so that network plugins can be debugged.
@@ -252,9 +252,9 @@ rm -Rf ${TMPDIR}
 
 # Install crictl.
 mkdir -p ${BOOTSTRAP}/opt/bin
-wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
-tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C ${BOOTSTRAP}/opt/bin/
-rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
+wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
+tar zxvf crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz -C ${BOOTSTRAP}/opt/bin/
+rm -f crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
 
 # Install the kube* commands.
 # Installation commands adapted from:
