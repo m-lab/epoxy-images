@@ -130,7 +130,7 @@ small shell command like the following:
 
 ```
 $ for node in $(kubectl --context <project> get nodes | grep '^mlab[1-4]' | awk '{print $1}'); do \
-    ssh $node 'touch /var/run/mlab-reboot'; \
+    ssh $node 'sudo touch /var/run/mlab-reboot'; \
   done
 ```
 
