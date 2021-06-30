@@ -49,15 +49,18 @@ function umount_proc_and_sys() {
 # Main script
 ##############################################################################
 
-# Check k8s cluster version to be sure that it is equal to the configured k8s
-# version in this repo before continuing.
+# Make sure that the k8s version configured in K8S_VERSION in this repository
+# is not greater than the version currently running in the API cluster.
 CLUSTER_VERSION=$(
   curl --insecure --silent \
     https://api-platform-cluster.$PROJECT.measurementlab.net:6443/version \
     | jq -r '.gitVersion'
 )
-if [[ $CLUSTER_VERSION != $K8S_VERSION ]]; then
-  echo "Cluster k8s version is ${CLUSTER_VERSION}, but configured k8s version in this repo is ${K8S_VERSION}. Exiting..."
+LOWEST_VERSION=$(
+  echo -e "${CLUSTER_VERSION}\n${K8S_VERSION}" | sort --version-sort | head --lines 1
+)
+if [[ $LOWEST_VERSION != $K8S_VERSION ]]; then
+  echo "K8S_VERSION is ${K8S_VERSION}), which is greater than the cluster version of ${CLUSTER_VERSION}. Exiting..."
   exit 1
 fi
 
