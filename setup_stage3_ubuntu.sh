@@ -49,15 +49,18 @@ function umount_proc_and_sys() {
 # Main script
 ##############################################################################
 
-# Check k8s cluster version to be sure that it is equal to the configured k8s
-# version in this repo before continuing.
+# Make sure that the k8s version configured in K8S_VERSION in this repository
+# is not greater than the version currently running in the API cluster.
 CLUSTER_VERSION=$(
   curl --insecure --silent \
     https://api-platform-cluster.$PROJECT.measurementlab.net:6443/version \
     | jq -r '.gitVersion'
 )
-if [[ $CLUSTER_VERSION != $K8S_VERSION ]]; then
-  echo "Cluster k8s version is ${CLUSTER_VERSION}, but configured k8s version in this repo is ${K8S_VERSION}. Exiting..."
+LOWEST_VERSION=$(
+  echo -e "${CLUSTER_VERSION}\n${K8S_VERSION}" | sort --version-sort | head --lines 1
+)
+if [[ $LOWEST_VERSION != $K8S_VERSION ]]; then
+  echo "K8S_VERSION is ${K8S_VERSION}), which is greater than the cluster version of ${CLUSTER_VERSION}. Exiting..."
   exit 1
 fi
 
@@ -218,7 +221,7 @@ sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
 ################################################################################
 # Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
-curl --location "https://github.com/containernetworking/plugins/releases/download/${CNI_VERSION}/cni-plugins-linux-amd64-${CNI_VERSION}.tgz" \
+curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
 # Make all the shims so that network plugins can be debugged.
@@ -252,9 +255,9 @@ rm -Rf ${TMPDIR}
 
 # Install crictl.
 mkdir -p ${BOOTSTRAP}/opt/bin
-wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${CRI_VERSION}/crictl-${CRI_VERSION}-linux-amd64.tar.gz
-tar zxvf crictl-${CRI_VERSION}-linux-amd64.tar.gz -C ${BOOTSTRAP}/opt/bin/
-rm -f crictl-${CRI_VERSION}-linux-amd64.tar.gz
+wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
+tar zxvf crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz -C ${BOOTSTRAP}/opt/bin/
+rm -f crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
 
 # Install the kube* commands.
 # Installation commands adapted from:
