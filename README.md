@@ -103,11 +103,14 @@ to sandbox, create PR, merge to master, tag repository. The Cloud Builds for
 this repository will generate new boot images with the updated Kubernetes
 components. In mlab-sandbox and mlab-staging, the newly built images will be
 automatically deployed to a node upon reboot. However, in production (mlab-oti)
-they will not be automatically deployed without further action.
+they will not be automatically deployed without further action. See the
+following section for more details.
 
-In order to deploy the new boot images to production you will need modify the
-`ImagesVersion` property of every ePoxy Host GCD entity to match the tag name
-of the production release for this repository. This can be done using the
+## Configure ePoxy to use a newer image version
+
+In order to deploy the new boot images to production you will need to modify
+the `ImagesVersion` property of every ePoxy Host GCD entity to match the tag
+name of the production release for this repository. This can be done using the
 `epoxy_admin` tool. If you don't already have it installed, then install it
 with:
 
@@ -123,6 +126,8 @@ static value in those projects and should always be "latest":
 ```
 $ epoxy_admin update --project mlab-oti --images-version <tag> --hostname "^mlab[1-3]"
 ```
+
+## Trigger a rolling reboot
 
 None of the nodes in any project will be running the updated images until they
 are rebooted. You can trigger a rolling reboot of all nodes in a cluster with a
