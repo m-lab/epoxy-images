@@ -234,7 +234,7 @@ for i in ${BOOTSTRAP}/opt/cni/bin/*; do
 done
 popd
 
-# Install multus and index2ip.
+# Install multus, index2ip and netctl.
 TMPDIR=$(mktemp -d)
 pushd ${TMPDIR}
 mkdir -p src/github.com/intel
@@ -248,6 +248,7 @@ popd
 # TODO: restore `-u` flag. Removed so `go get` works on detached head.
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -ldflags '-w -s' github.com/intel/multus-cni/multus
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip
+GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl
 cp ${TMPDIR}/bin/multus ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
