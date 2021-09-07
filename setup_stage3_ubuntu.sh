@@ -224,16 +224,6 @@ mkdir -p ${BOOTSTRAP}/opt/cni/bin
 curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
-# Make all the shims so that network plugins can be debugged.
-mkdir -p ${BOOTSTRAP}/opt/shimcni/bin
-pushd ${BOOTSTRAP}/opt/shimcni/bin
-for i in ${BOOTSTRAP}/opt/cni/bin/*; do
-    # NOTE: the target path does not exist at this moment, but that's the file
-    # the symlink should reference in the final image filesystem.
-    ln --symbolic --force /opt/shimcni/bin/shim.sh $(basename "$i")
-done
-popd
-
 # Install multus, index2ip and netctl.
 TMPDIR=$(mktemp -d)
 pushd ${TMPDIR}
@@ -253,6 +243,16 @@ cp ${TMPDIR}/bin/multus ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
 rm -Rf ${TMPDIR}
+
+# Make all the shims so that network plugins can be debugged.
+mkdir -p ${BOOTSTRAP}/opt/shimcni/bin
+pushd ${BOOTSTRAP}/opt/shimcni/bin
+for i in ${BOOTSTRAP}/opt/cni/bin/*; do
+    # NOTE: the target path does not exist at this moment, but that's the file
+    # the symlink should reference in the final image filesystem.
+    ln --symbolic --force /opt/shimcni/bin/shim.sh $(basename "$i")
+done
+popd
 
 # Install crictl.
 mkdir -p ${BOOTSTRAP}/opt/bin
