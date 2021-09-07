@@ -245,7 +245,6 @@ chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
 rm -Rf ${TMPDIR}
 
 # Make all the shims so that network plugins can be debugged.
-mkdir -p ${BOOTSTRAP}/opt/shimcni/bin
 pushd ${BOOTSTRAP}/opt/shimcni/bin
 for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # NOTE: the target path does not exist at this moment, but that's the file
