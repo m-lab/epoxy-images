@@ -241,6 +241,7 @@ GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index
 GOPATH=${TMPDIR} CGO_ENABLED=0 GO111MODULE=on go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl
 cp ${TMPDIR}/bin/multus ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
+cp ${TMPDIR}/bin/netctl ${BOOTSTRAP}/opt/cni/bin
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
 rm -Rf ${TMPDIR}
 
