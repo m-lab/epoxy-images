@@ -244,7 +244,6 @@ for i in ${BOOTSTRAP}/opt/cni/bin/*; do
     # the symlink should reference in the final image filesystem.
     ln --symbolic --force /opt/shimcni/bin/shim.sh $(basename "$i")
 done
-popd
 
 # Install crictl.
 mkdir -p ${BOOTSTRAP}/opt/bin
