@@ -227,19 +227,11 @@ curl --location "https://github.com/containernetworking/plugins/releases/downloa
 # Install multus, index2ip and netctl.
 TMPDIR=$(mktemp -d)
 pushd ${TMPDIR}
-mkdir -p src/github.com/intel
-pushd src/github.com/intel
-    git clone https://github.com/intel/multus-cni.git
-    pushd multus-cni
-        git checkout v3.2
-    popd
-  popd
-popd
-# TODO: restore `-u` flag. Removed so `go get` works on detached head.
-GOPATH=${TMPDIR} CGO_ENABLED=0 go get -ldflags '-w -s' github.com/intel/multus-cni/multus
+curl --location "https://github.com/k8snetworkplumbingwg/multus-cni/releases/download/v${MULTUS_CNI_VERSION}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64.tar.gz" \
+  | tar -xz
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip
 GOPATH=${TMPDIR} CGO_ENABLED=0 GO111MODULE=on go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl
-cp ${TMPDIR}/bin/multus ${BOOTSTRAP}/opt/cni/bin
+cp ${TMPDIR}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64/multus-cni ${BOOTSTRAP}/opt/cni/bin/multus
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/netctl ${BOOTSTRAP}/opt/cni/bin
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
