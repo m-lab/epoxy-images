@@ -230,7 +230,7 @@ pushd ${TMPDIR}
 curl --location "https://github.com/k8snetworkplumbingwg/multus-cni/releases/download/v${MULTUS_CNI_VERSION}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64.tar.gz" \
   | tar -xz
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip@v1.2.0
-GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl@v1.0.0/
+GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl@v1.0.0
 cp ${TMPDIR}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64/multus-cni ${BOOTSTRAP}/opt/cni/bin/multus
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/netctl ${BOOTSTRAP}/opt/cni/bin
