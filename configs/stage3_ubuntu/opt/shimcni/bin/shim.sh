@@ -40,3 +40,5 @@ cat \
   > summary
 chmod a+rx "${OUTPUT}"
 chmod a+r "${OUTPUT}"/*
+exit $(cat "${OUTPUT}/exitcode")
+
