@@ -97,6 +97,9 @@ mount_proc_and_sys $BOOTSTRAP
     fi
     chroot $BOOTSTRAP apt-get update --fix-missing
 
+    # Update all installed packages.
+    chroot $BOOTSTRAP apt-get full-upgrade
+
     # Figure out the newest installed linux kernel version.
     # TODO: is there a better way?
     pushd $BOOTSTRAP/boot
