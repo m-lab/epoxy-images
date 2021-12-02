@@ -101,22 +101,22 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get dist-upgrade --yes
 
     # Install ipmitool to configure DRAC during stage1.
-    chroot $BOOTSTRAP apt-get install -y ipmitool
+    chroot $BOOTSTRAP apt-get install --yes ipmitool
 
     # Remove unnecessary packages to save space.
-    chroot $BOOTSTRAP apt-get remove -y \
+    chroot $BOOTSTRAP apt-get remove --yes \
         linux-headers-generic \
         linux-generic \
         ^linux-headers \
         linux-firmware
 
-    chroot $BOOTSTRAP apt-get autoremove -y
-    chroot $BOOTSTRAP apt-get clean -y
-
-    KERNEL_VERSION=basename($(ls -1 $BOOTSTRAP/boot/vmlinux-* | tail -n1))
+    chroot $BOOTSTRAP apt-get autoremove --yes
+    chroot $BOOTSTRAP apt-get clean --yes
 
     # Copy kernel image to output directory before removing it.
-    cp $BOOTSTRAP/boot/$KERNEL_VERSION ${OUTPUT_KERNEL}
+    pushd $BOOTSTRAP/boot
+        cp $(ls -1 vmlinuz-* | tail -n1) ${OUTPUT_KERNEL}
+    popd
 
     # Frees about 50MB
     chroot $BOOTSTRAP apt-get autoclean
