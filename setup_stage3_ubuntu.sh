@@ -210,9 +210,6 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
-# Disable MOTD news.
-sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
-
 ################################################################################
 # Kubernetes / CNI / crictl
 ################################################################################
