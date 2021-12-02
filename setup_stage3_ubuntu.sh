@@ -100,13 +100,6 @@ mount_proc_and_sys $BOOTSTRAP
     # Update all installed packages.
     chroot $BOOTSTRAP apt-get dist-upgrade --yes
 
-    # Figure out the newest installed linux kernel version.
-    # TODO: is there a better way?
-    pushd $BOOTSTRAP/boot
-        KERNEL_VERSION=`ls vmlinuz-*`
-        KERNEL_VERSION=${KERNEL_VERSION##vmlinuz-}
-    popd
-
     # Install ipmitool to configure DRAC during stage1.
     chroot $BOOTSTRAP apt-get install -y ipmitool
 
@@ -114,15 +107,16 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get remove -y \
         linux-headers-generic \
         linux-generic \
-        linux-headers-${KERNEL_VERSION} \
-        linux-headers-${KERNEL_VERSION%%-generic} \
+        ^linux-headers \
         linux-firmware
 
     chroot $BOOTSTRAP apt-get autoremove -y
     chroot $BOOTSTRAP apt-get clean -y
 
+    KERNEL_VERSION=basename($(ls -1 $BOOTSTRAP/boot/vmlinux-* | tail -n1))
+
     # Copy kernel image to output directory before removing it.
-    cp $BOOTSTRAP/boot/vmlinuz-${KERNEL_VERSION} ${OUTPUT_KERNEL}
+    cp $BOOTSTRAP/boot/$KERNEL_VERSION ${OUTPUT_KERNEL}
 
     # Frees about 50MB
     chroot $BOOTSTRAP apt-get autoclean
