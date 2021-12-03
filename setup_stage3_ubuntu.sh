@@ -95,9 +95,10 @@ mount_proc_and_sys $BOOTSTRAP
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
+    # Update the apt repositories.
     chroot $BOOTSTRAP apt-get update --fix-missing
 
-    # Update all installed packages.
+    # Upgrade all installed packages.
     chroot $BOOTSTRAP apt-get dist-upgrade --yes
 
     # Install ipmitool to configure DRAC during stage1.
