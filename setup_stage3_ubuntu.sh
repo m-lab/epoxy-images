@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # setup_stage3_ubuntu.sh builds an initram image based on the Ubuntu Focal
-# (20.04) OS, that includes M-Lab configs and scripts, epoxy_client and k8s-related binaries
+# (20.04) OS with all package upgraded to their latest versions, that includes
+# M-Lab configs and scripts, epoxy_client and k8s-related binaries
 #
 # Example:
 #   ./setup_stage3_ubuntu.sh /build /workspace/output configs/stage3_ubuntu \
