@@ -1,7 +1,8 @@
 #!/bin/bash
 #
 # setup_stage3_ubuntu.sh builds an initram image based on the Ubuntu Focal
-# (20.04) OS, that includes M-Lab configs and scripts, epoxy_client and k8s-related binaries
+# (20.04) OS with all package upgraded to their latest versions, that includes
+# M-Lab configs and scripts, epoxy_client and k8s-related binaries
 #
 # Example:
 #   ./setup_stage3_ubuntu.sh /build /workspace/output configs/stage3_ubuntu \
@@ -95,31 +96,29 @@ mount_proc_and_sys $BOOTSTRAP
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
+    # Update the apt repositories.
     chroot $BOOTSTRAP apt-get update --fix-missing
 
-    # Figure out the newest installed linux kernel version.
-    # TODO: is there a better way?
-    pushd $BOOTSTRAP/boot
-        KERNEL_VERSION=`ls vmlinuz-*`
-        KERNEL_VERSION=${KERNEL_VERSION##vmlinuz-}
-    popd
+    # Upgrade all installed packages.
+    chroot $BOOTSTRAP apt-get dist-upgrade --yes
 
     # Install ipmitool to configure DRAC during stage1.
-    chroot $BOOTSTRAP apt-get install -y ipmitool
+    chroot $BOOTSTRAP apt-get install --yes ipmitool
 
     # Remove unnecessary packages to save space.
-    chroot $BOOTSTRAP apt-get remove -y \
+    chroot $BOOTSTRAP apt-get remove --yes \
         linux-headers-generic \
         linux-generic \
-        linux-headers-${KERNEL_VERSION} \
-        linux-headers-${KERNEL_VERSION%%-generic} \
+        ^linux-headers \
         linux-firmware
 
-    chroot $BOOTSTRAP apt-get autoremove -y
-    chroot $BOOTSTRAP apt-get clean -y
+    chroot $BOOTSTRAP apt-get autoremove --yes
+    chroot $BOOTSTRAP apt-get clean --yes
 
-    # Copy kernel image to output directory before removing it.
-    cp $BOOTSTRAP/boot/vmlinuz-${KERNEL_VERSION} ${OUTPUT_KERNEL}
+    # Copy the most recent kernel image to output directory before removing it.
+    pushd $BOOTSTRAP/boot
+        cp $(ls -v vmlinuz-* | tail -n1) ${OUTPUT_KERNEL}
+    popd
 
     # Frees about 50MB
     chroot $BOOTSTRAP apt-get autoclean
@@ -212,9 +211,6 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
     sed -i -e 's/.*PasswordAuthentication .*/PasswordAuthentication no/g' \
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
-
-# Disable MOTD news.
-sed -i -e 's/ENABLED=1/ENABLED=0/g' $BOOTSTRAP/etc/default/motd-news
 
 ################################################################################
 # Kubernetes / CNI / crictl
