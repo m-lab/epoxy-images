@@ -114,9 +114,9 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get autoremove --yes
     chroot $BOOTSTRAP apt-get clean --yes
 
-    # Copy kernel image to output directory before removing it.
+    # Copy the most recent kernel image to output directory before removing it.
     pushd $BOOTSTRAP/boot
-        cp $(ls -1 vmlinuz-* | tail -n1) ${OUTPUT_KERNEL}
+        cp $(ls -v vmlinuz-* | tail -n1) ${OUTPUT_KERNEL}
     popd
 
     # Frees about 50MB
