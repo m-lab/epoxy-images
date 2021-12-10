@@ -225,13 +225,14 @@ TMPDIR=$(mktemp -d)
 pushd ${TMPDIR}
 curl --location "https://github.com/k8snetworkplumbingwg/multus-cni/releases/download/v${MULTUS_CNI_VERSION}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64.tar.gz" \
   | tar -xz
-curl --location "https://github.com/flannel-io/cni-plugin/releases/download/${K8S_FLANNELCNI_VERSION}/flannel-amd64"
+curl --location "https://github.com/flannel-io/cni-plugin/releases/download/${K8S_FLANNELCNI_VERSION}/flannel-amd64" \
+  > flannel
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/index2ip@v1.2.0
 GOPATH=${TMPDIR} CGO_ENABLED=0 go get -u -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl@v1.0.0
 cp ${TMPDIR}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64/multus-cni ${BOOTSTRAP}/opt/cni/bin/multus
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/netctl ${BOOTSTRAP}/opt/cni/bin
-cp ${TMPDIR}/flannel-amd64 ${BOOTSTRAP}/opt/cni/bin/flannel
+cp ${TMPDIR}/flannel ${BOOTSTRAP}/opt/cni/bin
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
 rm -Rf ${TMPDIR}
 
