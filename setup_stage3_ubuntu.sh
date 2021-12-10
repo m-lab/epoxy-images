@@ -215,7 +215,7 @@ fi
 ################################################################################
 # Kubernetes / CNI / crictl
 ################################################################################
-# Install the CNI binaries: bridge, flannel, host-local, ipvlan, loopback, etc.
+# Install the CNI binaries.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
 curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
