@@ -7,7 +7,7 @@ export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json
 export K8S_VERSION=v1.20.13
 export K8S_CNI_VERSION=v1.0.1
 export K8S_CRICTL_VERSION=v1.20.0
-# v1.0.0 of the official CNI plugins release stopped including flannel, so we
+# v0.9.1 of the official CNI plugins release stopped including flannel, so we
 # must now install it manually.
 export K8S_FLANNELCNI_VERSION=v1.0.0
 
