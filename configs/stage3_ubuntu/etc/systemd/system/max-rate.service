@@ -1,0 +1,8 @@
+[Unit]
+Description=Determines ndt-server max-rate for this node
+After=network.target
+Before=configure-tc-fq.service setup-after-boot.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/max-rate.sh
