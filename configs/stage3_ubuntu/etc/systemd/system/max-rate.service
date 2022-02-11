@@ -1,6 +1,6 @@
 [Unit]
 Description=Determines ndt-server max-rate for this node
-After=network.target
+After=network-online.target
 Before=configure-tc-fq.service setup-after-boot.service
 
 [Service]
