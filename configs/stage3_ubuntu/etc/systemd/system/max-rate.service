@@ -1,7 +1,8 @@
 [Unit]
 Description=Determines ndt-server max-rate for this node
-After=network-online.target
+After=systemd-networkd-wait-online.service
 Before=configure-tc-fq.service setup-after-boot.service
+Wants=systemd-networkd-wait-online.service
 
 [Service]
 Type=oneshot
