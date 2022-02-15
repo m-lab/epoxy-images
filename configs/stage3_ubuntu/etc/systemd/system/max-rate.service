@@ -6,3 +6,6 @@ Before=configure-tc-fq.service setup-after-boot.service
 [Service]
 Type=oneshot
 ExecStart=/opt/mlab/bin/max-rate.sh
+
+[Install]
+WantedBy=multi-user.target
