@@ -1,16 +1,9 @@
 #!/bin/bash
 
-SITE=${HOSTNAME:6:5}
-SPEED=$(curl --silent --show-error --location \
-    https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
-    | jq -r ".${SITE}.uplink_speed")
-
-if [[ "${SPEED}" == "10g" ]]; then
-  MAXRATE="10gbit"
-elif [[ "${SPEED}" == "1g" ]]; then
-  MAXRATE="1gbit"
-else
-  echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
+MAX_RATE=$(cat /etc/ndt-max-rate)
+if [[ -z $MAX_RATE ]]; then
+  echo "ERROR: NDT max-rate not found in /etc/ndt-max-rate."
+  echo "Not configuring default qdisc for eth0."
   exit 1
 fi
 
