@@ -4,7 +4,11 @@ SITE=${HOSTNAME:6:5}
 PROJECT=$(echo $HOSTNAME | cut -d. -f2)
 SITEINFO_URL=siteinfo.${PROJECT}.measurementlab.net
 
-while ! busybox nslookup ${SITEINFO_URL}; do
+# Even though the systemd service (max-rate.service) which calls this script is
+# configured to run _After_ the nss-lookup.target, for some reason DNS
+# resolution, at least for external hosts, is still not functional at this
+# point. Run a loop waiting for name resolution to start working before moving on.
+while busybox nslookup ${SITEINFO_URL} | grep SERVFAIL; do
   echo "Name resolution failed."
 done
 
