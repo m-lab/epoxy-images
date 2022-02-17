@@ -1,0 +1,11 @@
+[Unit]
+Description=Determines ndt-server max-rate for this node
+After=nss-lookup.target
+Before=setup-after-boot.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/max-rate.sh
+
+[Install]
+WantedBy=multi-user.target
