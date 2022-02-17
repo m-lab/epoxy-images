@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# max-rate.sh downloads the siteinfo format max-rates.json, determines the
+# NDT max-rate for the current site, and then writes that value to a file in the
+# local filesystem. ndt-server will read this value in order to properly set its
+# -txcontroller.max-rate flag. This script takes no arguments, and the only
+# input it uses is the $HOSTNAME environment variable to determine the node's
+# site name and GCP project.
 
 SITE=${HOSTNAME:6:5}
 PROJECT=$(echo $HOSTNAME | cut -d. -f2)
@@ -10,7 +17,7 @@ METADATA_DIR=/var/local/metadata
 # resolution, at least for external hosts, is still not functional at this
 # point. Run a loop waiting for name resolution to start working before moving on.
 while busybox nslookup ${SITEINFO_URL} | grep SERVFAIL &> /dev/null; do
-  :
+  sleep .1
 done
 
 MAX_RATE=$(curl --silent --show-error --location \
