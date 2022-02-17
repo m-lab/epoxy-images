@@ -7,6 +7,11 @@ if [[ -z $MAX_RATE ]]; then
   exit 1
 fi
 
-/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
+/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAX_RATE}"
 
-echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+if [[ $? -ne 0 ]]; then
+  echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAX_RATE}"
+  exit 1
+fi
+
+echo "Set maxrate for qdisc fq on dev eth0 to: ${MAX_RATE}"
