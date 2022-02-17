@@ -8,8 +8,8 @@ SITEINFO_URL=siteinfo.${PROJECT}.measurementlab.net
 # configured to run _After_ the nss-lookup.target, for some reason DNS
 # resolution, at least for external hosts, is still not functional at this
 # point. Run a loop waiting for name resolution to start working before moving on.
-while busybox nslookup ${SITEINFO_URL} | grep SERVFAIL; do
-  echo "Name resolution failed."
+while busybox nslookup ${SITEINFO_URL} | grep SERVFAIL &> /dev/null; do
+  :
 done
 
 MAX_RATE=$(curl --silent --show-error --location \
