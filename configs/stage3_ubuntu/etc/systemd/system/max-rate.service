@@ -1,7 +1,7 @@
 [Unit]
 Description=Determines ndt-server max-rate for this node
 After=nss-lookup.target
-Before=configure-tc-fq.service setup-after-boot.service
+Before=setup-after-boot.service
 
 [Service]
 Type=oneshot
