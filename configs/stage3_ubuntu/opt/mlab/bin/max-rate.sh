@@ -3,6 +3,7 @@
 SITE=${HOSTNAME:6:5}
 PROJECT=$(echo $HOSTNAME | cut -d. -f2)
 SITEINFO_URL=siteinfo.${PROJECT}.measurementlab.net
+METADATA_DIR=/var/local/metadata
 
 # Even though the systemd service (max-rate.service) which calls this script is
 # configured to run _After_ the nss-lookup.target, for some reason DNS
@@ -21,4 +22,6 @@ if [[ -z $MAX_RATE ]]; then
   exit 1
 fi
 
-echo -n $MAX_RATE > /etc/ndt-max-rate
+mkdir -p ${METADATA_DIR}
+
+echo -n $MAX_RATE > $METADATA_DIR/iface-max-rate
