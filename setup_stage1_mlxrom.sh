@@ -46,7 +46,7 @@ function prepare_flexboot_source() {
     fi
     version=$( basename ${archive_path} .tar.gz )
     unpack ${version} ${archive_path}
-    pushd ${version}/src
+    pushd ${version}/
       # Add the 'driver_version' definition to flexboot source.
       git apply ${config_dir}/romprefix.S.diff
 
