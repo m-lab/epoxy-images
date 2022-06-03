@@ -218,7 +218,7 @@ fi
 pushd $BOOTSTRAP/etc/ssh
 # Don't log this command, since it contains sensitive private key material.
 set +x
-echo $SSH_HOST_CA_KEY > ./host_ca
+echo "$SSH_HOST_CA_KEY" > ./host_ca
 chmod 0600 ./host_ca
 set -x
 for f in $(ls ssh_host_*_key.pub); do
