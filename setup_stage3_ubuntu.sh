@@ -223,7 +223,7 @@ chmod 0600 ./host_ca
 set -x
 for f in $(ls ssh_host_*_key.pub); do
   ssh-keygen -s host_ca -I mlab -h -V always:forever $f
-  echo "HostCertificate /etc/ssh/$f" >> /etc/ssh/sshd_config
+  echo "HostCertificate /etc/ssh/$f" >> sshd_config
 done
 rm ./host_ca
 popd
