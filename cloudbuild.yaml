@@ -9,6 +9,11 @@ options:
     - 'PROJECT=$PROJECT_ID'
     - 'ARTIFACTS=/workspace/output'
 
+availableSecrets:
+  secretManager:
+  - versionName: projects/${PROJECT_NUMBER}/secrets/platform-ssh-host-ca-private-key/versions/latest
+    env: SSH_HOST_CA_KEY
+
 ############################################################################
 # BUILD ARTIFACTS
 ############################################################################
@@ -22,9 +27,12 @@ steps:
 
 # stage3_ubuntu images.
 - name: gcr.io/$PROJECT_ID/epoxy-images
-  args: [
-    '/workspace/builder.sh', 'stage3_ubuntu'
-  ]
+  entrypoint: /bin/bash
+  args:
+  - '-c'
+  - '/workspace/builder.sh stage3_ubuntu'
+  secretEnv:
+  - SSH_HOST_CA_KEY
 
 # stage3_update images.
 - name: gcr.io/$PROJECT_ID/epoxy-images

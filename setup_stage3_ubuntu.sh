@@ -212,6 +212,22 @@ if ! grep -q -E '^PasswordAuthentication no' $BOOTSTRAP/etc/ssh/sshd_config ; th
         $BOOTSTRAP/etc/ssh/sshd_config
 fi
 
+# Sign all of the host ssh public keys using the SSH CA private key. This key is
+# stored in GCP Secret Manager which is made available to this script via an
+# environment variable. See cloudbuild.yaml in the root of this repo for details.
+pushd $BOOTSTRAP/etc/ssh
+# Don't log this command, since it contains sensitive private key material.
+set +x
+echo "$SSH_HOST_CA_KEY" > ./host_ca
+chmod 0600 ./host_ca
+set -x
+for f in $(ls ssh_host_*_key.pub); do
+  ssh-keygen -s host_ca -I mlab -h -V always:forever $f
+  echo "HostCertificate /etc/ssh/${f%%.pub}-cert.pub" >> sshd_config
+done
+rm ./host_ca
+popd
+
 ################################################################################
 # Kubernetes / CNI / crictl
 ################################################################################
