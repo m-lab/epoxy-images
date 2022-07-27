@@ -14,21 +14,26 @@ SPEED=$(curl --silent --show-error --location \
     https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
     | jq -r ".${SITE}.uplink_speed")
 
+# Internally, tc stores rates as 32-bit unsigned integers in bps (bytes per
+# second).  Because of this, and to make comparisons easier later in the script,
+# we convert the "g" value to a bps value.
 if [[ "${SPEED}" == "10g" ]]; then
-  MAXRATE="10gbit"
+  MAXRATE="1250000000"
 elif [[ "${SPEED}" == "1g" ]]; then
-  MAXRATE="1gbit"
+  MAXRATE="125000000"
 else
   echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
   echo -n "0" >> $METRIC_FILE_TEMP
+  mv $METRIC_FILE_TEMP $METRIC_FILE
   exit 1
 fi
 
-/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}"
+/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}bps"
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAXRATE}"
   echo -n "0" >> $METRIC_FILE_TEMP
+  mv $METRIC_FILE_TEMP $METRIC_FILE
   exit 1
 fi
 
@@ -38,6 +43,7 @@ configured_maxrate=$(tc -json qdisc show dev eth0 | jq -r '.[0].options.maxrate'
 if [[ $configured_maxrate != $MAXRATE ]]; then
   echo "maxrate of qdisc fq on eth0 is ${configured_maxrate}, but should be ${MAXRATE}"
   echo -n "0" >> $METRIC_FILE_TEMP
+  mv $METRIC_FILE_TEMP $METRIC_FILE
   exit 1
 fi
 
