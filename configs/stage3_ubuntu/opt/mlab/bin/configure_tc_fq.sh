@@ -1,13 +1,19 @@
 #!/bin/bash
 
 # This script writes out a Prometheus metric file which will be collected by the
-# node_exporter textfile collector. Make sure that the textfile collector
-# directory exists. And write out the stub metric file.
-METRIC_DIR=/var/spool/node_exporter
-METRIC_FILE=$METRIC_DIR/configure_tc_fq.prom
+# node_exporter textfile collector.
+METRIC_FILE=/cache/data/node-exporter/configure_tc_fq.prom
 METRIC_FILE_TEMP=$(mktemp)
-mkdir -p $METRIC_DIR
 echo -n "node_configure_qdisc_success " > $METRIC_FILE_TEMP
+
+# Append the passed status code to the temporary metric file, overwrite the
+# metric file with the temp metric file, and make the metric file world readable.
+function overwrite_metric_file {
+  local status=$1
+  echo "$status" >> $METRIC_FILE_TEMP
+  mv $METRIC_FILE_TEMP $METRIC_FILE
+  chmod 644 $METRIC_FILE
+}
 
 SITE=${HOSTNAME:6:5}
 SPEED=$(curl --silent --show-error --location \
@@ -23,8 +29,7 @@ elif [[ "${SPEED}" == "1g" ]]; then
   MAXRATE="125000000"
 else
   echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
-  echo -n "0" >> $METRIC_FILE_TEMP
-  mv $METRIC_FILE_TEMP $METRIC_FILE
+  overwrite_metric_file 0
   exit 1
 fi
 
@@ -32,8 +37,7 @@ fi
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAXRATE}"
-  echo -n "0" >> $METRIC_FILE_TEMP
-  mv $METRIC_FILE_TEMP $METRIC_FILE
+  overwrite_metric_file 0
   exit 1
 fi
 
@@ -42,11 +46,9 @@ fi
 configured_maxrate=$(tc -json qdisc show dev eth0 | jq -r '.[0].options.maxrate')
 if [[ $configured_maxrate != $MAXRATE ]]; then
   echo "maxrate of qdisc fq on eth0 is ${configured_maxrate}, but should be ${MAXRATE}"
-  echo -n "0" >> $METRIC_FILE_TEMP
-  mv $METRIC_FILE_TEMP $METRIC_FILE
+  overwrite_metric_file 0
   exit 1
 fi
 
-echo -n "1" >> $METRIC_FILE_TEMP
-mv $METRIC_FILE_TEMP $METRIC_FILE
+overwrite_metric_file 1
 echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
