@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # This script writes out a Prometheus metric file which will be collected by the
-# node_exporter textfile collector.
-METRIC_FILE=/cache/data/node-exporter/configure_tc_fq.prom
+# node_exporter textfile collector. Make sure that METRIC_DIR exists.
+METRIC_DIR=/cache/data/node-exporter
+METRIC_FILE=$METRIC_DIR/configure_tc_fq.prom
 METRIC_FILE_TEMP=$(mktemp)
+mkdir -p $METRIC_DIR
 echo -n "node_configure_qdisc_success " > $METRIC_FILE_TEMP
 
 # Append the passed status code to the temporary metric file, overwrite the
