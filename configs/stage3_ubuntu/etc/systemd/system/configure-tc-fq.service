@@ -1,6 +1,6 @@
 [Unit]
 Description=Configures TCP pacing properly depending on the site's uplink speed
-After=multi-user.target
+After=cache-data.mount multi-user.target
 
 [Service]
 Type=oneshot
@@ -8,4 +8,3 @@ ExecStart=/opt/mlab/bin/configure_tc_fq.sh
 
 [Install]
 WantedBy=multi-user.target
-
