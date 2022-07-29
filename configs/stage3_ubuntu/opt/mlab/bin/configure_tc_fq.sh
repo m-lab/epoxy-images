@@ -31,7 +31,7 @@ elif [[ "${SPEED}" == "1g" ]]; then
   MAXRATE="125000000"
 else
   echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
-  overwrite_metric_file 0
+  write_metric_file 0
   exit 1
 fi
 
@@ -39,7 +39,7 @@ fi
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAXRATE}"
-  overwrite_metric_file 0
+  write_metric_file 0
   exit 1
 fi
 
@@ -48,9 +48,9 @@ fi
 configured_maxrate=$(tc -json qdisc show dev eth0 | jq -r '.[0].options.maxrate')
 if [[ $configured_maxrate != $MAXRATE ]]; then
   echo "maxrate of qdisc fq on eth0 is ${configured_maxrate}, but should be ${MAXRATE}"
-  overwrite_metric_file 0
+  write_metric_file 0
   exit 1
 fi
 
-overwrite_metric_file 1
+write_metric_file 1
 echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
