@@ -8,9 +8,9 @@ METRIC_FILE_TEMP=$(mktemp)
 mkdir -p $METRIC_DIR
 echo -n "node_configure_qdisc_success " > $METRIC_FILE_TEMP
 
-# Append the passed status code to the temporary metric file, overwrite the
-# metric file with the temp metric file, and make the metric file world readable.
-function overwrite_metric_file {
+# Append the passed status code to the temporary metric file, then move the temp
+# metric file to the proper location, making it world readable.
+function write_metric_file {
   local status=$1
   echo "$status" >> $METRIC_FILE_TEMP
   mv $METRIC_FILE_TEMP $METRIC_FILE
