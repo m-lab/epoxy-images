@@ -28,7 +28,7 @@ steps:
 
 # stage1 ISOs
 # NOTE: must run after stage1_minimal so that kernel & initram are available.
-- name: gcr.io/$PROJECT_ID/epoxy-images1.18
+- name: gcr.io/$PROJECT_ID/epoxy-images:1.18
   args: [
     '/workspace/builder.sh', 'stage1_isos'
   ]
