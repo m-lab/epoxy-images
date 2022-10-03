@@ -18,4 +18,4 @@ export MFT_VERSION=4.14.0-105
 export MLXROM_VERSION=3.4.817
 
 # multus-cni version
-export MULTUS_CNI_VERSION=3.9.1
+export MULTUS_CNI_VERSION=3.9
