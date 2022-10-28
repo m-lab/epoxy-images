@@ -70,7 +70,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
     rm -rf $BOOTSTRAP/dev
     # Disable interactive prompt from grub-pc or other packages.
     export DEBIAN_FRONTEND=noninteractive
-    debootstrap --arch amd64 focal $BOOTSTRAP
+    debootstrap --arch amd64 jammy $BOOTSTRAP
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
 fi
 
@@ -95,7 +95,7 @@ mount_proc_and_sys $BOOTSTRAP
 
     # Add extra apt sources to install latest kernel image and headers.
     # TODO: only append the source once.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates main universe multiverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi

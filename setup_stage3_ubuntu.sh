@@ -81,7 +81,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
-      --components=main,universe,multiverse --arch amd64 focal $BOOTSTRAP
+      --components=main,universe,multiverse --arch amd64 jammy $BOOTSTRAP
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
@@ -92,7 +92,7 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add extra apt sources to install latest kernel image and headers.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ focal-updates main universe multiverse'
+    LINE='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
