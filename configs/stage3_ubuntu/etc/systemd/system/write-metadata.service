@@ -1,0 +1,11 @@
+[Unit]
+Description=Writes metadata to a known location
+Before=setup-after-boot.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/write-metadata.sh
+
+[Install]
+WantedBy=multi-user.target
+
