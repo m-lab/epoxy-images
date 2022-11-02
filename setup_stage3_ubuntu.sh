@@ -165,10 +165,6 @@ echo -e "\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.s
 # Don't go beyond multi-user.target as these are headless systems.
 chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
 
-for unit in $(find $CONFIG_DIR/etc/systemd/system -maxdepth 1 -type f -printf "%f\n"); do
-  chroot $BOOTSTRAP bash -c "systemctl enable $unit"
-done
-
 # Install the kubelet.service unit file.
 curl --silent --show-error --location \
     "https://raw.githubusercontent.com/kubernetes/release/v0.7.0/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" \
@@ -179,6 +175,10 @@ mkdir --parents $BOOTSTRAP/etc/systemd/system/kubelet.service.d
 curl --silent --show-error --location \
     "https://raw.githubusercontent.com/kubernetes/release/v0.7.0/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" \
      > $BOOTSTRAP/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+for unit in $(find $CONFIG_DIR/etc/systemd/system -maxdepth 1 -type f -printf "%f\n"); do
+  chroot $BOOTSTRAP bash -c "systemctl enable $unit"
+done
 
 # Enable various services.
 chroot $BOOTSTRAP systemctl enable ssh.service
