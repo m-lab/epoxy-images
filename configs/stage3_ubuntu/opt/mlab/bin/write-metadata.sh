@@ -5,9 +5,8 @@
 # have some awareness of its environment. The experiment may optionally include
 # this metadata in its test results.
 
-$METADATA_DIR=/var/local/metadata
-
-mkdir -p /var/local/metadata
+METADATA_DIR=/var/local/metadata
+mkdir -p $METADATA_DIR
 
 # Write the kernel version
 uname -r | tr -d '\n' > $METADATA_DIR/kernel-version
