@@ -15,7 +15,8 @@ PROJECT=${1:?Please specify the GCP project to contact: $USAGE}
 BUILD_DIR=${2:?Please specify a build directory: $USAGE}
 OUTPUT_DIR=${3:?Please specify an output directory: $USAGE}
 CONFIG_DIR=${4:?Please specify a configuration directory: $USAGE}
-CERTS=${5:?Please specify trusted certs to embed in ROM: $USAGE}
+ROM_VERSION=${5:?Please specify the ROM version as "3.4.8xx": $USAGE}
+CERTS=${6:?Please specify trusted certs to embed in ROM: $USAGE}
 
 function generate_stage1_ipxe_scripts() {
   local build_dir=$1
@@ -39,12 +40,62 @@ function generate_stage1_ipxe_scripts() {
   popd
 }
 
+# define reads a heredoc into the named variable. The variable will be global.
+function define() {
+  local varname=$1
+  #  -r     Backslash does not act as an escape character.
+  #  -d     The first character is used to terminate the input line. We use the
+  #         empty string, so line input is not terminated until "EOF".
+  # TODO: why do we set IFS?
+  IFS='\n' read -r -d '' ${varname} || true;
+}
+
+function get_extra_flags() {
+  local target=$1
+  local version=$2
+  local device_id=
+
+  local major=${version%%.*}
+  local sub=${version%.*} ; sub=${sub#*.}
+  local minor=${version##*.}
+
+  major=$( printf "%04x" $major )
+  sub=$( printf "%04x" $sub )
+  minor=$( printf "%04x" $minor )
+
+  case $target in
+
+    ConnectX-3)
+      device_id=0x1003
+      ;;
+
+    ConnectX-3Pro)
+      device_id=0x1007
+      ;;
+
+    *)
+      echo "Error: unsupported target name: $target" 1>&2
+      exit 1
+      ;;
+  esac
+
+  define extra_flags <<EOM
+    -DDEVICE_CX3
+    -D__MLX_0001_MAJOR_VER_=0x0010${major}
+    -D__MLX_MIN_SUB_MIN_VER_=0x${sub}${minor}
+    -D__MLX_DEV_ID_00ff=${device_id}00ff
+    -D__BUILD_VERSION__=\"$version\"
+EOM
+  echo $extra_flags
+}
+
 function build_roms() {
   local ipxe_src=$1
   local stage1_config_dir=$2
-  local debug=$3
-  local certs=$4
-  local rom_output_dir=$5
+  local version=$3
+  local debug=$4
+  local certs=$5
+  local rom_output_dir=$6
 
   local extra_cflags=
   local procs=`getconf _NPROCESSORS_ONLN`
@@ -52,15 +103,14 @@ function build_roms() {
   # 15b3 is the vendor ID for Mellanox Technologies
   # 1003 is the device ID for the ConnectX-3
   # 1007 is the device ID for the ConnectX-3Pro
-  for device in 15b31003 15b31007; do
-    pushd ${ipxe_src}
-      # Use the git short commit of HEAD as the version string for the images.
-      version=$(git rev-parse --short HEAD)
+  for device_name in ConnectX-3 ConnectX-3Pro; do
 
-      if [[ $device == "15b31003" ]]; then
-        device_name="ConnectX-3"
+    extra_cflags="$( get_extra_flags $device_name $version )"
+    pushd ${ipxe_src}
+      if [[ $device_name == "ConnectX-3" ]]; then
+        device="15b31003"
       else
-        device_name="ConnectX-3Pro"
+        device="15b31007"
       fi
 
       # NOTE: clean the build environment between devices. Without resetting,
@@ -75,7 +125,7 @@ function build_roms() {
 
         # The generated ROM file is the device name.
         make -j ${procs} bin/${device}.mrom \
-            EXTRA_CFLAGS="-D__BUILD_VERSION__=$version" \
+            EXTRA_CFLAGS="${extra_cflags}" \
             DEBUG=${debug} \
             TRUST=${certs} \
             EMBED=${stage1} \
@@ -119,9 +169,13 @@ DEBUG=
 
 SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
 
-# Clone the ipxe sources.
+# Clone and patch the ipxe sources.
 git clone https://github.com/ipxe/ipxe.git
 ipxe_source=/workspace/ipxe/src
+pushd ipxe
+  # Add the 'driver_version' definition to flexboot source.
+  git apply ${CONFIG_DIR}/romprefix.S.diff
+popd
 
 generate_stage1_ipxe_scripts \
     ${BUILD_DIR} \
@@ -131,6 +185,7 @@ generate_stage1_ipxe_scripts \
 build_roms \
     "${ipxe_source}" \
     "${SCRIPTDIR}" \
+    "${ROM_VERSION}" \
     "${DEBUG}" \
     "${CERTS}" \
     "${BUILD_DIR}/stage1_mlxrom"

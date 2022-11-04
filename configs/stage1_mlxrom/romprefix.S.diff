@@ -1,9 +1,9 @@
 diff --git a/src/arch/x86/prefix/romprefix.S b/src/arch/x86/prefix/romprefix.S
-index 24803a7..3287de5 100644
+index 4e8793c2..8c8034f4 100644
 --- a/src/arch/x86/prefix/romprefix.S
 +++ b/src/arch/x86/prefix/romprefix.S
-@@ -2753,3 +2753,11 @@ REQUIRING_SYMBOL ( _rom_start )
- 
+@@ -909,3 +909,11 @@ REQUIRING_SYMBOL ( _rom_start )
+
  /* Drag in ROM configuration */
  REQUIRE_OBJECT ( config_romprefix )
 +
