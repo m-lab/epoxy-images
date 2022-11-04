@@ -173,8 +173,9 @@ SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
 git clone https://github.com/ipxe/ipxe.git
 ipxe_source=/workspace/ipxe/src
 pushd ipxe
-  # Add the 'driver_version' definition to flexboot source.
+  # Patches sources and configure build options
   git apply ${CONFIG_DIR}/romprefix.S.diff
+  git apply ${CONFIG_DIR}/config_general.h.diff
 popd
 
 generate_stage1_ipxe_scripts \
