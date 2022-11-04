@@ -24,11 +24,11 @@ PAUSE=5
 
 
 # Backup current ROM by "reading" the ROM (rrom) from the local device.
-flint --device "${DEV}" rrom current.mrom
+flint --yes --device "${DEV}" rrom current.mrom
 
 # "Query" the new and current ROM versions (qrom).
-NEW_VERSION=$( flint --image "${ROM}" qrom )
-CUR_VERSION=$( flint --image current.mrom qrom )
+NEW_VERSION=$( flint --yes --image "${ROM}" qrom )
+CUR_VERSION=$( flint --yes --image current.mrom qrom )
 
 echo "ROM Versions:"
 echo "   Currently installed: $CUR_VERSION"
@@ -83,8 +83,8 @@ mlxconfig --dev "${DEV}" --yes --enable_verbosity set LEGACY_BOOT_PROTOCOL_P1=PX
 
 # For debugging, query the device to report current configuration.
 echo "Before update"
-flint --device "$DEV" query
-mlxconfig --dev "$DEV" query
+flint --yes --device "$DEV" query
+mlxconfig --yes --dev "$DEV" query
 sleep $PAUSE
 
 # Burn ROM to NIC.
@@ -101,17 +101,18 @@ echo "Performing update now..."
 #
 # NOTE: "Burn" the ROM (brom) to the device.
 # TODO: flip out if burning or verifying images fail.
-flint --allow_rom_change --device "$DEV" brom "$ROM"
+flint --yes --allow_rom_change --device "$DEV" brom "$ROM"
 # Verify that the device recognizes the new image.
-flint --device "$DEV" verify
+flint --yes --device "$DEV" verify
 sleep $PAUSE
 
 # For debugging, query the device to report new configuration.
 echo "After update"
-flint --device "$DEV" query
-mlxconfig --dev "$DEV" query
+flint --yes --device "$DEV" query
+mlxconfig --yes --dev "$DEV" query
 sleep $PAUSE
 
 # Perform a final verification that the new ROM matches the expected ROM.
-flint --device "$DEV" rrom latest.mrom
+flint --yes --device "$DEV" rrom latest.mrom
 diff latest.mrom "$ROM"
+
