@@ -169,11 +169,11 @@ DEBUG=
 
 SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
 
-# Patch iPXE sources (they are a git module) in this repo.
-git submodule update --recursive
+# Patch iPXE sources (they are a git submodule) in this repo.
+git submodule update --init --recursive
 ipxe_source=/workspace/ipxe/src
 pushd ipxe
-  # Patches sources and configure build options
+  # Patches sources and configures build options
   git apply ${CONFIG_DIR}/romprefix.S.diff
   git apply ${CONFIG_DIR}/config_general.h.diff
 popd
