@@ -12,10 +12,10 @@ export K8S_CRICTL_VERSION=v1.22.1
 export K8S_FLANNELCNI_VERSION=v1.1.0
 
 # stage3 mlxupdate
-export MFT_VERSION=4.14.0-105
+export MFT_VERSION=4.22.0-96
 
 # stage1 mlxrom
-export MLXROM_VERSION=3.4.817
+export MLXROM_VERSION=3.4.818
 
 # multus-cni version
 export MULTUS_CNI_VERSION=3.9
