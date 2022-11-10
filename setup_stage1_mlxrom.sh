@@ -169,8 +169,8 @@ DEBUG=
 
 SCRIPTDIR=$( mktemp -d -t stage1_scripts.XXXXXX )
 
-# Clone and patch the ipxe sources.
-git clone https://github.com/ipxe/ipxe.git
+# Patch iPXE sources (they are a git module) in this repo.
+git submodule update --recursive
 ipxe_source=/workspace/ipxe/src
 pushd ipxe
   # Patches sources and configure build options
