@@ -12,7 +12,7 @@ tar -hczf packer/virtual-files.tar.gz --owner root --group root -C configs/stage
 
 cd packer
 packer init .
-packer build \
+packer build -force \
   -var "project_id=$PROJECT" \
   -var "image_version=$IMAGES_VERSION" \
   mlab.pkr.hcl
