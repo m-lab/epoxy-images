@@ -2,9 +2,9 @@
 timeout: 14400s
 
 # The default disk size is 100GB. However, the stage1 ISOs are pretty big these
-# days. 400GB  should give us some breathing room.
+# days. 600GB  should give us some breathing room.
 options:
-  diskSizeGb: 400
+  diskSizeGb: 600
   env:
     - 'PROJECT=$PROJECT_ID'
     - 'ARTIFACTS=/workspace/output'
