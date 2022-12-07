@@ -24,6 +24,7 @@ apt install -y \
   ebtables \
   iptables \
   jq \
+  less \
   socat \
   vim
 
@@ -63,6 +64,16 @@ mkdir -p /etc/kubernetes/manifests
 # The directory where machine metadata will be written, possibly consumed by
 # experiments.
 mkdir -p /var/local/metadata
+
+# For convenience, when an operator needs to login and inspect things with crictl.
+echo "export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" >> /root/.bashrc
+
+# For some reason the default cgroup driver in containerd is not systemd, and
+# when it is not, undefined behavior occurs, in which containers continually
+# receive SIGTERM signals from the OS, and they end up on and off in a
+# CrashLoopBackoff state.
+containerd config default > /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
 
 # Enable systemd units
 systemctl enable kubelet.service
