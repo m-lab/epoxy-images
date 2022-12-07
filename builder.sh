@@ -99,6 +99,11 @@ function stage3_ubuntu() {
   rm -rf ${builddir}
 }
 
+function packer_images() {
+  echo 'Starting packer_images build'
+  ${SOURCE_DIR}/setup_packer_images.sh
+}
+
 function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
@@ -129,6 +134,9 @@ case "${TARGET}" in
       ;;
   stage3_ubuntu)
       stage3_ubuntu
+      ;;
+  packer_images)
+      packer_images
       ;;
   stage3_update)
       stage3_update

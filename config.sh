@@ -10,6 +10,7 @@ export K8S_CRICTL_VERSION=v1.22.1
 # v0.9.1 of the official CNI plugins release stopped including flannel, so we
 # must now install it manually.
 export K8S_FLANNELCNI_VERSION=v1.1.0
+export K8S_TOOLING_VERSION=v0.14.0
 
 # stage3 mlxupdate
 export MFT_VERSION=4.22.0-96
