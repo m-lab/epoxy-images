@@ -72,6 +72,7 @@ echo "export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" 
 # when it is not, undefined behavior occurs, in which containers continually
 # receive SIGTERM signals from the OS, and they end up on and off in a
 # CrashLoopBackoff state.
+mkdir /etc/containerd
 containerd config default > /etc/containerd/config.toml
 sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
 
