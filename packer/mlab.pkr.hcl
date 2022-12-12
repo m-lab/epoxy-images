@@ -1,3 +1,7 @@
+# This is the main Packer configuration file. It binds sources to builds and
+# provisioners. It will allow us, for example, to provision an AWS VM
+# differently than we do a GCP VM, should that even be necessary.
+
 variable "project_id" {
   type = string
 }
@@ -16,7 +20,7 @@ source "googlecompute" "mlab-platform-cluster-gcp" {
 }
 
 build {
-  sources = ["sources.googlecompute.mlab-platform-cluster-gcp"]
+  sources = ["source.googlecompute.mlab-platform-cluster-gcp"]
 
   provisioner "file" {
     sources = [

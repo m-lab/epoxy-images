@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# This script gets uploaded and executed on the temporary VM that Packer creates
+# when generating custom images. It should do everything necessary to prepare
+# the custom image's environment, such as installing necessary binaries and
+# configuration files. This script is more or less the equivalent of
+# "setup_stage3_ubuntu.sh", but for virtual nodes instead of physical ones.
 
 sudo --login
 
@@ -6,9 +12,9 @@ set -euxo pipefail
 
 source /tmp/config.sh
 
-# Binaries will get installed in /opt/bin, put it in root's PATH
-# Write it to .profile and .bashrc so that it get loaded on both interactive
-# and non-interactive session.
+# A number of important binaries get installed in /opt/bin, so put this
+# directory in root's PATH. Additionally, write PATH to .profile and .bashrc so
+# that it get loaded on both interactive and non-interactive session.
 echo "export PATH=\$PATH:/opt/bin" >> /root/.profile
 echo "export PATH=\$PATH:/opt/bin" >> /root/.bashrc
 
@@ -50,12 +56,12 @@ chmod +x {kubeadm,kubelet,kubectl}
 # Install kubelet systemd service and enable it.
 curl --silent --show-error --location \
   "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/kubepkg/templates/latest/deb/kubelet/lib/systemd/system/kubelet.service" \
-	| sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service
+  | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service
 
 mkdir -p /etc/systemd/system/kubelet.service.d
 curl --silent --show-error --location \
   "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" \
-	| sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # If this directory doesn't exist, then the kubelet complains bitterly,
 # polluting the logs terribly.

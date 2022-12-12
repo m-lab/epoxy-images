@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# This script sets the queuing discipline ("qdisc") on the primary network
+# interface to "fq", whereas the default is "fq_codel". It differs from the one
+# installed on physical machines in that it determines the interface name and
+# does not set a "maxrate" for the fq qdisc. On physical machines we know and
+# have control over the name of the primary network interface, and we also do
+# set the "maxrate" parameter of the fq qdisc.
 
 # Determine the default/primary network interface of the VM.
 IFACE=$(ip -o -4 route show default | awk '{print $5}')
@@ -31,4 +38,3 @@ fi
 write_metric_file 1
 
 echo "Set qdisc fq on root of dev ${IFACE}"
-
