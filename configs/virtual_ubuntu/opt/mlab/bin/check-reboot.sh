@@ -1,0 +1,1 @@
+../../../../stage3_ubuntu/opt/mlab/bin/check-reboot.sh

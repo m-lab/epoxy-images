@@ -1,0 +1,10 @@
+Subsystem sftp internal-sftp
+ClientAliveInterval 180
+UseDNS no
+UsePAM yes
+PrintLastLog no # handled by PAM
+PrintMotd no # handled by PAM
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PermitRootLogin no
+

@@ -7,6 +7,7 @@ options:
   diskSizeGb: 400
   env:
     - 'PROJECT=$PROJECT_ID'
+    - 'IMAGES_VERSION=$_IMAGES_VERSION'
     - 'ARTIFACTS=/workspace/output'
 
 availableSecrets:
@@ -38,6 +39,12 @@ steps:
 - name: gcr.io/$PROJECT_ID/epoxy-images:1.0
   args: [
     '/workspace/builder.sh', 'stage3_update'
+  ]
+
+# packer_images.
+- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+  args: [
+    '/workspace/builder.sh', 'packer_images'
   ]
 
 ############################################################################
