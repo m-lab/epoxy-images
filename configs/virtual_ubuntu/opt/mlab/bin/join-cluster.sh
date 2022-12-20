@@ -26,7 +26,7 @@ gsutil cp "gs://epoxy-${PROJECT}/latest/stage3_ubuntu/setup_k8s.sh" /tmp/setup_k
 CA_HASH=$(egrep -o 'sha256:[[:alnum:]]+' /tmp/setup_k8s.sh)
 
 # Set up necessary labels for the node.
-NODE_LABELS="mlab/machine=${HOSTNAME:0:5},mlab/site=${HOSTNAME:6},mlab/metro=$(echo ${HOSTNAME:6:3}),mlab/type=virtual,mlab/run=ndt,mlab/project=${PROJECT}"
+NODE_LABELS="mlab/machine=${HOSTNAME:0:5},mlab/site=${HOSTNAME:6},mlab/metro=${HOSTNAME:6:3},mlab/type=virtual,mlab/run=ndt,mlab/project=${PROJECT}"
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$NODE_LABELS |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 

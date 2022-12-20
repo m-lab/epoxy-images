@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# M-Lab has a notion of a "metadata" directory on machines. This directory (by
-# convention "/var/local/metadata") can contain any number of files that contain
-# data about the operating environment of the machine (e.g., kernel version).
+# M-Lab has a convention of a "metadata" directory on machines. This directory
+# ("/var/local/metadata") can contain any number of files that contain data
+# about the operating environment of the machine (e.g., kernel version).
 # Experiments can mount this directory and make use of the metadata to annotate
 # its own data, allowing users of M-Lab data to potentially query based on this
 # metadata. This script writes out a number of metadata files to
