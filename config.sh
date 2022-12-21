@@ -20,3 +20,6 @@ export MLXROM_VERSION=3.4.818
 
 # multus-cni version
 export MULTUS_CNI_VERSION=3.9
+
+# etcdctl version
+export ETCDCTL_VERSION=v3.5.5

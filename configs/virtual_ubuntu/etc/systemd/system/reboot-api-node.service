@@ -1,0 +1,7 @@
+[Unit]
+Description=reboot-api-node.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/reboot-api-node.sh
+

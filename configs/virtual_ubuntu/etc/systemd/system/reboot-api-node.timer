@@ -1,0 +1,9 @@
+[Unit]
+Description=Run reboot-api-node.service daily
+
+[Timer]
+OnCalendar=Mon..Fri 15:00:00
+
+[Install]
+WantedBy=multi-user.target
+
