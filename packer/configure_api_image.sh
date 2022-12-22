@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# This script gets uploaded and executed on the temporary VM that Packer creates
-# when generating custom images. It should do everything necessary to prepare
-# the custom image's environment for a platform API node.
+# This script gets uploaded and executed on the temporary VM that Packer
+# creates when generating custom images. It should do everything necessary to
+# prepare the custom image's environment for a platform control plane machine.
 
 source /tmp/config.sh
 

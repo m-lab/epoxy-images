@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# This script gets uploaded and executed on the temporary VM that Packer creates
-# when generating custom images. It should do everything necessary to prepare
-# the custom image's environment for a platform node.
+# This script gets uploaded and executed on the temporary VM that Packer
+# creates when generating custom images. It should do everything necessary to
+# prepare the custom image's environment for normal machine.
 
 set -euxo pipefail
 
