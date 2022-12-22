@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# This script reboots control plane machines once a week. It will only reboot
+# the machine if the control plane etcd cluster is healthy, and if the current
+# day is the configured reboot day for that particular machine.
 
 REBOOT_DAY=$(cat /etc/reboot-node-day)
 TODAY=$(date +%a)
