@@ -14,6 +14,6 @@ tar --dereference -czf packer/virtual-files.tar.gz --owner root --group root -C 
 cd packer
 packer init .
 packer build -force \
-  -var "project_id=$PROJECT" \
+  -var "gcp_project=$PROJECT" \
   -var "image_version=$IMAGES_VERSION" \
   mlab.pkr.hcl
