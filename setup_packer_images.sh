@@ -15,5 +15,5 @@ cd packer
 packer init .
 packer build -force \
   -var "gcp_project=$PROJECT" \
-  -var "image_version=$IMAGES_VERSION" \
+  -var "image_version=${IMAGES_VERSION//./-}" \
   mlab.pkr.hcl
