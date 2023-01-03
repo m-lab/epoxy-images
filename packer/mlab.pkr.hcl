@@ -58,9 +58,8 @@ build {
   # should exist. I came across this documentation, which seems to be specific
   # to AWS, but maybe works for GCP too:
   # https://developer.hashicorp.com/packer/docs/debugging#issues-installing-ubuntu-packages
-  {
-    "type": "shell",
-    "inline": [
+  provisioner "shell" {
+    inline = [
       "cloud-init status --wait"
     ]
   }
