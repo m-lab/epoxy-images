@@ -54,6 +54,16 @@ build {
     ]
   }
 
+  # Builds were randomly failing because apt was unable to find packages that
+  # should exist. I came across this documentation, which seems to be specific
+  # to AWS, but appears to also work for GCE:
+  # https://developer.hashicorp.com/packer/docs/debugging#issues-installing-ubuntu-packages
+  provisioner "shell" {
+    inline = [
+      "cloud-init status --wait"
+    ]
+  }
+
   # This provisioning step gets run for all sources.
   provisioner "shell" {
     environment_vars = [
