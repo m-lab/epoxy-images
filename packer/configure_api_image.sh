@@ -29,3 +29,5 @@ systemctl enable reboot-api-node.service
 systemctl enable reboot-api-node.timer
 systemctl enable token-server.service
 systemctl enable bmc-store-password.service
+systemctl enable mount-cluster-data.service
+systemctl enable create-control-plane.service

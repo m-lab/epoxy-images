@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount, and possibly format, the cluster data volume
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/mount-cluster-data.sh
+
+[Install]
+WantedBy=multi-user.target
+
