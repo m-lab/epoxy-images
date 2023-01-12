@@ -15,7 +15,7 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    apiServerEndpoint: {{LB_URL}}:6443
+    apiServerEndpoint: {{LB_DNS}}:6443
     token: {{TOKEN}}
     caCertHashes:
     - "{{CA_CERT_HASH}}"
@@ -36,14 +36,18 @@ kind: ClusterConfiguration
 kubernetesVersion: {{K8S_VERSION}}
 apiServer:
   certSANs:
-  - "{{LB_URL}}"
-controlPlaneEndpoint: {{LB_URL}}:6443
+  - "{{LB_DNS}}"
+  - "{{INTERNAL_DNS}}"
+controlPlaneEndpoint: {{LB_DNS}}:6443
 controllerManager:
   extraArgs:
     node-cidr-mask-size: "26"
     # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
     node-monitor-grace-period: 2m
     pod-eviction-timeout: 1m
+etcd:
+  local:
+    dataDir: "/mnt/cluster-data/etcd"
 networking:
   podSubnet: {{CLUSTER_CIDR}}
   serviceSubnet: {{SERVICE_CIDR}}

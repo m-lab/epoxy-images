@@ -13,15 +13,11 @@ curl --location https://github.com/etcd-io/etcd/releases/download/${ETCDCTL_VERS
 cp etcd-${ETCDCTL_VERSION}-linux-amd64/etcdctl /opt/bin
 rm -rf etcd-${ETCDCTL_VERSION}-linux-amd64
 
-# TODO (kinkade): Implement this some other way. An idea could be to add
-# metadata to each API VM on creation, and the script that checks if the node
-# needs to be rebooted can fetch this metadata at runtime to figure out whether
-# to reboot the node or not.
-#
-# Write out the reboot day to a file in /etc. The reboot-node.service
-# systemd unit will read the contents of this file to determine when to
-# reboot the node.
-# echo -n "${reboot_day}" > /etc/reboot-node-day
+# Create symlinks to persistent volume mount directories where various state
+# will be stored. This should allow us to reinitialize the boot disk without
+# disrupting the control plane cluster.
+ln -s /mnt/cluster-data/kubelet /var/lib/kubelet
+ln -s /mnt/cluster-data/kubernetes /etc/kubernetes
 
 # Enable various systemd services.
 systemctl enable docker

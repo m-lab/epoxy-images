@@ -38,8 +38,10 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Create subdirectories for k8s and etcd
+# Create stateful subdirectories, if they don't already exist.
 # /etc/kubernetes will be a symlink to this.
 mkdir -p "${MOUNT_DIR}/kubernetes"
 # /var/lib/etcd will be a symlink to this.
 mkdir -p "${MOUNT_DIR}/etcd"
+# /var/lib/kubelet will be symlink to this.
+mkdir -p "${MOUNT_DIR}/kubelet"

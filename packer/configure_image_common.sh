@@ -61,10 +61,6 @@ curl --silent --show-error --location \
   "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/kubepkg/templates/latest/deb/kubeadm/10-kubeadm.conf" \
   | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-# If this directory doesn't exist, then the kubelet complains bitterly,
-# polluting the logs terribly.
-mkdir -p /etc/kubernetes/manifests
-
 # For convenience, when an operator needs to login and inspect things with crictl.
 echo "export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" >> /root/.bashrc
 
