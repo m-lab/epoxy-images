@@ -2,9 +2,18 @@
 
 MOUNT_DIR="/mnt/cluster-data"
 
+# Create stateful subdirectories, if they don't already exist.
+function create_subdirectories() {
+  # /etc/kubernetes will be a symlink to this.
+  mkdir -p "${MOUNT_DIR}/kubernetes"
+  # /var/lib/kubelet will be symlink to this.
+  mkdir -p "${MOUNT_DIR}/kubelet"
+}
+
 # If for some reason the volume is already mounted, then go no farther.
 if findmnt "$MOUNT_DIR"; then
   echo "$MOUNT_DIR is already mounted, doing nothing"
+  create_subdirectories
   exit 0
 fi
 
@@ -38,10 +47,4 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# Create stateful subdirectories, if they don't already exist.
-# /etc/kubernetes will be a symlink to this.
-mkdir -p "${MOUNT_DIR}/kubernetes"
-# /var/lib/etcd will be a symlink to this.
-mkdir -p "${MOUNT_DIR}/etcd"
-# /var/lib/kubelet will be symlink to this.
-mkdir -p "${MOUNT_DIR}/kubelet"
+create_subdirectories

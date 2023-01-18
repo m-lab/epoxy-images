@@ -6,7 +6,9 @@
 
 source /tmp/config.sh
 
-apt install --yes docker.io
+apt install --yes \
+  docker.io \
+  jsonnet
 
 # Install etcdctl
 curl --location https://github.com/etcd-io/etcd/releases/download/${ETCDCTL_VERSION}/etcd-${ETCDCTL_VERSION}-linux-amd64.tar.gz | tar -xz

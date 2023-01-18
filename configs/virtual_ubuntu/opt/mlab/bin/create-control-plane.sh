@@ -7,17 +7,6 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 export PATH=$PATH:/opt/bin:/opt/mlab/bin
 
-# Query the local api-server to find out its status.
-status=$(
-  curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
-    https://localhost:6443/readyz || true
-)
-
-# If the status is 200, then everything is good to go.
-if [[ $status == "200" ]]; then
-  exit 0
-fi
-
 # Fetch any necessary data from the metadata server.
 cluster_data=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
@@ -66,10 +55,9 @@ function add_machine_to_lb() {
   # is trying to join the cluster and needs to communicate with the existing
   # cluster to get configuration data, it is actually tring to communicate with
   # itself, but it is not yet created so gets a connection refused error.
-  gcloud compute instance-groups unmanaged add-instances
-  api-platform-cluster-$zone \
-  --instances api-platform-cluster-$zone --zone $zone --project $project
-  }
+  gcloud compute instance-groups unmanaged add-instances api-platform-cluster-$zone \
+    --instances api-platform-cluster-$zone --zone $zone --project $project
+}
 
 #
 # Initializes cluster on the first control plane machine.
@@ -95,11 +83,10 @@ function initialize_cluster() {
          -e "s|{{CERT_KEY}}|${cert_key}|g" \
          ./kubeadm-config.yml
 
-  kubeadm init --config kubeadm-config.yml --upload-certs
-
-  # Now that the API should be up and running on this machine, add it to the
-  # load balancer.
+  # Add this machine to the load balancer before intializing the cluster.
   add_machine_to_lb $project $zone
+
+  kubeadm init --config kubeadm-config.yml --upload-certs
 
   # Create a join command for each of the other "secondary" control plane nodes
   # and add it to their machines metadata, along with the shared cert_key.
@@ -121,11 +108,11 @@ function initialize_cluster() {
 # Joins a control plane machine to an existing cluster.
 #
 function join_cluster() {
-  local api_status
+  local api_status=""
   local ca_cert_hash
   local cert_key
   local cluster_data
-  local join_command
+  local join_command="null"
   local token
 
   # Don't try to join the cluster until the initial control plane node has
@@ -135,7 +122,7 @@ function join_cluster() {
     api_status=$(
       curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
         "https://${lb_dns}:6443/readyz" \
-	|| true
+        || true
     )
   done
 
@@ -151,9 +138,8 @@ function join_cluster() {
     join_command=$(echo "$cluster_data" | jq -r '.cluster_attributes.join_command')
   done
 
-  # Extract the cert_key and join_command from cluster_data.
+  # Extract the cert_key from cluster_data.
   cert_key=$(echo "$cluster_data" | jq -r '.cluster_attributes.cert_key')
-  join_command=$(echo "$cluster_data" | jq -r '.cluster_attributes.join_command')
 
   # Extract the token and the CA cert hash from the join command.
   token=$(echo "$join_command" | egrep -o '[0-9a-z]{6}\.[0-9a-z]{16}')
@@ -228,7 +214,7 @@ EOF
 # Wait a little while before trying to communicate with the api-server, since
 # the modifications to the manifests above will causes restarts of it and etcd,
 # and they may not yet be up and running.
-sleep 30
+sleep 60
 
 export KUBECONFIG=/etc/kubernetes/admin.conf
 kubectl annotate node "$machine_name" flannel.alpha.coreos.com/public-ip-overwrite="$external_ip"

@@ -1,7 +1,10 @@
 [Unit]
 Description=Mount, and possibly format, the cluster data volume
 After=kubelet.service mount-cluster-data.service
-Requires=kubelet.service mount-cluster-data.service
+Requires=mount-cluster-data.service
+# The presence of this file indicates that the cluster has already been created.
+# If it exists, do not run this unit.
+ConditionPathExists=!/etc/kubernetes/admin.conf
 
 [Service]
 Type=oneshot
