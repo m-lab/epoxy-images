@@ -52,6 +52,26 @@ sed -e "s|{{PROJECT}}|${project}|g" \
     ./kubeadm-config.yml
 
 #
+# Adds a control plane machine to the load balancer.
+#
+function add_machine_to_lb() {
+  local project=$1
+  local zone=$2
+
+  # Having to do this here rather than in Terraform is due to an undesirable
+  # behavior of GCP forwarding rules. Backend machines of a load balancer cannot
+  # communicate normally with the load balancer itself, and requests to the load
+  # balancer IP are reflected back to the backend machine making the request,
+  # whether its health check is passing or not. This means that when a machine
+  # is trying to join the cluster and needs to communicate with the existing
+  # cluster to get configuration data, it is actually tring to communicate with
+  # itself, but it is not yet created so gets a connection refused error.
+  gcloud compute instance-groups unmanaged add-instances
+  api-platform-cluster-$zone \
+  --instances api-platform-cluster-$zone --zone $zone --project $project
+  }
+
+#
 # Initializes cluster on the first control plane machine.
 #
 function initialize_cluster() {
@@ -76,6 +96,10 @@ function initialize_cluster() {
          ./kubeadm-config.yml
 
   kubeadm init --config kubeadm-config.yml --upload-certs
+
+  # Now that the API should be up and running on this machine, add it to the
+  # load balancer.
+  add_machine_to_lb $project $zone
 
   # Create a join command for each of the other "secondary" control plane nodes
   # and add it to their machines metadata, along with the shared cert_key.
@@ -144,6 +168,9 @@ function join_cluster() {
   # Join the machine to the existing cluster.
   kubeadm join --config kubeadm-config.yml
 
+  # Now that the API should be up and running on this machine, add it to the
+  # load balancer.
+  add_machine_to_lb $project $zone
 }
 
 if [[ $create_role == "init" ]]; then
@@ -152,19 +179,6 @@ else
   # If the create_role isn't "init", then it will be "join".
   join_cluster
 fi
-
-# Now that the API should be up on this node, add this machine to the load
-# balancer. Having to do this here rather than in Terraform is due to an
-# undesirable behavior of GCP forwarding rules. Backend machines of a load
-# balancer cannot communicate normally with the load balancer itself, and
-# requests to the load balancer IP are reflected back to the backend machine
-# making the request, whether its health check is passing or not. This means
-# that when a machine is trying to join the cluster and needs to communicate
-# with the existing cluster to get configuration data, it is actually tring to
-# communicate with itself, but it is not yet created so gets a connection
-# refused error.
-gcloud compute instance-groups unmanaged add-instances api-platform-cluster-$zone \
-  --instances api-platform-cluster-$zone --zone $zone --project $project
 
 # Modify the --advertise-address flag to point to the external IP, instead of
 # the internal one that kubeadm populated. This is necessary because external

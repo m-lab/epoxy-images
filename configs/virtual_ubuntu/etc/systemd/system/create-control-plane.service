@@ -1,7 +1,7 @@
 [Unit]
 Description=Mount, and possibly format, the cluster data volume
-After=mount-cluster-data.service
-Requires=mount-cluster-data.service
+After=kubelet.service mount-cluster-data.service
+Requires=kubelet.service mount-cluster-data.service
 
 [Service]
 Type=oneshot
@@ -9,4 +9,3 @@ ExecStart=/opt/mlab/bin/create-control-plane.sh
 
 [Install]
 WantedBy=multi-user.target
-

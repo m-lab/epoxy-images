@@ -30,6 +30,7 @@ apt install -y \
   jq \
   less \
   socat \
+  tmux \
   vim
 
 # Install CNI plugins.
@@ -62,7 +63,7 @@ curl --silent --show-error --location \
   | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # For convenience, when an operator needs to login and inspect things with crictl.
-echo "export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock" >> /root/.bashrc
+echo -e "\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock\n" >> /root/.bashrc
 
 # Enable systemd units
 systemctl enable kubelet.service

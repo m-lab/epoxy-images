@@ -19,6 +19,9 @@ rm -rf etcd-${ETCDCTL_VERSION}-linux-amd64
 ln -s /mnt/cluster-data/kubelet /var/lib/kubelet
 ln -s /mnt/cluster-data/kubernetes /etc/kubernetes
 
+# Set the default KUBECONFIG location
+echo -e "\nexport KUBECONFIG=/etc/kubernetes/admin.conf\n"
+
 # Enable various systemd services.
 systemctl enable docker
 systemctl enable reboot-api-node.service
