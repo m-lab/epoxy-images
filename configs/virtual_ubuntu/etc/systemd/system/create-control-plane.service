@@ -9,6 +9,7 @@ ConditionPathExists=!/etc/kubernetes/admin.conf
 [Service]
 Type=oneshot
 ExecStart=/opt/mlab/bin/create-control-plane.sh
+WorkingDirectory=/tmp
 
 [Install]
 WantedBy=multi-user.target

@@ -5,22 +5,27 @@ set -euxo pipefail
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
+# Names of project or instance metadata. CA_HASH will be project metadata, while
+# CERT_KEY will be control plane instance metadata.
+CA_HASH_NAME="platform_cluster_ca_hash"
+CERT_KEY_NAME="platform_cluster_cert_key"
+
 export PATH=$PATH:/opt/bin:/opt/mlab/bin
 
 # Fetch any necessary data from the metadata server.
-cluster_data=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data")
-external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
-internal_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/ip")
-machine_name=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/name")
-project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
+export cluster_data=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data")
+export external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
+export internal_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/ip")
+export machine_name=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/name")
+export project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
 zone_path=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/zone")
-zone=${zone_path##*/}
+export zone=${zone_path##*/}
 
 # Extract cluster/machine data from $cluster_data.
-cluster_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.cluster_cidr')
-create_role=$(echo "$cluster_data" | jq -r ".zones[\"${zone}\"].create_role")
-lb_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.lb_dns')
-service_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.service_cidr')
+export cluster_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.cluster_cidr')
+export create_role=$(echo "$cluster_data" | jq -r ".zones[\"${zone}\"].create_role")
+export lb_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.lb_dns')
+export service_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.service_cidr')
 
 # Determine the k8s version by inspecting the version of the local kubectl.
 k8s_version=$(kubectl version --client=true --output=json | jq -r '.clientVersion.gitVersion')
@@ -60,9 +65,31 @@ function add_machine_to_lb() {
 }
 
 #
+# Fetches a cluster bootstrap join token from the token server.
+#
+function get_bootstrap_token() {
+  local last_boot=$(date --utc +%Y-%m-%dT%T.%NZ)
+  local extension_v1="{\"v1\":{\"last_boot\":\"${last_boot}\"}}"
+  local token
+
+  token=$(
+    curl --data "$extension_v1" \
+      "http://kinkade-test-token-server-platform-cluster.${project}.measurementlab.net:8800/v1/allocate_k8s_token"
+  )
+
+  if [[ -z $token ]];then
+    echo "Failed to get a bootstrap join token from the token-server"
+    exit 1
+  fi
+
+  echo "$token"
+}
+
+#
 # Initializes cluster on the first control plane machine.
 #
 function initialize_cluster() {
+  local ca_cert_hash
   local cert_key
   local join_command
 
@@ -88,20 +115,34 @@ function initialize_cluster() {
 
   kubeadm init --config kubeadm-config.yml --upload-certs
 
-  # Create a join command for each of the other "secondary" control plane nodes
-  # and add it to their machines metadata, along with the shared cert_key.
+  # Add the shared cert_key to the "secondary" control plane nodes' metadata.
   for z in $(echo "$cluster_data" | jq --join-output --raw-output '.zones | keys[] as $k | "\($k) "'); do
     if [[ $z != $zone ]]; then
-      join_command=$(kubeadm token create --print-join-command)
-      echo $cluster_data | \
-        jq ".cluster_attributes += {\"join_command\": \"${join_command}\", \"cert_key\": \"${cert_key}\"}" \
-	> ./cluster-data.json
       gcloud compute instances add-metadata "api-platform-cluster-${z}" \
-        --metadata-from-file "cluster_data=./cluster-data.json" \
+        --metadata "${CERT_KEY_NAME}=${cert_key}" \
         --project $project \
         --zone $z
     fi
   done
+
+  # Determine the CA cert hash. We could calculate this manually using a long
+  # chain of openssl commands, but having kubeadm calculate it helps ensure that
+  # we always get the right hash, even if the underlying hash algorithm changes
+  # between k8s versions.
+  join_command=$(kubeadm token create --ttl 1s --print-join-command)
+  export ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
+
+  # Add the CA cert hash to the project metadata so that all instances can
+  # access it via the metadata server.
+  gcloud compute project-info add-metadata \
+    --metadata "${CA_HASH_NAME}=${ca_cert_hash}" \
+    --project $project
+
+  git clone https://github.com/m-lab/k8s-support
+  cd k8s-support/manage-cluster
+  git checkout sandbox-kinkade
+  ./create_k8s_configs_cluster-init
+  ./apply_k8s_configs_cluster-init
 }
 
 #
@@ -126,26 +167,18 @@ function join_cluster() {
     )
   done
 
-  # Don't try to join the cluster until the first control plane node has added
-  # the join command to this machine's cluster_data metadata.
-  until [[ $join_command != "null" ]]; do
-    sleep 5
-    cluster_data=$(
-      curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
-        --header "Metadata-Flavor: Google" \
-        "${METADATA_URL}/instance/attributes/cluster_data"
-    )
-    join_command=$(echo "$cluster_data" | jq -r '.cluster_attributes.join_command')
-  done
+  # Once the first API endpoint is up, it still has some housekeeping work to
+  # do before other control plane machines are ready to joing the cluster. Give
+  # it a bit to finish.
+  sleep 60
 
-  # Extract the cert_key from cluster_data.
-  cert_key=$(echo "$cluster_data" | jq -r '.cluster_attributes.cert_key')
+  token=$(get_bootstrap_token)
+  ca_cert_hash=$(
+    curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/${CA_HASH_NAME}"
+  )
+  cert_key=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/${CERT_KEY_NAME}")
 
-  # Extract the token and the CA cert hash from the join command.
-  token=$(echo "$join_command" | egrep -o '[0-9a-z]{6}\.[0-9a-z]{16}')
-  ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
-
-  # Replace the token and CA cert has variables variables in the kubeadm config file.
+  # Replace the token and CA cert has variables in the kubeadm config file.
   sed -i -e "s|{{TOKEN}}|$token|" \
          -e "s|{{CA_CERT_HASH}}|$ca_cert_hash|" \
          -e "s|{{CERT_KEY}}|$cert_key|" \
