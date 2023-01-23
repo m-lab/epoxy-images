@@ -30,13 +30,20 @@ token_server_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/t
 # Generate a JSON snippet suitable for the token-server, and then request a
 # token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
 extension_v1="{\"v1\":{\"hostname\":\"${fqdn}\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
-token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token")
 
-# If for some reason we don't get a token, exit.
-if [[ -z $token ]]; then
-  echo "Failed to get a bootstrap join token from the token-server"
-  exit 1
-fi
+# Keep trying to get a token until it succeeds, since there is no point in
+# continuing without a token, and exiting the script isn't necessarily
+# productive either. Failure could be due to some bug that won't be resolved
+# soon, but it could also be that the control plane machines are in the process
+# of being created or rebooted, or otherwise temporarily unavailable. For
+# example, Terraform creates resources in parallel, and it's not impossible that
+# a machine running this script could be up and running before the control plane
+# is ready.
+token=""
+until [[ $token ]]; do
+  sleep 5
+  token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token")
+done
 
 # Set up necessary labels for the node.
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=${k8s_labels} |g" \
