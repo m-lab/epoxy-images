@@ -25,6 +25,7 @@ export zone=${zone_path##*/}
 export cluster_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.cluster_cidr')
 export create_role=$(echo "$cluster_data" | jq -r ".zones[\"${zone}\"].create_role")
 export lb_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.lb_dns')
+export token_server_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.token_server_dns')
 export service_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.service_cidr')
 
 # Determine the k8s version by inspecting the version of the local kubectl.
@@ -73,8 +74,7 @@ function get_bootstrap_token() {
   local token
 
   token=$(
-    curl --data "$extension_v1" \
-      "http://kinkade-test-token-server-platform-cluster.${project}.measurementlab.net:8800/v1/allocate_k8s_token"
+    curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token"
   )
 
   if [[ -z $token ]];then
@@ -132,11 +132,10 @@ function initialize_cluster() {
   join_command=$(kubeadm token create --ttl 1s --print-join-command)
   export ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
 
-  # Add the CA cert hash to the project metadata so that all instances can
-  # access it via the metadata server.
-  gcloud compute project-info add-metadata \
-    --metadata "${CA_HASH_NAME}=${ca_cert_hash}" \
-    --project $project
+  # Add non-private metadata to the project that will be used by other machines.
+  gcloud compute project-info add-metadata --metadata "${CA_HASH_NAME}=${ca_cert_hash}" --project $project
+  gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
+  gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
 
   git clone https://github.com/m-lab/k8s-support
   cd k8s-support/manage-cluster

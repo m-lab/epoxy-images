@@ -1,0 +1,9 @@
+[Unit]
+Description=Join the M-Lab Platform Cluster for internal GCP machines
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/join-cluster-internal.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -14,11 +14,26 @@ variable "image_version" {
   type = string
 }
 
+variable "source_image" {
+  default = "ubuntu-minimal-2204-jammy-v20221122"
+  description = "The source/base image for generate custom images"
+  type = string
+}
+
 source "googlecompute" "platform-cluster-instance" {
   project_id   = var.gcp_project
   zone         = "us-central1-c"
-  source_image = "ubuntu-minimal-2204-jammy-v20221122"
+  source_image = var.source_image
   image_name   = "platform-cluster-instance-${var.image_version}"
+  ssh_username = "packer"
+  disk_size    = 100
+}
+
+source "googlecompute" "platform-cluster-internal-instance" {
+  project_id   = var.gcp_project
+  zone         = "us-central1-c"
+  source_image = var.source_image
+  image_name   = "platform-cluster-internal-instance-${var.image_version}"
   ssh_username = "packer"
   disk_size    = 100
 }
@@ -26,7 +41,7 @@ source "googlecompute" "platform-cluster-instance" {
 source "googlecompute" "platform-cluster-api-instance" {
   project_id   = var.gcp_project
   zone         = "us-central1-c"
-  source_image = "ubuntu-minimal-2204-jammy-v20221122"
+  source_image = var.source_image
   image_name   = "platform-cluster-api-instance-${var.image_version}"
   ssh_username = "packer"
   disk_size    = 100
@@ -35,10 +50,14 @@ source "googlecompute" "platform-cluster-api-instance" {
 build {
   sources = [
     "source.googlecompute.platform-cluster-instance",
+    "source.googlecompute.platform-cluster-internal-instance",
     "source.googlecompute.platform-cluster-api-instance",
   ]
 
-  # This provisioning step gets run for all sources.
+  #
+  # The following provisioning step gets run for all sources.
+  #
+
   provisioner "file" {
     sources = [
       "./virtual-files.tar.gz",
@@ -47,7 +66,6 @@ build {
     destination = "/tmp/"
   }
 
-  # This provisioning step gets run for all sources.
   provisioner "shell" {
     inline = [
       "sudo tar -C / -xzf /tmp/virtual-files.tar.gz"
@@ -64,7 +82,6 @@ build {
     ]
   }
 
-  # This provisioning step gets run for all sources.
   provisioner "shell" {
     environment_vars = [
       "PROJECT=${var.gcp_project}"
@@ -73,8 +90,10 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
   }
 
+  #
   # This provisioning block only gets run for the "platform-cluster-instance"
   # source.
+  #
   provisioner "shell" {
     only = ["googlecompute.platform-cluster-instance"]
     environment_vars = [
@@ -84,8 +103,23 @@ build {
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
   }
 
+  #
+  # This provisioning block only gets run for the
+  # "platform-cluster-internal-instance" source.
+  #
+  provisioner "shell" {
+    only = ["googlecompute.platform-cluster-internal-instance"]
+    environment_vars = [
+      "PROJECT=${var.gcp_project}"
+    ]
+    script = "configure_internal_image.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+  }
+
+  #
   # This provisioning block only gets run for the
   # "platform-cluster-api-instance" source.
+  #
   provisioner "shell" {
     only = ["googlecompute.platform-cluster-api-instance"]
     environment_vars = [
