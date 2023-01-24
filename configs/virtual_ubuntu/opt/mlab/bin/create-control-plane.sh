@@ -140,8 +140,8 @@ function initialize_cluster() {
   git clone https://github.com/m-lab/k8s-support
   cd k8s-support/manage-cluster
   git checkout sandbox-kinkade
-  ./create_k8s_configs_cluster-init
-  ./apply_k8s_configs_cluster-init
+  ./create_k8s_configs_cluster-init.sh
+  ./apply_k8s_configs_cluster-init.sh
 }
 
 #
