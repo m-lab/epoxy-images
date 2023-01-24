@@ -20,7 +20,6 @@ export PATH=$PATH:/opt/bin
 # Collect data necessary to join the cluster.
 ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
-fqdn=$(hostname --fqdn)
 hostname=$(hostname)
 k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_labels")
 lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
@@ -29,7 +28,7 @@ token_server_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/t
 
 # Generate a JSON snippet suitable for the token-server, and then request a
 # token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
-extension_v1="{\"v1\":{\"hostname\":\"${fqdn}\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
+extension_v1="{\"v1\":{\"hostname\":\"${hostname}\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
 
 # Keep trying to get a token until it succeeds, since there is no point in
 # continuing without a token, and exiting the script isn't necessarily
@@ -50,9 +49,9 @@ sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=${k8s_
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Join the cluster.
-kubeadm join "${lb_dns}:6443" --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $fqdn
+kubeadm join "${lb_dns}:6443" --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $hostname
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
-kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $FQDN \
+kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $hostname \
   flannel.alpha.coreos.com/public-ip-overwrite=$external_ip \
   --overwrite=true

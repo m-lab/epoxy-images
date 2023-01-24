@@ -144,7 +144,7 @@ function initialize_cluster() {
   join_command=$(kubeadm token create --ttl 1s --print-join-command)
   export ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
 
-  # Add node labels an annotations.
+  # Add node labels and annotations.
   label_node
 
   # Add non-private metadata to the project that will be used by other machines.
@@ -201,7 +201,7 @@ function join_cluster() {
   # Join the machine to the existing cluster.
   kubeadm join --config kubeadm-config.yml
 
-  # Add node labels an annotations.
+  # Add node labels and annotations.
   label_node
 
   # Now that the API should be up and running on this machine, add it to the
