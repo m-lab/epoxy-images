@@ -11,6 +11,7 @@ CA_HASH_NAME="platform_cluster_ca_hash"
 CERT_KEY_NAME="platform_cluster_cert_key"
 
 export PATH=$PATH:/opt/bin:/opt/mlab/bin
+export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # Fetch any necessary data from the metadata server.
 export cluster_data=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data")
@@ -63,6 +64,17 @@ function add_machine_to_lb() {
   # itself, but it is not yet created so gets a connection refused error.
   gcloud compute instance-groups unmanaged add-instances api-platform-cluster-$zone \
     --instances api-platform-cluster-$zone --zone $zone --project $project
+}
+
+# Label and/or annotate the node as necessary. This is farmed out as a function
+# instead of just residing at the end of the script, which is common to all
+# control plane nodes because the label mlab/type=virtual must be applied to the
+# initial control plane node _before_ running apply_k8s_configs.sh. Without his
+# label, flannel will not deploy on the node, causing other workloads to fail to
+# start, causing the script to fail as a whole.
+function label_node() {
+  kubectl annotate node "$machine_name" flannel.alpha.coreos.com/public-ip-overwrite="$external_ip"
+  kubectl label node "$machine_name" mlab/type=virtual
 }
 
 #
@@ -132,6 +144,9 @@ function initialize_cluster() {
   join_command=$(kubeadm token create --ttl 1s --print-join-command)
   export ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
 
+  # Add node labels an annotations.
+  label_node
+
   # Add non-private metadata to the project that will be used by other machines.
   gcloud compute project-info add-metadata --metadata "${CA_HASH_NAME}=${ca_cert_hash}" --project $project
   gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
@@ -185,6 +200,9 @@ function join_cluster() {
 
   # Join the machine to the existing cluster.
   kubeadm join --config kubeadm-config.yml
+
+  # Add node labels an annotations.
+  label_node
 
   # Now that the API should be up and running on this machine, add it to the
   # load balancer.
@@ -242,12 +260,3 @@ export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
 export KUBECONFIG=/etc/kubernetes/admin.conf
 EOF
 ) | tee -a /root/.profile /root/.bashrc"
-
-# Wait a little while before trying to communicate with the api-server, since
-# the modifications to the manifests above will causes restarts of it and etcd,
-# and they may not yet be up and running.
-sleep 60
-
-export KUBECONFIG=/etc/kubernetes/admin.conf
-kubectl annotate node "$machine_name" flannel.alpha.coreos.com/public-ip-overwrite="$external_ip"
-kubectl label node "$machine_name" mlab/type=virtual
