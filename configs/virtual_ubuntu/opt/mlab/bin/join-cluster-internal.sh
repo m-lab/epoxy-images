@@ -42,7 +42,7 @@ extension_v1="{\"v1\":{\"hostname\":\"${fqdn}\",\"last_boot\":\"$(date --utc +%Y
 token=""
 until [[ $token ]]; do
   sleep 5
-  token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token")
+  token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token" || true)
 done
 
 # Set up necessary labels for the node.

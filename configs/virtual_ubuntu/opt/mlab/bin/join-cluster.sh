@@ -33,7 +33,7 @@ until [[ $token ]]; do
     curl --silent --location --request POST "$stage1_url" | \
       jq -r '.kargs."epoxy.allocate_k8s_token"'
   )
-  token=$(curl --silent --location --request POST "$token_url")
+  token=$(curl --silent --location --request POST "$token_url" || true)
 done
 
 # TODO (kinkade): this is GCP specific and will not work outside of GCP. This
