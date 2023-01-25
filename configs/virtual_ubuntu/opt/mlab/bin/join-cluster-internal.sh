@@ -44,6 +44,11 @@ until [[ $api_status == "200" ]]; do
   )
 done
 
+# Wait a while after the control plane is accessible on the API port, since in
+# the case where the cluster is being initialized, there are a few housekeeping
+# items to handle, such as uploading the latest CA cert hash to the project metadata.
+sleep 60
+
 # Fetch a token from the token-server.
 token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token" || true)
 
