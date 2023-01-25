@@ -59,3 +59,5 @@ kubeadm join "${lb_dns}:6443" --token $token --discovery-token-ca-cert-hash $ca_
 kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $hostname \
   flannel.alpha.coreos.com/public-ip-overwrite=$external_ip \
   --overwrite=true
+
+kubectl label node "$hostname" mlab/type=virtual

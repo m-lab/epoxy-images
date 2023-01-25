@@ -112,7 +112,7 @@ build {
     environment_vars = [
       "PROJECT=${var.gcp_project}"
     ]
-    script = "configure_internal_image.sh"
+    script = "configure_image_internal.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
   }
 
@@ -125,7 +125,7 @@ build {
     environment_vars = [
       "PROJECT=${var.gcp_project}"
     ]
-    script = "configure_api_image.sh"
+    script = "configure_image_api.sh"
     execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
   }
 }

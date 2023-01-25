@@ -22,7 +22,7 @@ ln -s /mnt/cluster-data/kubelet /var/lib/kubelet
 ln -s /mnt/cluster-data/kubernetes /etc/kubernetes
 
 # Set the default KUBECONFIG location
-echo -e "\nexport KUBECONFIG=/etc/kubernetes/admin.conf\n"
+echo -e "\nexport KUBECONFIG=/etc/kubernetes/admin.conf\n" >> /root/.bashrc
 
 # Enable various systemd services.
 systemctl enable docker
@@ -30,5 +30,5 @@ systemctl enable reboot-api-node.service
 systemctl enable reboot-api-node.timer
 systemctl enable token-server.service
 systemctl enable bmc-store-password.service
-systemctl enable mount-cluster-data.service
+systemctl enable mount-data-api.service
 systemctl enable create-control-plane.service
