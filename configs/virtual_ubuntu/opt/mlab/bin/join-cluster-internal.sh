@@ -18,7 +18,6 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 export PATH=$PATH:/opt/bin
 
 # Collect data necessary to join the cluster.
-ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
 hostname=$(hostname)
 k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_labels")
@@ -43,6 +42,11 @@ until [[ $token ]]; do
   sleep 5
   token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token" || true)
 done
+
+# Fetch the ca_cert_hash stored in project metadata _after_ a token is
+# retrieved. This will help to ensure that we are not fetching an outdated CA
+# cert hash in the event that the control plane was reinitialized.
+ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
 
 # Set up necessary labels for the node.
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=${k8s_labels} |g" \

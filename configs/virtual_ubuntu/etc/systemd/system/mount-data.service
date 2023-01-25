@@ -1,0 +1,10 @@
+[Unit]
+Description=Mount, and possibly format, the M-Lab persistent data volume
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/mount-data.sh
+
+[Install]
+WantedBy=multi-user.target
+

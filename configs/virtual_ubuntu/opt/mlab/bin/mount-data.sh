@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# Possibly format, and mount the persistent volume where local state data will
+# be stored.
+
+MOUNT_DIR="/mnt/local"
+# A list of services that will be using this persistent volume. Each service
+# will get its own subdirectory in MOUNT_DIR.
+SERVICES="prometheus"
+
+# Create stateful subdirectories, if they don't already exist.
+function create_subdirectories() {
+  for service in $SERVICES; do
+    mkdir -p "${MOUNT_DIR}/${service}"
+  done
+}
+
+# If for some reason the volume is already mounted, then go no farther.
+if findmnt "$MOUNT_DIR"; then
+  echo "$MOUNT_DIR is already mounted, doing nothing"
+  create_subdirectories
+  exit 0
+fi
+
+# This path should be the same for all platform cluster GCP-internal
+# persistent volumes.
+dev_path="/dev/disk/by-id/google-mlab-data"
+
+# If the disk isn't formatted, then format it.
+if ! blkid "$dev_path"; then
+  echo "Formatting ${dev_path} as ext4"
+
+  # These mkfs options were recommended by Google:
+  # https://cloud.google.com/compute/docs/disks/add-persistent-disk#formatting
+  mkfs.ext4 -m 0 -E lazy_itable_init=0,lazy_journal_init=0,discard "${dev_path}"
+
+  if [[ $? -ne 0 ]]; then
+    echo "Formatting ${dev_path} failed"
+    exit 1
+  fi
+fi
+
+mkdir -p "$MOUNT_DIR"
+
+mount "$dev_path" "$MOUNT_DIR"
+
+if [[ $? -ne 0 ]]; then
+  echo "Mounting ${dev_path} to ${MOUNT_DIR} failed"
+  exit 1
+fi
+
+create_subdirectories

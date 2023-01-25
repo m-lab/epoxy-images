@@ -209,54 +209,59 @@ function join_cluster() {
   add_machine_to_lb $project $zone
 }
 
-if [[ $create_role == "init" ]]; then
-  initialize_cluster
-else
-  # If the create_role isn't "init", then it will be "join".
-  join_cluster
-fi
+function main() {
+  if [[ $create_role == "init" ]]; then
+    initialize_cluster
+  else
+    # If the create_role isn't "init", then it will be "join".
+    join_cluster
+  fi
 
-# Modify the --advertise-address flag to point to the external IP, instead of
-# the internal one that kubeadm populated. This is necessary because external
-# nodes (and especially kube-proxy) need to know of the control plane node by
-# its public IP, even though it is technically running in a private VPC.
-#
-# The kubeadm config includes "advertiseAddress" settings for both initializing
-# and joining the cluster. However, we cannot use the external IP for those
-# fields because kubeadm uses those same settings to configure etcd, which
-# communicates with the other etcd instances on the private network. kubeadm
-# allows for some configuration of etcd through the configuration file, but
-# unfortunately those settings are cluster-wide, so we cannot set local
-# settings via the kubeadm config. Hence this manoeuver.
-#
-# We could possibly use the --patches flag to kubeadm to get around having to do this:
-# https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#options
-sed -i -re "s|(advertise-address)=.+|\1=${external_ip}|" \
-  /etc/kubernetes/manifests/kube-apiserver.yaml
+  # Modify the --advertise-address flag to point to the external IP, instead of
+  # the internal one that kubeadm populated. This is necessary because external
+  # nodes (and especially kube-proxy) need to know of the control plane node by
+  # its public IP, even though it is technically running in a private VPC.
+  #
+  # The kubeadm config includes "advertiseAddress" settings for both initializing
+  # and joining the cluster. However, we cannot use the external IP for those
+  # fields because kubeadm uses those same settings to configure etcd, which
+  # communicates with the other etcd instances on the private network. kubeadm
+  # allows for some configuration of etcd through the configuration file, but
+  # unfortunately those settings are cluster-wide, so we cannot set local
+  # settings via the kubeadm config. Hence this manoeuver.
+  #
+  # We could possibly use the --patches flag to kubeadm to get around having to do this:
+  # https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#options
+  sed -i -re "s|(advertise-address)=.+|\1=${external_ip}|" \
+    /etc/kubernetes/manifests/kube-apiserver.yaml
 
-# Modify the default --listen-metrics-urls flag to listen on the VPC internal
-# IP address (the default is localhost). Sadly, this cannot currently be
-# defined in the configuration file, since the only place to define etcd
-# extraArgs is in the ClusterConfiguration, which applies to the entire
-# cluster, not a single etcd instances in a cluster.
-# https://github.com/kubernetes/kubeadm/issues/2036
-#
-# We could possibly use the --patches flag to kubeadm to get around having to do this:
-# https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#options
-sed -i -re "/listen-metrics-urls/ s|$|,http://${internal_ip}:2381|" \
-  /etc/kubernetes/manifests/etcd.yaml
+  # Modify the default --listen-metrics-urls flag to listen on the VPC internal
+  # IP address (the default is localhost). Sadly, this cannot currently be
+  # defined in the configuration file, since the only place to define etcd
+  # extraArgs is in the ClusterConfiguration, which applies to the entire
+  # cluster, not a single etcd instances in a cluster.
+  # https://github.com/kubernetes/kubeadm/issues/2036
+  #
+  # We could possibly use the --patches flag to kubeadm to get around having to do this:
+  # https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#options
+  sed -i -re "/listen-metrics-urls/ s|$|,http://${internal_ip}:2381|" \
+    /etc/kubernetes/manifests/etcd.yaml
 
-# Add various cluster environment variables to root's .profile and .bashrc
-# files so that etcdctl and kubectl operate as expected without additional
-# flags.
-bash -c "(cat <<-EOF
-export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
-export ETCDCTL_API=3
-export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
-export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/peer.crt
-export ETCDCTL_DIAL_TIMEOUT=3s
-export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
-export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
-export KUBECONFIG=/etc/kubernetes/admin.conf
-EOF
-) | tee -a /root/.profile /root/.bashrc"
+  # Add various cluster environment variables to root's .profile and .bashrc
+  # files so that etcdctl and kubectl operate as expected without additional
+  # flags.
+  bash -c "(cat <<-EOF
+  export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
+  export ETCDCTL_API=3
+  export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
+  export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/peer.crt
+  export ETCDCTL_DIAL_TIMEOUT=3s
+  export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
+  export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+  EOF
+  ) | tee -a /root/.profile /root/.bashrc"
+}
+
+# Run main()
+main

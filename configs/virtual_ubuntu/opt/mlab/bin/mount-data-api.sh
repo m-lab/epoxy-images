@@ -1,4 +1,8 @@
 #!/bin/bash
+#
+# Possibly formats, and mounts the API/control-plane persistent volume. This
+# volume is where all persistent state data for kubernetes, etcd and the
+# kubelet will be stored.
 
 MOUNT_DIR="/mnt/cluster-data"
 
