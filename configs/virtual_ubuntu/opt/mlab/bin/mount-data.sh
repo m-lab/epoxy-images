@@ -4,14 +4,20 @@
 # be stored.
 
 MOUNT_DIR="/mnt/local"
-# A list of services that will be using this persistent volume. Each service
-# will get its own subdirectory in MOUNT_DIR.
-SERVICES="prometheus"
+# A list of services that will be using this persistent volume, along with which
+# subdirectory owner:group they require. Services listed here will get their own
+# subdirectory in MOUNT_DIR. This is a bash associative array.
+declare -A SERVICES=(
+  ["prometheus"]="nobody:nogroup"
+)
 
-# Create stateful subdirectories, if they don't already exist.
+# Create stateful subdirectories, if they don't already exist, and set
+# appropriate ownership of the subdirectory. This is apparently the awkward way
+# in which one interates a bash associative array.
 function create_subdirectories() {
-  for service in $SERVICES; do
-    mkdir -p "${MOUNT_DIR}/${service}"
+  for key in "${!SERVICES[@]}"; do
+    mkdir -p "${MOUNT_DIR}/${key}"
+    chown "${SERVICES[$key]}" "${MOUNT_DIR}/${key}"
   done
 }
 

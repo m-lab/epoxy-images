@@ -259,7 +259,7 @@ function main() {
   export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
   export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
   export KUBECONFIG=/etc/kubernetes/admin.conf
-  EOF
+EOF
   ) | tee -a /root/.profile /root/.bashrc"
 }
 
