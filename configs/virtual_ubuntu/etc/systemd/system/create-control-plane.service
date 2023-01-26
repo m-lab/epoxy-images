@@ -1,5 +1,5 @@
 [Unit]
-Description=Mount, and possibly format, the cluster data volume
+Description=Initialize the kubernetes control plane
 After=kubelet.service mount-cluster-data.service
 Requires=mount-data-api.service
 # The presence of this file indicates that the cluster has already been created.
