@@ -15,6 +15,7 @@ set -euxo pipefail
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
+export KUBECONFIG="/etc/kubernetes/kubelet.conf"
 export PATH=$PATH:/opt/bin
 
 # Collect data necessary to join the cluster.
@@ -35,6 +36,7 @@ extension_v1="{\"v1\":{\"hostname\":\"${hostname}\",\"last_boot\":\"$(date --utc
 # present already, except in the case where the control plane cluster is being
 # initialized, in which case this node may be up and running and wanting to join
 # before the control plane is ready.
+api_status=""
 until [[ $api_status == "200" ]]; do
   sleep 5
   api_status=$(
@@ -63,7 +65,7 @@ sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=${k8s_
 kubeadm join "${lb_dns}:6443" --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $hostname
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
-kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $hostname \
+kubectl annotate node $hostname \
   flannel.alpha.coreos.com/public-ip-overwrite=$external_ip \
   --overwrite=true
 
