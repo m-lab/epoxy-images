@@ -152,9 +152,13 @@ function initialize_cluster() {
   gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
   gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
 
+  # Clone the k8s-support repository and apply all workloads to the newly
+  # initialized cluster.
+  # TODO (kinkade): find a way to not use special "cluster-init" versions of the
+  # "create" and "apply" scripts. Initialization and later update (by
+  # k8s-support releases) should use the same scripts, ideally.
   git clone https://github.com/m-lab/k8s-support
   cd k8s-support/manage-cluster
-  git checkout sandbox-kinkade
   ./create_k8s_configs_cluster-init.sh
   ./apply_k8s_configs_cluster-init.sh
 }
