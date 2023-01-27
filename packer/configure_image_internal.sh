@@ -12,4 +12,4 @@ mkdir -p /etc/kubernetes/manifests
 
 # Enable systemd units
 systemctl enable join-cluster-internal.service
-systemctl enable mount-data.service
+systemctl enable mount-data-internal.service
