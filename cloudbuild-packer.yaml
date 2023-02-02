@@ -9,6 +9,8 @@ options:
 # BUILD PACKER IMAGES
 ############################################################################
 
+steps:
+
 # packer_images.
 - name: gcr.io/$PROJECT_ID/epoxy-images:1.0
   args: [
