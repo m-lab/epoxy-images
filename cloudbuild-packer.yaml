@@ -4,6 +4,7 @@ timeout: 3600s
 options:
   env:
     - 'PROJECT=$PROJECT_ID'
+    - 'ARTIFACTS=/workspace/output'
 
 ############################################################################
 # BUILD PACKER IMAGES
