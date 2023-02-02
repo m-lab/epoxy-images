@@ -1,5 +1,5 @@
 # Timeout for complete build. Default is 10m.
-timeout: 3600
+timeout: 3600s
 
 options:
   env:

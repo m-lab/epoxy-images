@@ -5,10 +5,8 @@ set -euxo pipefail
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
-# Names of project or instance metadata. CA_HASH will be project metadata, while
-# CERT_KEY will be control plane instance metadata.
+# Names for project metadata. CA_HASH will be project metadata.
 CA_HASH_NAME="platform_cluster_ca_hash"
-CERT_KEY_NAME="platform_cluster_cert_key"
 
 export PATH=$PATH:/opt/bin:/opt/mlab/bin
 export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -149,12 +147,6 @@ function initialize_cluster() {
         --metadata-from-file "cluster_data=cluster-data.json" \
         --project $project \
         --zone $z
-
-      # Add the metadata
-      gcloud compute instances add-metadata "api-platform-cluster-${z}" \
-        --metadata "${CERT_KEY_NAME}=${cert_key}" \
-        --project $project \
-        --zone $z
     fi
   done
 
@@ -224,7 +216,10 @@ function join_cluster() {
   ca_cert_hash=$(
     curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/${CA_HASH_NAME}"
   )
-  cert_key=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/${CERT_KEY_NAME}")
+  cert_key=$(
+    curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" |
+      jq '.cluster_attributes.cert_key'
+  )
 
   # Replace the token and CA cert has variables in the kubeadm config file.
   sed -i -e "s|{{TOKEN}}|$token|" \
