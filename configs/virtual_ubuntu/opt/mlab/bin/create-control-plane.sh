@@ -104,6 +104,7 @@ function initialize_cluster() {
   local ca_cert_hash
   local cert_key
   local join_command
+  local instance_exists
 
   # Create the shared key used to encrypt all the PKI data that will be
   # uploaded to the cluster as secrets. This allow kubeadm to upload the data
@@ -130,6 +131,26 @@ function initialize_cluster() {
   # Add the shared cert_key to the "secondary" control plane nodes' metadata.
   for z in $(echo "$cluster_data" | jq --join-output --raw-output '.zones | keys[] as $k | "\($k) "'); do
     if [[ $z != $zone ]]; then
+
+      # Wait until the instance exists before trying to add metadata to it.
+      instance_exists=""
+      until [[ -n $instance_exists ]]; do
+        sleep 5
+        instance_exists=$(
+          gcloud compute instances describe "api-platform-cluster-${z} \
+            --project $project --zone $z --format "value(name)""
+        )
+      done
+
+      # Add cert_key to cluster_data, then push cluster_data
+      echo $cluster_data | \
+        jq ".cluster_attributes += {\"cert_key\": \"${cert_key}\"}" > ./cluster-data.json
+      gcloud compute instances add-metadata "api-platform-cluster-${z}" \
+        --metadata-from-file "cluster_data=cluster-data.json" \
+        --project $project \
+        --zone $z
+
+      # Add the metadata
       gcloud compute instances add-metadata "api-platform-cluster-${z}" \
         --metadata "${CERT_KEY_NAME}=${cert_key}" \
         --project $project \
@@ -151,6 +172,25 @@ function initialize_cluster() {
   gcloud compute project-info add-metadata --metadata "${CA_HASH_NAME}=${ca_cert_hash}" --project $project
   gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
   gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
+
+  # Add the current CA cert hash to the setup_k8s.sh script which physical
+  # platform nodes use to join the cluster, then push the evaluated template to
+  # GCS.
+  sed -e "s/{{CA_CERT_HASH}}/${ca_cert_hash}/" /opt/mlab/conf/setup_k8s.sh.template > setup_k8s.sh
+  cache_control="Cache-Control:private, max-age=0, no-transform"
+  gsutil -h "$cache_control" cp setup_k8s.sh "gs://epoxy-${project}/latest/stage3_ubuntu/setup_k8s.sh"
+
+  # Apply the flannel-virtual DamoneSet, and related resources, to the cluster
+  # so that cluster networking will com up. Without it, nodes will never
+  # consider themselves ready.
+  cd /tmp
+  git clone https://github.com/m-lab/k8s-support
+  cd k8s-support
+  source manage-cluster/k8s_deploy.conf
+  jsonnet k8s/roles/flannel.jsonnet | jq '.[]'  > flannel-rbac.json
+  jsonnet --ext-str "K8S_CLUSTER_CIDR=${K8S_CLUSTER_CIDR}" config/flannel.jsonnet > flannel-configmap.json
+  jsonnet --ext-str "K8S_FLANNEL_VERSION=${K8S_FLANNEL_VERSION}" k8s/daemonsets/core/flannel-virtual.jsonnet > flannel-daemonset.json
+  kubectl apply --filename flannel-rbac.json,flannel-configmap.json,flannel-daemonset.json
 }
 
 #
