@@ -13,7 +13,7 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 # Collect data necessary to proceed.
 project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
-api_url="api-platform-cluster.${project}.measurementlab.net:6443"
+lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
 fqdn=$(hostname --fqdn)
 hostname=$(hostname)
@@ -40,15 +40,16 @@ done
 # will have to be made more generic before we can join VMs from other cloud
 # providers. A current proposal is to have the token-server return not only a
 # token, but also the CA cert hash, but this has yet to be implemented.
-gsutil cp "gs://epoxy-${project}/latest/stage3_ubuntu/setup_k8s.sh" /tmp/setup_k8s.sh
-ca_hash=$(egrep -o 'sha256:[[:alnum:]]+' /tmp/setup_k8s.sh)
+#
+# Fetch the ca_cert_hash stored in project metadata.
+ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
 
 # Set up necessary labels for the node.
 node_labels="mlab/machine=${hostname:0:5},mlab/site=${hostname:6},mlab/metro=${hostname:6:3},mlab/type=virtual,mlab/run=ndt,mlab/project=${project}"
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$node_labels |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-kubeadm join $api_server --token $token --discovery-token-ca-cert-hash $ca_hash --node-name $fqdn
+kubeadm join $lb_dns --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $fqdn
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
 kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $fqdn \
