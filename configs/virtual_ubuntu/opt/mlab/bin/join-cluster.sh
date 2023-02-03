@@ -31,7 +31,7 @@ token=""
 until [[ $token ]]; do
   token_url=$(
     curl --silent --location --request POST "$stage1_url" | \
-      jq -r '.kargs."epoxy.allocate_k8s_token"'
+      jq --raw-output '.kargs."epoxy.allocate_k8s_token"'
   )
   token=$(curl --silent --location --request POST "$token_url" || true)
 done

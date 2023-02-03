@@ -21,14 +21,14 @@ zone_path=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/zone")
 export zone=${zone_path##*/}
 
 # Extract cluster/machine data from $cluster_data.
-export cluster_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.cluster_cidr')
-export create_role=$(echo "$cluster_data" | jq -r ".zones[\"${zone}\"].create_role")
-export lb_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.lb_dns')
-export token_server_dns=$(echo "$cluster_data" | jq -r '.cluster_attributes.token_server_dns')
-export service_cidr=$(echo "$cluster_data" | jq -r '.cluster_attributes.service_cidr')
+export cluster_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.cluster_cidr')
+export create_role=$(echo "$cluster_data" | jq --raw-output ".zones[\"${zone}\"].create_role")
+export lb_dns=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.lb_dns')
+export token_server_dns=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.token_server_dns')
+export service_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.service_cidr')
 
 # Determine the k8s version by inspecting the version of the local kubectl.
-k8s_version=$(kubectl version --client=true --output=json | jq -r '.clientVersion.gitVersion')
+k8s_version=$(kubectl version --client=true --output=json | jq --raw-output '.clientVersion.gitVersion')
 
 # The internal DNS name of this machine.
 internal_dns="api-platform-cluster-${zone}.${zone}.c.${project}.internal"
@@ -172,17 +172,26 @@ function initialize_cluster() {
   cache_control="Cache-Control:private, max-age=0, no-transform"
   gsutil -h "$cache_control" cp setup_k8s.sh "gs://epoxy-${project}/latest/stage3_ubuntu/setup_k8s.sh"
 
-  # Apply the flannel-virtual DamoneSet, and related resources, to the cluster
-  # so that cluster networking will com up. Without it, nodes will never
-  # consider themselves ready.
+  # TODO (kinkade): the only thing using these admin cluster credentials is
+  # Cloud Build for the k8s-support repository, which needs to apply
+  # workloads to the cluster. We need to find a better way for Cloud Build to
+  # authenticate to the cluster so that we don't have to store admin cluster
+  # credentials in GCS.
+  gsutil -h "$cache_control" cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
+
+
+  # Apply the flannel DamoneSets and related resources to the cluster so that
+  # cluster networking will com up. Without it, nodes will never consider
+  # themselves ready.
   cd /tmp
   git clone https://github.com/m-lab/k8s-support
   cd k8s-support
   source manage-cluster/k8s_deploy.conf
   jsonnet k8s/roles/flannel.jsonnet | jq '.[]'  > flannel-rbac.json
   jsonnet --ext-str "K8S_CLUSTER_CIDR=${K8S_CLUSTER_CIDR}" config/flannel.jsonnet > flannel-configmap.json
-  jsonnet --ext-str "K8S_FLANNEL_VERSION=${K8S_FLANNEL_VERSION}" k8s/daemonsets/core/flannel-virtual.jsonnet > flannel-daemonset.json
-  kubectl apply --filename flannel-rbac.json,flannel-configmap.json,flannel-daemonset.json
+  jsonnet --ext-str "K8S_FLANNEL_VERSION=${K8S_FLANNEL_VERSION}" k8s/daemonsets/core/flannel-virtual.jsonnet > flannel-virtual.json
+  jsonnet --ext-str "K8S_FLANNEL_VERSION=${K8S_FLANNEL_VERSION}" k8s/daemonsets/core/flannel-physical.jsonnet > flannel-physical.json
+  kubectl apply --filename flannel-rbac.json,flannel-configmap.json,flannel-virtual.json,flannel-physical.json
 }
 
 #
@@ -218,7 +227,7 @@ function join_cluster() {
   )
   cert_key=$(
     curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" |
-      jq '.cluster_attributes.cert_key'
+      jq --raw-output '.cluster_attributes.cert_key'
   )
 
   # Replace the token and CA cert has variables in the kubeadm config file.
