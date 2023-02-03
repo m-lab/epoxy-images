@@ -4,6 +4,7 @@ timeout: 3600s
 options:
   env:
     - 'PROJECT=$PROJECT_ID'
+    - 'IMAGES_VERSION=$_IMAGES_VERSION'
     - 'ARTIFACTS=/workspace/output'
 
 ############################################################################
