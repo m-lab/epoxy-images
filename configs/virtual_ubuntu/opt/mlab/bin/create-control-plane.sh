@@ -181,7 +181,7 @@ function initialize_cluster() {
 
 
   # Apply the flannel DamoneSets and related resources to the cluster so that
-  # cluster networking will com up. Without it, nodes will never consider
+  # cluster networking will come up. Without it, nodes will never consider
   # themselves ready.
   cd /tmp
   git clone https://github.com/m-lab/k8s-support

@@ -26,6 +26,10 @@ dev_name=$(
     "http://metadata.google.internal/computeMetadata/v1/instance/attributes/cluster_data" \
     | jq -r '.machine_attributes.disk_dev_name_data'
 )
+if [[ -z $dev_name ]]; then
+  echo "Failed to determine the persistent disk device name"
+  exit 1
+}
 dev_path="/dev/disk/by-id/google-${dev_name}"
 
 # If the disk isn't formatted, then format it.
