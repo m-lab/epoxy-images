@@ -1,7 +1,7 @@
 [Unit]
 Description=token-server
-After=docker.service
-Requires=docker.service
+After=docker.service mount-data-api.service
+Requires=docker.service mount-data-api.service
 
 # Run the k8s-token-server (supporting the ePoxy Extension API), such that:
 #
