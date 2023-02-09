@@ -11,30 +11,54 @@ export PATH=$PATH:/opt/bin
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
-# Collect data necessary to proceed.
-project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
-lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
-external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
-fqdn=$(hostname --fqdn)
-hostname=$(hostname)
-stage1_url="https://epoxy-boot-api.${project}.measurementlab.net/v1/boot/${fqdn}/stage1.json"
 
-# Keep trying to get a token until it succeeds, since there is no point in
-# continuing without a token, and exiting the script isn't necessarily
-# productive either. Failure could be due to some bug that won't be resolved
-# soon, but it could also be that the control plane machines are in the process
-# of being created or rebooted, or otherwise temporarily unavailable. For
-# example, Terraform creates resources in parallel, and it's not impossible that
-# a machine running this script could be up and running before the control plane
-# is ready.
-token=""
-until [[ $token ]]; do
-  token_url=$(
-    curl --silent --location --request POST "$stage1_url" | \
-      jq --raw-output '.kargs."epoxy.allocate_k8s_token"'
+# Don't try to join the cluster until at least one control plane node is ready.
+# Keep trying this forever, until it succeeds, as there is no point in going
+# forward until the API is up.  In most cases, the control plane should be
+# present already, except in the case where the control plane cluster is being
+# initialized, in which case this node may be up and running and wanting to join
+# before the control plane is ready.
+api_status=""
+until [[ $api_status == "200" ]]; do
+  sleep 5
+  api_status=$(
+    curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
+      "https://${lb_dns}:6443/readyz" \
+      || true
   )
-  token=$(curl --silent --location --request POST "$token_url" || true)
 done
+
+# Wait a while after the control plane is accessible on the API port, since in
+# the case where the cluster is being initialized, there are a few housekeeping
+# items to handle, such as uploading the latest CA cert hash to the project metadata.
+sleep 60
+
+# Collect data necessary to proceed.
+external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
+k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_lables")
+lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
+project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
+token_server_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/token_server_dns")
+
+# Generate a JSON snippet suitable for the token-server, and then request a
+# token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
+extension_v1="{\"v1\":{\"hostname\":\"$(hostname)\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
+
+# Fetch a token from the token-server.
+#
+# TODO (kinkade): this only works from within GCP, so is not a long term
+# solution. It is just a stop-gap to get GCP VMs able to join the cluster until
+# we have implemented a more global solution that will support any cloud
+# provider. Going through ePoxy will not work for VMs in a managed instance
+# group (MIG), since siteinfo, ePoxy and Locate will only know about the load
+# balancer IP address, not the possibly ephemeral public IP of an auto-scaled
+# instance in a MIG.
+token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token" || true)
+
+if [[ -z $token ]]; then
+  echo "Failed to get a cluster bootstrap join token from the token-server"
+  exit 1
+fi
 
 # TODO (kinkade): this is GCP specific and will not work outside of GCP. This
 # will have to be made more generic before we can join VMs from other cloud
@@ -45,13 +69,12 @@ done
 ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
 
 # Set up necessary labels for the node.
-node_labels="mlab/machine=${hostname:0:5},mlab/site=${hostname:6},mlab/metro=${hostname:6:3},mlab/type=virtual,mlab/run=ndt,mlab/project=${project}"
-sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$node_labels |g" \
+sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$k8s_labels |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-kubeadm join $lb_dns --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $fqdn
+kubeadm join $lb_dns:6443 --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $(hostname)
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
-kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $fqdn \
+kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $(hostname) \
   flannel.alpha.coreos.com/public-ip-overwrite=${external_ip} \
   --overwrite=true
