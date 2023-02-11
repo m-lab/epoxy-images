@@ -25,7 +25,7 @@ external_ip=$(
 echo -n $external_ip > $METADATA_DIR/external-ip
 
 external_ipv6=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/ipv6s")
-echo -n $EXTERNAL_IPV6 > $METADATA_DIR/external-ipv6
+echo -n $external_ipv6 > $METADATA_DIR/external-ipv6
 
 machine_type=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/machine-type")
 echo -n ${machine_type##*/} > $METADATA_DIR/machine-type
