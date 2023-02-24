@@ -10,4 +10,3 @@ mkdir -p $METADATA_DIR
 
 # Write the kernel version
 uname -r | tr -d '\n' > $METADATA_DIR/kernel-version
-

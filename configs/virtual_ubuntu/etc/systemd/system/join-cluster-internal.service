@@ -1,12 +1,12 @@
 [Unit]
-Description=Join the M-Lab Platform Cluster
+Description=Join the M-Lab Platform Cluster for internal GCP machines
 # The presence of this file indicates that this machine has already joined the
 # cluster.  If it exists, do not run this unit.
 ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
 [Service]
 Type=oneshot
-ExecStart=/opt/mlab/bin/join-cluster.sh
+ExecStart=/opt/mlab/bin/join-cluster-internal.sh
 
 [Install]
 WantedBy=multi-user.target

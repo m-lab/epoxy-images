@@ -1,0 +1,21 @@
+# Timeout for complete build. Default is 10m.
+timeout: 3600s
+
+options:
+  env:
+    - 'PROJECT=$PROJECT_ID'
+    - 'IMAGES_VERSION=$_IMAGES_VERSION'
+    - 'ARTIFACTS=/workspace/output'
+
+############################################################################
+# BUILD PACKER IMAGES
+############################################################################
+
+steps:
+
+# packer_images.
+- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+  args: [
+    '/workspace/builder.sh', 'packer_images'
+  ]
+

@@ -4,7 +4,16 @@
 # the machine if the control plane etcd cluster is healthy, and if the current
 # day is the configured reboot day for that particular machine.
 
-REBOOT_DAY=$(cat /etc/reboot-node-day)
+METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
+CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
+
+ZONE_PATH=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/zone")
+ZONE=${zone_path##*/}
+REBOOT_DAY=$(
+  curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" \
+    | jq -r ".zones[\"${ZONE}\"].reboot_day"
+)
+
 TODAY=$(date +%a)
 
 source /root/.profile
@@ -36,4 +45,3 @@ DEBIAN_FRONTEND=noninteractive apt full-upgrade --yes
 echo "Reboot day ${REBOOT_DAY} equals today: ${TODAY}. Rebooting node."
 
 /sbin/reboot
-

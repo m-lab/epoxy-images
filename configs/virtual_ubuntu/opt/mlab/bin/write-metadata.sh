@@ -11,29 +11,24 @@
 set -euxo pipefail
 
 METADATA_DIR=/var/local/metadata
+METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance"
+CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
+
 mkdir -p $METADATA_DIR
 
-BASE_URL="http://metadata.google.internal/computeMetadata/v1/instance"
+zone=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/zone")
+echo -n ${zone##*/} > $METADATA_DIR/zone
 
-ZONE=$(
-  curl --silent -H "Metadata-Flavor: Google" "${BASE_URL}/zone"
+external_ip=$(
+  curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/access-configs/0/external-ip"
 )
-echo ${ZONE##*/} > $METADATA_DIR/zone
+echo -n $external_ip > $METADATA_DIR/external-ip
 
-EXTERNAL_IP=$(
-  curl --silent -H "Metadata-Flavor: Google" "${BASE_URL}/network-interfaces/0/access-configs/0/external-ip"
-)
-echo $EXTERNAL_IP > $METADATA_DIR/external-ip
+external_ipv6=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/ipv6s")
+echo -n $external_ipv6 > $METADATA_DIR/external-ipv6
 
-EXTERNAL_IPV6=$(
-  curl --silent -H "Metadata-Flavor: Google" "${BASE_URL}/network-interfaces/0/ipv6s"
-)
-echo $EXTERNAL_IPV6 > $METADATA_DIR/external-ipv6
-
-MACHINE_TYPE=$(
-  curl --silent -H "Metadata-Flavor: Google" "${BASE_URL}/machine-type"
-)
-echo ${MACHINE_TYPE##*/} > $METADATA_DIR/machine-type
+machine_type=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/machine-type")
+echo -n ${machine_type##*/} > $METADATA_DIR/machine-type
 
 # The network tier is apparently not available from the metadata server, yet it
 # is available through the API using gcloud at this attribute:
@@ -43,6 +38,6 @@ echo ${MACHINE_TYPE##*/} > $METADATA_DIR/machine-type
 # So, for now, just statically set the network tier to PREMIUM. This is the
 # default, and anything less isn't even available in all regions. We are
 # unlikely to change this.
-echo "PREMIUM" > $METADATA_DIR/network-tier
+echo -n "PREMIUM" > $METADATA_DIR/network-tier
 
-echo $(uname -r) > $METADATA_DIR/kernel-version
+echo -n $(uname -r) > $METADATA_DIR/kernel-version

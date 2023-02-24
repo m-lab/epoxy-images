@@ -1,0 +1,15 @@
+[Unit]
+Description=Initialize the kubernetes control plane
+After=kubelet.service mount-cluster-data.service
+Requires=mount-data-api.service
+# The presence of this file indicates that the cluster has already been created.
+# If it exists, do not run this unit.
+ConditionPathExists=!/etc/kubernetes/admin.conf
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/create-control-plane.sh
+WorkingDirectory=/tmp
+
+[Install]
+WantedBy=multi-user.target
