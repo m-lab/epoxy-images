@@ -1,0 +1,24 @@
+[Unit]
+Description=ePoxy extension server
+After=docker.service mount-data-api.service
+Requires=docker.service mount-data-api.service
+
+# Run the ePoxy extension server (supporting the ePoxy Extension API).
+#
+# Mount /opt/bin so that the container has access to kubeadm, and
+# /etc/kubernetes so that kubeadm has access to admin.conf"
+[Service]
+TimeoutStartSec=120
+Restart=always
+ExecStartPre=-/usr/bin/docker stop %N
+ExecStartPre=-/usr/bin/docker rm %N
+ExecStart=/usr/bin/docker run --publish 8800:8800 \
+                              --volume /etc/kubernetes:/etc/kubernetes:ro \
+                              --volume /opt/bin:/opt/bin:ro \
+                              --name %N -- \
+                              measurementlab/epoxy-extensions:v0.4.0 \
+                              -bin-dir /opt/bin
+ExecStop=/usr/bin/docker stop %N
+
+[Install]
+WantedBy=multi-user.target
