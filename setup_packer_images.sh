@@ -28,7 +28,7 @@ tar --dereference -czf packer/virtual-files.tar.gz --owner root --group root -C 
 # string are due to restrictions in GCP resource names:
 # https://cloud.google.com/compute/docs/naming-resources
 if [[ $PROJECT != "mlab-oti" ]]; then
-  version=$(date --utc +v%FT%H-%M-%S)
+  version=$(date --utc +%Ft%H-%M-%S)
 else
   version=${IMAGES_VERSION//./-}
 fi
