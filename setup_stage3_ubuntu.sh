@@ -74,7 +74,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
     export DEBIAN_FRONTEND=noninteractive
 
     # A comma-separated list of additional packages we want installed.
-    PACKAGES="busybox,ca-certificates,conntrack,curl,dbus,dmsetup,docker.io,ethtool,"
+    PACKAGES="apparmor,busybox,ca-certificates,conntrack,curl,dbus,dmsetup,docker.io,ethtool,"
     PACKAGES+="iproute2,jq,kexec-tools,less,linux-base,linux-generic,net-tools,"
     PACKAGES+="openssh-server,parted,pciutils,socat,sudo,systemd-sysv,udev,"
     PACKAGES+="unattended-upgrades,usbutils,vim,wget,xfsprogs"

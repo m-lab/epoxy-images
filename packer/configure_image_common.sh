@@ -22,6 +22,7 @@ sed -i -e '/secure_path/ s|"$|:/opt/bin"|' /etc/sudoers
 # Install required packages.
 apt update
 apt install -y \
+  apparmor \
   busybox \
   conntrack \
   containerd \
