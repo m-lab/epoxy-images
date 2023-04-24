@@ -29,7 +29,7 @@ dev_name=$(
 if [[ -z $dev_name ]]; then
   echo "Failed to determine the persistent disk device name"
   exit 1
-}
+fi
 dev_path="/dev/disk/by-id/google-${dev_name}"
 
 # If the disk isn't formatted, then format it.
