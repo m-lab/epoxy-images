@@ -33,6 +33,18 @@ k8s_version=$(kubectl version --client=true --output=json | jq --raw-output '.cl
 # The internal DNS name of this machine.
 internal_dns="api-platform-cluster-${zone}.${zone}.c.${project}.internal"
 
+# If this file exists, then the cluster must already be initialized. The
+# systemd service unit file that runs this script also has a conditional check
+# for this file and should not run if it exists. This is just a backup,
+# redundant check, just in case for some reason the file exists but the service
+# unit gets run anyway. This happened to me (kinkade), where a small bug in the
+# configurations caused this service to run, even though this file existed, and
+# kubeadm overwrote that file and others before finally erroring out due a
+# preflight check failure.
+if [[ -f /etc/kubernetes/admin.conf ]]; then
+  exit 0
+fi
+
 # Evaluate the kubeadm config template
 sed -e "s|{{PROJECT}}|${project}|g" \
     -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
@@ -219,7 +231,7 @@ function join_cluster() {
   # Once the first API endpoint is up, it still has some housekeeping work to
   # do before other control plane machines are ready to joing the cluster. Give
   # it a bit to finish.
-  sleep 60
+  sleep 90
 
   token=$(get_bootstrap_token)
   ca_cert_hash=$(
