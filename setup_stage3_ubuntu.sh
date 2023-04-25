@@ -57,12 +57,19 @@ CLUSTER_VERSION=$(
     https://api-platform-cluster.$PROJECT.measurementlab.net:6443/version \
     | jq -r '.gitVersion'
 )
-LOWEST_VERSION=$(
-  echo -e "${CLUSTER_VERSION}\n${K8S_VERSION}" | sort --version-sort | head --lines 1
-)
-if [[ $LOWEST_VERSION != $K8S_VERSION ]]; then
-  echo "K8S_VERSION is ${K8S_VERSION}), which is greater than the cluster version of ${CLUSTER_VERSION}. Exiting..."
-  exit 1
+# If CLUSTER_VERSION is empty, then it could be because the control plane
+# doesn't even exist. If it is empty, then skip the version checking because
+# otherwise we may have a chicken-and-egg situation where the control plane
+# nodes need this build to work so that they can have working images to create
+# the control plane cluster in the first place.
+if [[ -n $CLUSTER_VERSION ]]; then
+  LOWEST_VERSION=$(
+    echo -e "${CLUSTER_VERSION}\n${K8S_VERSION}" | sort --version-sort | head --lines 1
+  )
+  if [[ $LOWEST_VERSION != $K8S_VERSION ]]; then
+    echo "K8S_VERSION is ${K8S_VERSION}), which is greater than the cluster version of ${CLUSTER_VERSION}. Exiting..."
+    exit 1
+  fi
 fi
 
 # Note: this step cannot be performed by docker build because it requires
