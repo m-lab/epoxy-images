@@ -177,20 +177,12 @@ function initialize_cluster() {
   gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
   gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
 
-  # Add the current CA cert hash to the setup_k8s.sh script which physical
-  # platform nodes use to join the cluster, then push the evaluated template to
-  # GCS.
-  sed -e "s/{{CA_CERT_HASH}}/${ca_cert_hash}/" /opt/mlab/conf/setup_k8s.sh.template > setup_k8s.sh
-  cache_control="Cache-Control:private, max-age=0, no-transform"
-  gsutil -h "$cache_control" cp setup_k8s.sh "gs://epoxy-${project}/latest/stage3_ubuntu/setup_k8s.sh"
-
   # TODO (kinkade): the only thing using these admin cluster credentials is
   # Cloud Build for the k8s-support repository, which needs to apply
   # workloads to the cluster. We need to find a better way for Cloud Build to
   # authenticate to the cluster so that we don't have to store admin cluster
   # credentials in GCS.
   gsutil -h "$cache_control" cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
-
 
   # Apply the flannel DamoneSets and related resources to the cluster so that
   # cluster networking will come up. Without it, nodes will never consider
