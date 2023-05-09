@@ -68,7 +68,7 @@ sleep 90
 # token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
 extension_v1="{\"v1\":{\"hostname\":\"${hostname}\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
 
-# Fetch cluser bootstrap join data from the epoxy-extension-server.
+# Fetch cluster bootstrap join data from the epoxy-extension-server.
 #
 # TODO (kinkade): here we are querying the epoxy-extension-server directly
 # through the GCP private network. This only works from within GCP, so is not a
