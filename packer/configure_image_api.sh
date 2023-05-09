@@ -28,7 +28,6 @@ echo -e "\nexport KUBECONFIG=/etc/kubernetes/admin.conf\n" >> /root/.bashrc
 systemctl enable docker
 systemctl enable reboot-api-node.service
 systemctl enable reboot-api-node.timer
-systemctl enable token-server.service
-systemctl enable bmc-store-password.service
+systemctl enable epoxy-extension-server.service
 systemctl enable mount-data-api.service
 systemctl enable create-control-plane.service

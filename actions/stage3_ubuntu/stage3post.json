@@ -3,15 +3,8 @@
       "env": {
          "PATH": "/bin:/usr/bin:/usr/local/bin"
       },
-      "files": {
-         "setup_k8s": {
-            "url": "https://storage.googleapis.com/epoxy-{{kargs `epoxy.project`}}/latest/stage3_ubuntu/setup_k8s.sh"
-         }
-      },
       "commands": [
-         "# Make setup_k8s.sh executable and then run with the epoxy.ipv4 config",
-         "/usr/bin/chmod 755 {{.files.setup_k8s.name}}",
-         "{{.files.setup_k8s.name}} {{kargs `epoxy.project`}} {{kargs `epoxy.ipv4`}} {{kargs `epoxy.hostname`}} {{kargs `epoxy.allocate_k8s_token`}}"
+         "/opt/mlab/bin/setup_k8s.sh {{kargs `epoxy.project`}} {{kargs `epoxy.ipv4`}} {{kargs `epoxy.hostname`}} {{kargs `epoxy.allocate_k8s_token`}}"
       ]
    }
 }

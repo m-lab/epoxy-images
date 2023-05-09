@@ -33,6 +33,18 @@ k8s_version=$(kubectl version --client=true --output=json | jq --raw-output '.cl
 # The internal DNS name of this machine.
 internal_dns="api-platform-cluster-${zone}.${zone}.c.${project}.internal"
 
+# If this file exists, then the cluster must already be initialized. The
+# systemd service unit file that runs this script also has a conditional check
+# for this file and should not run if it exists. This is just a backup,
+# redundant check, just in case for some reason the file exists but the service
+# unit gets run anyway. This happened to me (kinkade), where a small bug in the
+# configurations caused this service to run, even though this file existed, and
+# kubeadm overwrote that file and others before finally erroring out due a
+# preflight check failure.
+if [[ -f /etc/kubernetes/admin.conf ]]; then
+  exit 0
+fi
+
 # Evaluate the kubeadm config template
 sed -e "s|{{PROJECT}}|${project}|g" \
     -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
@@ -165,20 +177,12 @@ function initialize_cluster() {
   gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
   gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
 
-  # Add the current CA cert hash to the setup_k8s.sh script which physical
-  # platform nodes use to join the cluster, then push the evaluated template to
-  # GCS.
-  sed -e "s/{{CA_CERT_HASH}}/${ca_cert_hash}/" /opt/mlab/conf/setup_k8s.sh.template > setup_k8s.sh
-  cache_control="Cache-Control:private, max-age=0, no-transform"
-  gsutil -h "$cache_control" cp setup_k8s.sh "gs://epoxy-${project}/latest/stage3_ubuntu/setup_k8s.sh"
-
   # TODO (kinkade): the only thing using these admin cluster credentials is
   # Cloud Build for the k8s-support repository, which needs to apply
   # workloads to the cluster. We need to find a better way for Cloud Build to
   # authenticate to the cluster so that we don't have to store admin cluster
   # credentials in GCS.
   gsutil -h "$cache_control" cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
-
 
   # Apply the flannel DamoneSets and related resources to the cluster so that
   # cluster networking will come up. Without it, nodes will never consider
@@ -219,7 +223,7 @@ function join_cluster() {
   # Once the first API endpoint is up, it still has some housekeeping work to
   # do before other control plane machines are ready to joing the cluster. Give
   # it a bit to finish.
-  sleep 60
+  sleep 90
 
   token=$(get_bootstrap_token)
   ca_cert_hash=$(

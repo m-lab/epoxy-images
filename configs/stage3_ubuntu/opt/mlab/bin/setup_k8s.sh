@@ -6,11 +6,10 @@ ln --force --symbolic /var/log/setup_k8s.log-$curr_date /var/log/setup_k8s.log
 
 set -euxo pipefail
 
-# This script is intended to be called by epoxy as the action for the last stage
-# in the boot process.  The actual epoxy config that calls this file can be
-# found at:
-#   https://github.com/m-lab/epoxy-images/blob/dev/actions/stage3_coreos/stage3post.json
-
+# This script is intended to be called by epoxy_client as the action for the
+# last stage in the boot process.  The actual epoxy config that calls this file
+# can be found at:
+#    https://github.com/m-lab/epoxy-images/blob/main/actions/stage3_ubuntu/stage3post.json
 # This should be the final step in the boot process. Prior to this script
 # running, we should have made sure that the disk is partitioned appropriately
 # and mounted in the right places (one place to serve as a cache for Docker
@@ -33,10 +32,6 @@ METRO="${SITE/[0-9]*/}"
 # Also, be 100% sure /sbin and /usr/sbin are in PATH.
 export PATH=$PATH:/sbin:/usr/sbin:/opt/bin:/opt/mlab/bin
 
-# Make sure to download any and all necessary auth tokens prior to this point.
-# It should be a simple wget from the control plane node to make that happen.
-LOAD_BALANCER="api-platform-cluster.${GCP_PROJECT}.measurementlab.net"
-
 # Capture K8S version for later usage.
 RELEASE=$(kubelet --version | awk '{print $2}')
 
@@ -52,9 +47,9 @@ mkdir --parents /etc/kubernetes/manifests
 
 systemctl daemon-reload
 
-# Fetch k8s token via K8S_TOKEN_URL. Curl should report most errors to stderr,
-# so write stderr to a file so we can read any error code.
-TOKEN=$( curl --fail --silent --show-error -XPOST --data-binary "{}" \
+# Fetch k8s cluster join data from K8S_TOKEN_URL. Curl should report most errors
+# to stderr, so write stderr to a file so we can read any error code.
+JOIN_DATA=$( curl --fail --silent --show-error -XPOST --data-binary "{}" \
     ${K8S_TOKEN_URL} 2> $K8S_TOKEN_ERROR_FILE )
 # IF there was an error and the error was 408 (Request Timeout), then reboot
 # the machine to reset the token timeout.
@@ -63,10 +58,14 @@ if [[ -n $ERROR_408 ]]; then
   /sbin/reboot
 fi
 
-kubeadm join "${LOAD_BALANCER}:6443" \
-  --v 4 \
-  --token "${TOKEN}" \
-  --discovery-token-ca-cert-hash {{CA_CERT_HASH}}
+# $JOIN_DATA should contain a simple JSON block with all the information needed
+# to join the cluster.
+api_address=$(echo "$JOIN_DATA" | jq -r '.api_address')
+ca_hash=$(echo "$JOIN_DATA" | jq -r '.ca_hash')
+token=$(echo "$JOIN_DATA" | jq -r '.token')
+
+kubeadm join "$api_address"  --v 4  --token "$token" \
+  --discovery-token-ca-cert-hash "$ca_hash"
 
 systemctl daemon-reload
 systemctl enable kubelet
