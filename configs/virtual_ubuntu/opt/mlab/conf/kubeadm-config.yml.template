@@ -4,6 +4,7 @@ nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
     container-runtime: "remote"
+    container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
   criSocket: "unix:///run/containerd/containerd.sock"
 localAPIEndpoint:
   advertiseAddress: "{{INTERNAL_IP}}"
@@ -28,6 +29,7 @@ nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
     container-runtime: "remote"
+    container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
@@ -59,7 +61,6 @@ apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
 containerLogMaxSize: 100Mi
-containerRuntimeEndpoing: unix:///run/containerd/containerd.sock
 # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
 nodeStatusUpdateFrequency: 20s
 podPidsLimit: 10000
