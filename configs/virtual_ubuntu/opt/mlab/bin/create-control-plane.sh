@@ -189,7 +189,8 @@ function initialize_cluster() {
   # workloads to the cluster. We need to find a better way for Cloud Build to
   # authenticate to the cluster so that we don't have to store admin cluster
   # credentials in GCS.
-  gsutil -h "$cache_control" cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
+  gsutil -h "Cache-Control:private, max-age=0, no-transform" \
+    cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
 
   # Apply the flannel DamoneSets and related resources to the cluster so that
   # cluster networking will come up. Without it, nodes will never consider
