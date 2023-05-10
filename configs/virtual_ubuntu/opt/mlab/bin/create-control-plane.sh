@@ -79,7 +79,7 @@ function add_machine_to_lb() {
   # https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
 
   # If the instance is already part of the instance group, then don't do anything.
-  exiting_instance=$(
+  existing_instance=$(
     gcloud compute instance-groups unmanaged list-instances api-platform-cluster-$zone \
       --zone $zone --project $project --format "value(instance)"
   )
