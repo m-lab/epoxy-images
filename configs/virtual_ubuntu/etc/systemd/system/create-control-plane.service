@@ -2,9 +2,6 @@
 Description=Initialize the kubernetes control plane
 After=kubelet.service mount-data-api.service
 Requires=mount-data-api.service
-# The presence of this file indicates that the cluster has already been created.
-# If it exists, do not run this unit.
-ConditionPathExists=!/etc/kubernetes/admin.conf
 
 [Service]
 Type=oneshot

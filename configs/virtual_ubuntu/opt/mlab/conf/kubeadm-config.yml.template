@@ -4,7 +4,6 @@ nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
     container-runtime: "remote"
-    container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
   criSocket: "unix:///run/containerd/containerd.sock"
 localAPIEndpoint:
   advertiseAddress: "{{INTERNAL_IP}}"
@@ -15,7 +14,7 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    apiServerEndpoint: {{LB_DNS}}:6443
+    apiServerEndpoint: {{API_LOAD_BALANCER}}:6443
     token: {{TOKEN}}
     caCertHashes:
     - "{{CA_CERT_HASH}}"
@@ -29,16 +28,15 @@ nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
     container-runtime: "remote"
-    container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
 kind: ClusterConfiguration
 kubernetesVersion: {{K8S_VERSION}}
 apiServer:
   certSANs:
-  - "{{LB_DNS}}"
+  - "{{API_LOAD_BALANCER}}"
   - "{{INTERNAL_DNS}}"
-controlPlaneEndpoint: {{LB_DNS}}:6443
+controlPlaneEndpoint: {{API_LOAD_BALANCER}}:6443
 controllerManager:
   extraArgs:
     node-cidr-mask-size: "26"
@@ -61,6 +59,7 @@ apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 cgroupDriver: systemd
 containerLogMaxSize: 100Mi
+containerRuntimeEndpoing: unix:///run/containerd/containerd.sock
 # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
 nodeStatusUpdateFrequency: 20s
 podPidsLimit: 10000

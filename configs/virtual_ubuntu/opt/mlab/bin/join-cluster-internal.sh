@@ -22,9 +22,9 @@ export PATH=$PATH:/opt/bin
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
 hostname=$(hostname)
 k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_labels")
-lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
+api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
-token_server_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/token_server_dns")
+epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
 
 # Generate a JSON snippet suitable for the token-server, and then request a
 # token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
@@ -41,28 +41,38 @@ until [[ $api_status == "200" ]]; do
   sleep 5
   api_status=$(
     curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
-      "https://${lb_dns}:6443/readyz" \
+      "https://${api_load_balancer}:6443/readyz" \
       || true
   )
 done
 
 # Wait a while after the control plane is accessible on the API port, since in
 # the case where the cluster is being initialized, there are a few housekeeping
-# items to handle, such as uploading the latest CA cert hash to the project metadata.
-sleep 60
+# items to handle.
+sleep 90
 
-# Fetch a token from the token-server.
-token=$(curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token" || true)
+# Fetch cluster bootstrap join data from the ePoxy extension server.
+join_data=$(
+  curl --data "$extension_v1" "http://${epoxy_extension_server}:8800/v2/allocate_k8s_token" || true
+)
 
-# Fetch the ca_cert_hash stored in project metadata.
-ca_cert_hash=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/platform_cluster_ca_hash")
+if [[ -z $join_data ]]; then
+  echo "Failed to get cluster bootstrap join data from the ePoxy extension server"
+  exit 1
+fi
+
+# $join_data should contain a simple JSON block with all the information needed
+# to join the cluster.
+api_address=$(echo "$join_data" | jq -r '.api_address')
+ca_hash=$(echo "$join_data" | jq -r '.ca_hash')
+token=$(echo "$join_data" | jq -r '.token')
 
 # Set up necessary labels for the node.
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=${k8s_labels} |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Join the cluster.
-kubeadm join "${lb_dns}:6443" --token $token --discovery-token-ca-cert-hash $ca_cert_hash --node-name $hostname
+kubeadm join "$api_address" --token $token --discovery-token-ca-cert-hash $ca_hash --node-name $hostname
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
 kubectl annotate node $hostname \
