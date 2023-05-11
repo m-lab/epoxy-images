@@ -33,31 +33,6 @@ k8s_version=$(kubectl version --client=true --output=json | jq --raw-output '.cl
 # The internal DNS name of this machine.
 internal_dns="api-platform-cluster-${zone}.${zone}.c.${project}.internal"
 
-# If this file exists, then the cluster must already be initialized. However, we
-# still need to make sure that the each control plane instance is a member of
-# its respective instance group in the backend service for the load balancer. A
-# control plane instance might already be initialized/joined but still not be a
-# member of its instance group if Terraform for some reason had to delete and
-# recreate the instances. For details on why we don't have Terraform
-# automatically add control plane instances to instance groups, see the detailed
-# comment in the add_machine_to_lb() function below.
-if [[ -f /etc/kubernetes/admin.conf ]]; then
-  add_machine_to_lb $project $zone
-  exit 0
-fi
-
-# Evaluate the kubeadm config template
-sed -e "s|{{PROJECT}}|${project}|g" \
-    -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
-    -e "s|{{MACHINE_NAME}}|${machine_name}|g" \
-    -e "s|{{API_LOAD_BALANCER}}|${api_load_balancer}|g" \
-    -e "s|{{K8S_VERSION}}|${k8s_version}|g" \
-    -e "s|{{CLUSTER_CIDR}}|${cluster_cidr}|g" \
-    -e "s|{{SERVICE_CIDR}}|${service_cidr}|g" \
-    -e "s|{{INTERNAL_DNS}}|${internal_dns}|g" \
-    /opt/mlab/conf/kubeadm-config.yml.template > \
-    ./kubeadm-config.yml
-
 #
 # Adds a control plane machine to the load balancer.
 #
@@ -260,6 +235,31 @@ function join_cluster() {
 }
 
 function main() {
+  # If this file exists, then the cluster must already be initialized. However, we
+  # still need to make sure that the each control plane instance is a member of
+  # its respective instance group in the backend service for the load balancer. A
+  # control plane instance might already be initialized/joined but still not be a
+  # member of its instance group if Terraform for some reason had to delete and
+  # recreate the instances. For details on why we don't have Terraform
+  # automatically add control plane instances to instance groups, see the detailed
+  # comment in the add_machine_to_lb() function below.
+  if [[ -f /etc/kubernetes/admin.conf ]]; then
+    add_machine_to_lb $project $zone
+    exit 0
+  fi
+
+  # Evaluate the kubeadm config template
+  sed -e "s|{{PROJECT}}|${project}|g" \
+      -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
+      -e "s|{{MACHINE_NAME}}|${machine_name}|g" \
+      -e "s|{{API_LOAD_BALANCER}}|${api_load_balancer}|g" \
+      -e "s|{{K8S_VERSION}}|${k8s_version}|g" \
+      -e "s|{{CLUSTER_CIDR}}|${cluster_cidr}|g" \
+      -e "s|{{SERVICE_CIDR}}|${service_cidr}|g" \
+      -e "s|{{INTERNAL_DNS}}|${internal_dns}|g" \
+      /opt/mlab/conf/kubeadm-config.yml.template > \
+      ./kubeadm-config.yml
+
   if [[ $create_role == "init" ]]; then
     initialize_cluster
   else
