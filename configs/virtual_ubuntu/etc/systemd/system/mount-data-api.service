@@ -1,5 +1,6 @@
 [Unit]
 Description=Mount, and possibly format, the API data volume
+Before=kubelet.service
 
 [Service]
 Type=oneshot
@@ -7,4 +8,3 @@ ExecStart=/opt/mlab/bin/mount-data-api.sh
 
 [Install]
 WantedBy=multi-user.target
-
