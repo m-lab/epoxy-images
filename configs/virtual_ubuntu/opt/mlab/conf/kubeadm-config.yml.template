@@ -15,7 +15,7 @@ apiVersion: kubeadm.k8s.io/v1beta3
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
-    apiServerEndpoint: {{LB_DNS}}:6443
+    apiServerEndpoint: {{API_LOAD_BALANCER}}:6443
     token: {{TOKEN}}
     caCertHashes:
     - "{{CA_CERT_HASH}}"
@@ -36,9 +36,9 @@ kind: ClusterConfiguration
 kubernetesVersion: {{K8S_VERSION}}
 apiServer:
   certSANs:
-  - "{{LB_DNS}}"
+  - "{{API_LOAD_BALANCER}}"
   - "{{INTERNAL_DNS}}"
-controlPlaneEndpoint: {{LB_DNS}}:6443
+controlPlaneEndpoint: {{API_LOAD_BALANCER}}:6443
 controllerManager:
   extraArgs:
     node-cidr-mask-size: "26"

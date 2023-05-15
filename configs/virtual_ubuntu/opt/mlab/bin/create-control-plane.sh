@@ -23,8 +23,8 @@ export zone=${zone_path##*/}
 # Extract cluster/machine data from $cluster_data.
 export cluster_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.cluster_cidr')
 export create_role=$(echo "$cluster_data" | jq --raw-output ".zones[\"${zone}\"].create_role")
-export lb_dns=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.lb_dns')
-export token_server_dns=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.token_server_dns')
+export api_load_balancer=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.api_load_balancer')
+export epoxy_extension_server=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.epoxy_extension_server')
 export service_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.service_cidr')
 
 # Determine the k8s version by inspecting the version of the local kubectl.
@@ -32,30 +32,6 @@ k8s_version=$(kubectl version --client=true --output=json | jq --raw-output '.cl
 
 # The internal DNS name of this machine.
 internal_dns="api-platform-cluster-${zone}.${zone}.c.${project}.internal"
-
-# If this file exists, then the cluster must already be initialized. The
-# systemd service unit file that runs this script also has a conditional check
-# for this file and should not run if it exists. This is just a backup,
-# redundant check, just in case for some reason the file exists but the service
-# unit gets run anyway. This happened to me (kinkade), where a small bug in the
-# configurations caused this service to run, even though this file existed, and
-# kubeadm overwrote that file and others before finally erroring out due a
-# preflight check failure.
-if [[ -f /etc/kubernetes/admin.conf ]]; then
-  exit 0
-fi
-
-# Evaluate the kubeadm config template
-sed -e "s|{{PROJECT}}|${project}|g" \
-    -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
-    -e "s|{{MACHINE_NAME}}|${machine_name}|g" \
-    -e "s|{{LB_DNS}}|${lb_dns}|g" \
-    -e "s|{{K8S_VERSION}}|${k8s_version}|g" \
-    -e "s|{{CLUSTER_CIDR}}|${cluster_cidr}|g" \
-    -e "s|{{SERVICE_CIDR}}|${service_cidr}|g" \
-    -e "s|{{INTERNAL_DNS}}|${internal_dns}|g" \
-    /opt/mlab/conf/kubeadm-config.yml.template > \
-    ./kubeadm-config.yml
 
 #
 # Adds a control plane machine to the load balancer.
@@ -65,13 +41,27 @@ function add_machine_to_lb() {
   local zone=$2
 
   # Having to do this here rather than in Terraform is due to an undesirable
-  # behavior of GCP forwarding rules. Backend machines of a load balancer cannot
-  # communicate normally with the load balancer itself, and requests to the load
-  # balancer IP are reflected back to the backend machine making the request,
-  # whether its health check is passing or not. This means that when a machine
-  # is trying to join the cluster and needs to communicate with the existing
-  # cluster to get configuration data, it is actually tring to communicate with
-  # itself, but it is not yet created so gets a connection refused error.
+  # behavior of GCP TCP forwarding load balancers. Backend machines of a load
+  # balancer cannot communicate normally with the load balancer itself, and
+  # requests to the load balancer IP are reflected back to the backend machine
+  # making the request, whether its health check is passing or not. This means
+  # that when a machine is trying to join the cluster and needs to communicate
+  # with the existing cluster to get configuration data, it is actually tring to
+  # communicate with itself, but it is not yet created so gets a connection
+  # refused error. The following link is referring to internal TCP load
+  # balancers, but is apparently applicable to external ones too.
+  #
+  # https://cloud.google.com/load-balancing/docs/internal/setting-up-internal#test-from-backend-vms
+
+  # If the instance is already part of the instance group, then don't do anything.
+  existing_instance=$(
+    gcloud compute instance-groups unmanaged list-instances api-platform-cluster-$zone \
+      --zone $zone --project $project --format "value(instance)"
+  )
+  if [[ $existing_instance = "api-platform-cluster-${zone}" ]]; then
+    return 0
+  fi
+
   gcloud compute instance-groups unmanaged add-instances api-platform-cluster-$zone \
     --instances api-platform-cluster-$zone --zone $zone --project $project
 }
@@ -79,7 +69,7 @@ function add_machine_to_lb() {
 # Label and/or annotate the node as necessary. This is farmed out as a function
 # instead of just residing at the end of the script, which is common to all
 # control plane nodes because the label mlab/type=virtual must be applied to the
-# initial control plane node _before_ running apply_k8s_configs.sh. Without his
+# initial control plane node _before_ running apply_k8s_configs.sh. Without this
 # label, flannel will not deploy on the node, causing other workloads to fail to
 # start, causing the script to fail as a whole.
 function label_node() {
@@ -88,23 +78,23 @@ function label_node() {
 }
 
 #
-# Fetches a cluster bootstrap join token from the token server.
+# Fetches cluster bootstrap join data from the ePoxy extension server.
 #
-function get_bootstrap_token() {
+function get_bootstrap_join_data() {
   local last_boot=$(date --utc +%Y-%m-%dT%T.%NZ)
   local extension_v1="{\"v1\":{\"last_boot\":\"${last_boot}\"}}"
-  local token
+  local join_data
 
-  token=$(
-    curl --data "$extension_v1" "http://${token_server_dns}:8800/v1/allocate_k8s_token"
+  join_data=$(
+    curl --data "$extension_v1" "http://${epoxy_extension_server}:8800/v2/allocate_k8s_token"
   )
 
-  if [[ -z $token ]];then
-    echo "Failed to get a bootstrap join token from the token-server"
+  if [[ -z $join_data ]];then
+    echo "Failed to get bootstrap join data from the ePoxy extension server"
     exit 1
   fi
 
-  echo "$token"
+  echo "$join_data"
 }
 
 #
@@ -162,27 +152,20 @@ function initialize_cluster() {
     fi
   done
 
-  # Determine the CA cert hash. We could calculate this manually using a long
-  # chain of openssl commands, but having kubeadm calculate it helps ensure that
-  # we always get the right hash, even if the underlying hash algorithm changes
-  # between k8s versions.
-  join_command=$(kubeadm token create --ttl 1s --print-join-command)
-  export ca_cert_hash=$(echo "$join_command" | egrep -o 'sha256:[0-9a-z]+')
-
   # Add node labels and annotations.
   label_node
 
   # Add non-private metadata to the project that will be used by other machines.
-  gcloud compute project-info add-metadata --metadata "${CA_HASH_NAME}=${ca_cert_hash}" --project $project
-  gcloud compute project-info add-metadata --metadata "lb_dns=${lb_dns}" --project $project
-  gcloud compute project-info add-metadata --metadata "token_server_dns=${token_server_dns}" --project $project
+  gcloud compute project-info add-metadata --metadata "api_load_balancer=${api_load_balancer}" --project $project
+  gcloud compute project-info add-metadata --metadata "epoxy_extension_server=${epoxy_extension_server}" --project $project
 
   # TODO (kinkade): the only thing using these admin cluster credentials is
   # Cloud Build for the k8s-support repository, which needs to apply
   # workloads to the cluster. We need to find a better way for Cloud Build to
   # authenticate to the cluster so that we don't have to store admin cluster
   # credentials in GCS.
-  gsutil -h "$cache_control" cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
+  gsutil -h "Cache-Control:private, max-age=0, no-transform" \
+    cp /etc/kubernetes/admin.conf "gs://k8s-support-${project}/admin.conf"
 
   # Apply the flannel DamoneSets and related resources to the cluster so that
   # cluster networking will come up. Without it, nodes will never consider
@@ -203,7 +186,7 @@ function initialize_cluster() {
 #
 function join_cluster() {
   local api_status=""
-  local ca_cert_hash
+  local ca_hash
   local cert_key
   local cluster_data
   local join_command="null"
@@ -215,7 +198,7 @@ function join_cluster() {
     sleep 5
     api_status=$(
       curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
-        "https://${lb_dns}:6443/readyz" \
+        "https://${api_load_balancer}:6443/readyz" \
         || true
     )
   done
@@ -225,18 +208,18 @@ function join_cluster() {
   # it a bit to finish.
   sleep 90
 
-  token=$(get_bootstrap_token)
-  ca_cert_hash=$(
-    curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/${CA_HASH_NAME}"
-  )
+  join_data=$(get_bootstrap_join_data)
+  ca_hash=$(echo "$join_data" | jq -r '.ca_hash')
+  token=$(echo "$join_data" | jq -r '.token')
+
   cert_key=$(
     curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" |
       jq --raw-output '.cluster_attributes.cert_key'
   )
 
-  # Replace the token and CA cert has variables in the kubeadm config file.
+  # Replace the token and CA cert hash variables in the kubeadm config file.
   sed -i -e "s|{{TOKEN}}|$token|" \
-         -e "s|{{CA_CERT_HASH}}|$ca_cert_hash|" \
+         -e "s|{{CA_CERT_HASH}}|$ca_hash|" \
          -e "s|{{CERT_KEY}}|$cert_key|" \
          ./kubeadm-config.yml
 
@@ -252,6 +235,31 @@ function join_cluster() {
 }
 
 function main() {
+  # If this file exists, then the cluster must already be initialized. However, we
+  # still need to make sure that the each control plane instance is a member of
+  # its respective instance group in the backend service for the load balancer. A
+  # control plane instance might already be initialized/joined but still not be a
+  # member of its instance group if Terraform for some reason had to delete and
+  # recreate the instances. For details on why we don't have Terraform
+  # automatically add control plane instances to instance groups, see the detailed
+  # comment in the add_machine_to_lb() function below.
+  if [[ -f /etc/kubernetes/admin.conf ]]; then
+    add_machine_to_lb $project $zone
+    exit 0
+  fi
+
+  # Evaluate the kubeadm config template
+  sed -e "s|{{PROJECT}}|${project}|g" \
+      -e "s|{{INTERNAL_IP}}|${internal_ip}|g" \
+      -e "s|{{MACHINE_NAME}}|${machine_name}|g" \
+      -e "s|{{API_LOAD_BALANCER}}|${api_load_balancer}|g" \
+      -e "s|{{K8S_VERSION}}|${k8s_version}|g" \
+      -e "s|{{CLUSTER_CIDR}}|${cluster_cidr}|g" \
+      -e "s|{{SERVICE_CIDR}}|${service_cidr}|g" \
+      -e "s|{{INTERNAL_DNS}}|${internal_dns}|g" \
+      /opt/mlab/conf/kubeadm-config.yml.template > \
+      ./kubeadm-config.yml
+
   if [[ $create_role == "init" ]]; then
     initialize_cluster
   else

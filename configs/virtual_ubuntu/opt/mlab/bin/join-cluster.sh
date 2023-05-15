@@ -12,12 +12,12 @@ METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 # Collect data necessary to proceed.
-epoxy_extension_server="epoxy-extension-server.${project}.measurementlab.net"
+epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
 hostname=$(hostname)
 k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_labels")
 k8s_node=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_node")
-lb_dns=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/lb_dns")
+api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
 
 # MIG instances will have an "instance-template" attribute, other VMs will not.
@@ -54,23 +54,24 @@ until [[ $api_status == "200" ]]; do
   sleep 5
   api_status=$(
     curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
-      "https://${lb_dns}:6443/readyz" \
+      "https://${api_load_balancer}:6443/readyz" \
       || true
   )
 done
 
 # Wait a while after the control plane is accessible on the API port, since in
 # the case where the cluster is being initialized, there are a few housekeeping
-# items to handle, such as uploading the latest CA cert hash to the project metadata.
+# items to handle.
 sleep 90
 
-# Generate a JSON snippet suitable for the token-server, and then request a
-# token.  https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
+# Generate a JSON snippet suitable for the ePoxy extension server, and then
+# request a token.
+# https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
 extension_v1="{\"v1\":{\"hostname\":\"${hostname}\",\"last_boot\":\"$(date --utc +%Y-%m-%dT%T.%NZ)\"}}"
 
-# Fetch cluster bootstrap join data from the epoxy-extension-server.
+# Fetch cluster bootstrap join data from the ePoxy extension server.
 #
-# TODO (kinkade): here we are querying the epoxy-extension-server directly
+# TODO (kinkade): here we are querying the ePoxy extension server directly
 # through the GCP private network. This only works from within GCP, so is not a
 # long term solution. It is just a stop-gap to get GCP VMs able to join the
 # cluster until we have implemented a more global solution that will support
