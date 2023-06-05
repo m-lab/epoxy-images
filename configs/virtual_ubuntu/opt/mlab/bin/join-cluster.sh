@@ -14,11 +14,20 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 # Collect data necessary to proceed.
 epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
 external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
+internal_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/ip")
 hostname=$(hostname)
 k8s_labels=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_labels")
 k8s_node=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_node")
 api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
+
+# For some reason I have not figured out, on dual stack VMs the kubelet selects
+# the IPv6 address for the InternalIP field, which causes all sorts of
+# breakage. Here we pass the internal IP address of the VM as a flag to the
+# kubelet so that it assigns the right InternalIP. From what I can tell in my
+# research this has something to do with running the kubelet in a cloud
+# environment but without any cloud controller manager in the cluster.
+echo "KUBELET_EXTRA_ARGS='--node-ip=${internal_ip}'" > /etc/default/kubelet
 
 # MIG instances will have an "instance-template" attribute, other VMs will not.
 # Record the HTTP status code of the request into a variable. 200 means
