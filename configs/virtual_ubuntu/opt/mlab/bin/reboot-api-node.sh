@@ -8,7 +8,7 @@ METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 ZONE_PATH=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/zone")
-ZONE=${zone_path##*/}
+ZONE=${ZONE_PATH##*/}
 REBOOT_DAY=$(
   curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" \
     | jq -r ".zones[\"${ZONE}\"].reboot_day"
