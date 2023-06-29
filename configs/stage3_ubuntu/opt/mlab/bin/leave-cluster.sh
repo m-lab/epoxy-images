@@ -38,6 +38,19 @@ if [[ $is_mig == "200" ]]; then
   node_name="${k8s_node}-${node_suffix}"
 fi
 
+# Don't try to join the leave the cluster until at least one control plane node
+# is ready.  Keep trying this forever, until it succeeds, as there is no point
+# in going forward without it, as the epoxy-extension-server runs on API nodes.
+api_status=""
+until [[ $api_status == "200" ]]; do
+  sleep 5
+  api_status=$(
+    curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
+      "https://${api_load_balancer}:6443/readyz" \
+      || true
+  )
+done
+
 # Generate a JSON snippet suitable for the ePoxy extension server, and then
 # request a token.
 # https://github.com/m-lab/epoxy/blob/main/extension/request.go#L36
