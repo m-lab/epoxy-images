@@ -11,6 +11,7 @@ METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 # Collect data necessary to proceed.
+api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
 hostname=$(hostname)
 k8s_node=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_node")
