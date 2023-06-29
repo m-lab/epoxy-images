@@ -13,6 +13,7 @@ Restart=always
 ExecStartPre=-/usr/bin/docker stop %N
 ExecStartPre=-/usr/bin/docker rm %N
 ExecStart=/usr/bin/docker run --publish 8800:8800 \
+                              --env KUBECONFIG=/etc/kubernetes/admin.conf \
                               --volume /etc/kubernetes:/etc/kubernetes:ro \
                               --volume /opt/bin:/opt/bin:ro \
                               --name %N -- \
