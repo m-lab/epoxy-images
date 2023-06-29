@@ -12,6 +12,7 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 # Collect data necessary to proceed.
 epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
+hostname=$(hostname)
 k8s_node=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_node")
 
 # MIG instances will have an "instance-template" attribute, other VMs will not.
