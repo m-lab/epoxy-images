@@ -25,3 +25,4 @@ systemctl enable check-reboot.timer
 systemctl enable configure-tc-fq.service
 systemctl enable write-metadata.service
 systemctl enable join-cluster.service
+systemctl enable leave-cluster.service
