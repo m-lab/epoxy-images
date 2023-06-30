@@ -3,7 +3,6 @@ kind: InitConfiguration
 nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
-    container-runtime: "remote"
     container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
   criSocket: "unix:///run/containerd/containerd.sock"
 localAPIEndpoint:
@@ -28,7 +27,6 @@ controlPlane:
 nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
-    container-runtime: "remote"
     container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
 ---
 apiVersion: kubeadm.k8s.io/v1beta3
