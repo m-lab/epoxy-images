@@ -27,26 +27,21 @@ is_mig=$(
 )
 
 # If this is a MIG instance, determine the random 4 char suffix of the instance
-# name, and then append that to the base k8s node name. The result should be a
-# typical M-Lab node/DNS name with a "-<xxxx>" string on the end. With this,
-# the node name is still unique, but we can easily just strip off the last 5
-# characters to get the name of the load balancer. Among other things, the
-# uuid-annotator can use this value as its -hostname flag so that it knows how
-# to annotate the data on this MIG instance.
+# name, and then append that to the base k8s node name.
 node_name="$k8s_node"
 if [[ $is_mig == "200" ]]; then
   node_suffix="${hostname##*-}"
   node_name="${k8s_node}-${node_suffix}"
 fi
 
-# Don't try to join the leave the cluster until at least one control plane node
-# is ready.  Keep trying this forever, until it succeeds, as there is no point
-# in going forward without it, as the epoxy-extension-server runs on API nodes.
+# Don't try to leave the cluster until at least one control plane node is ready.
+# Keep trying this forever, until it succeeds, as there is no point in going
+# forward without it, as the epoxy-extension-server runs on API nodes.
 api_status=""
 until [[ $api_status == "200" ]]; do
   sleep 5
   api_status=$(
-    curl --insecure --output /dev/null --silent --write-out "%{http_code}" \
+    curl --cacert /etc/kubernetes/pki/ca.crt --output /dev/null --silent --write-out "%{http_code}" \
       "https://${api_load_balancer}:6443/readyz" \
       || true
   )
