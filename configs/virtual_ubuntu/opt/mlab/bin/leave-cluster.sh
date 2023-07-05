@@ -1,0 +1,1 @@
+../../../../stage3_ubuntu/opt/mlab/bin/leave-cluster.sh
