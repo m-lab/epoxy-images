@@ -83,8 +83,8 @@ if ! test -f $BOOTSTRAP/build.date ; then
     # A comma-separated list of additional packages we want installed.
     PACKAGES="apparmor,busybox,ca-certificates,conntrack,curl,dbus,dmsetup,docker.io,ethtool,"
     PACKAGES+="iproute2,jq,kexec-tools,less,linux-base,linux-generic,net-tools,"
-    PACKAGES+="openssh-server,parted,pciutils,socat,sudo,systemd-sysv,udev,"
-    PACKAGES+="unattended-upgrades,usbutils,vim,wget,xfsprogs"
+    PACKAGES+="openssh-server,parted,pciutils,socat,sudo,systemd-sysv,systemd-timesyncd,"
+    PACKAGES+="udev,unattended-upgrades,usbutils,vim,wget,xfsprogs"
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
