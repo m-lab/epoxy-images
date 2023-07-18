@@ -137,7 +137,7 @@ function initialize_cluster() {
       until [[ -n $instance_exists ]]; do
         sleep 5
         instance_exists=$(
-          gcloud compute instances describe "api-platform-cluster-${z}" \
+          gcloud compute instances list --filter "name:api-platform-cluster-${z}" \
             --project $project --zone $z --format "value(name)"
         )
       done
