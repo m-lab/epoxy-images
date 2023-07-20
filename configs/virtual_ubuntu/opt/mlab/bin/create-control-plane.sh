@@ -12,7 +12,9 @@ export PATH=$PATH:/opt/bin:/opt/mlab/bin
 export KUBECONFIG=/etc/kubernetes/admin.conf
 
 # Fetch any necessary data from the metadata server.
+export api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 export cluster_data=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data")
+export epoxy_extension_server=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/epoxy_extension_server")
 export external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/access-configs/0/external-ip")
 export internal_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/network-interfaces/0/ip")
 export machine_name=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/name")
@@ -23,8 +25,6 @@ export zone=${zone_path##*/}
 # Extract cluster/machine data from $cluster_data.
 export cluster_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.cluster_cidr')
 export create_role=$(echo "$cluster_data" | jq --raw-output ".zones[\"${zone}\"].create_role")
-export api_load_balancer=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.api_load_balancer')
-export epoxy_extension_server=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.epoxy_extension_server')
 export service_cidr=$(echo "$cluster_data" | jq --raw-output '.cluster_attributes.service_cidr')
 
 # Determine the k8s version by inspecting the version of the local kubectl.
@@ -112,6 +112,17 @@ function initialize_cluster() {
   # transfer all this data to each control plane machine manually.
   cert_key=$(kubeadm certs certificate-key)
 
+  # Add the cert_key to project metadata. The cert_key is sensitive data, as it
+  # is the encryption key for the cluster certificate data that is uploaded to
+  # the secret kubeadm-certs in the 'kubeadm init' call below. However, the
+  # secret is automatically deleted after 2 hours. For an attacker to take
+  # advantage of this, they would have to already have access the project in a
+  # way that would allow them to read project metadata, as well as cluster
+  # access to secrets in the kube-system namespace. Additionally, they would
+  # need to have this access and excercise it during a 2h window that cannot be
+  # known in advance.
+  gcloud compute project-info add-metadata --metadata "cert_key=${cert_key}" --project $project
+
   # The template variables {{TOKEN}} and {{CA_CERT_HASH}} are not used when
   # creating the initial control plane node, but kubeadm cannot parse the YAML
   # with the template variables in the file. Here we simply replace the
@@ -128,36 +139,8 @@ function initialize_cluster() {
 
   kubeadm init --config kubeadm-config.yml --upload-certs
 
-  # Add the shared cert_key to the "secondary" control plane nodes' metadata.
-  for z in $(echo "$cluster_data" | jq --join-output --raw-output '.zones | keys[] as $k | "\($k) "'); do
-    if [[ $z != $zone ]]; then
-
-      # Wait until the instance exists before trying to add metadata to it.
-      instance_exists=""
-      until [[ -n $instance_exists ]]; do
-        sleep 5
-        instance_exists=$(
-          gcloud compute instances list --filter "name=api-platform-cluster-${z}" \
-            --project $project --format "value(name)"
-        )
-      done
-
-      # Add cert_key to cluster_data, then push cluster_data
-      echo $cluster_data | \
-        jq ".cluster_attributes += {\"cert_key\": \"${cert_key}\"}" > ./cluster-data.json
-      gcloud compute instances add-metadata "api-platform-cluster-${z}" \
-        --metadata-from-file "cluster_data=cluster-data.json" \
-        --project $project \
-        --zone $z
-    fi
-  done
-
   # Add node labels and annotations.
   label_node
-
-  # Add non-private metadata to the project that will be used by other machines.
-  gcloud compute project-info add-metadata --metadata "api_load_balancer=${api_load_balancer}" --project $project
-  gcloud compute project-info add-metadata --metadata "epoxy_extension_server=${epoxy_extension_server}" --project $project
 
   # TODO (kinkade): the only thing using these admin cluster credentials is
   # Cloud Build for the k8s-support repository, which needs to apply
@@ -212,10 +195,7 @@ function join_cluster() {
   ca_hash=$(echo "$join_data" | jq -r '.ca_hash')
   token=$(echo "$join_data" | jq -r '.token')
 
-  cert_key=$(
-    curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/cluster_data" |
-      jq --raw-output '.cluster_attributes.cert_key'
-  )
+  cert_key=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/cert_key")
 
   # Replace the token and CA cert hash variables in the kubeadm config file.
   sed -i -e "s|{{TOKEN}}|$token|" \
@@ -299,7 +279,9 @@ function main() {
 
   # Add various cluster environment variables to root's .profile and .bashrc
   # files so that etcdctl and kubectl operate as expected without additional
-  # flags.
+  # flags. This is done here because we don't want to overwrite the default
+  # .bashcrc and .profile files from the base distribution. We only want to
+  # append this to the existing files.
   bash -c "(cat <<-EOF
   export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
   export ETCDCTL_API=3
