@@ -5,8 +5,9 @@ set -euxo pipefail
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
-# Names for project metadata. CA_HASH will be project metadata.
-CA_HASH_NAME="platform_cluster_ca_hash"
+# Name of the SecretManager Secret that contains the cert_key created by
+# kubeadm.
+CERT_KEY_SECRET_NAME="platform-cluster-cert-key"
 
 export PATH=$PATH:/opt/bin:/opt/mlab/bin
 export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -112,16 +113,10 @@ function initialize_cluster() {
   # transfer all this data to each control plane machine manually.
   cert_key=$(kubeadm certs certificate-key)
 
-  # Add the cert_key to project metadata. The cert_key is sensitive data, as it
-  # is the encryption key for the cluster certificate data that is uploaded to
-  # the secret kubeadm-certs in the 'kubeadm init' call below. However, the
-  # secret is automatically deleted after 2 hours. For an attacker to take
-  # advantage of this, they would have to already have access to the project in
-  # a way that would allow them to read project metadata, as well as cluster
-  # access to secrets in the kube-system namespace. Additionally, they would
-  # need to have this access and excercise it during a 2h window that cannot be
-  # known in advance.
-  gcloud compute project-info add-metadata --metadata "cert_key=${cert_key}" --project $project
+  # Add the cert_key to the existing secret "platform-cluster-cert-key". This
+  # Secret is created by our Terraform configs.
+  echo -n "$cert_key" | gcloud secrets versions add $CERT_KEY_SECRET_NAME \
+    --data-file=- --project $project
 
   # The template variables {{TOKEN}} and {{CA_CERT_HASH}} are not used when
   # creating the initial control plane node, but kubeadm cannot parse the YAML
@@ -195,7 +190,9 @@ function join_cluster() {
   ca_hash=$(echo "$join_data" | jq -r '.ca_hash')
   token=$(echo "$join_data" | jq -r '.token')
 
-  cert_key=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/cert_key")
+  cert_key=$(
+    gcloud secrets versions access latest --secret $CERT_KEY_SECRET_NAME
+  )
 
   # Replace the token and CA cert hash variables in the kubeadm config file.
   sed -i -e "s|{{TOKEN}}|$token|" \
