@@ -116,8 +116,8 @@ function initialize_cluster() {
   # is the encryption key for the cluster certificate data that is uploaded to
   # the secret kubeadm-certs in the 'kubeadm init' call below. However, the
   # secret is automatically deleted after 2 hours. For an attacker to take
-  # advantage of this, they would have to already have access the project in a
-  # way that would allow them to read project metadata, as well as cluster
+  # advantage of this, they would have to already have access to the project in
+  # a way that would allow them to read project metadata, as well as cluster
   # access to secrets in the kube-system namespace. Additionally, they would
   # need to have this access and excercise it during a 2h window that cannot be
   # known in advance.
@@ -279,9 +279,9 @@ function main() {
 
   # Add various cluster environment variables to root's .profile and .bashrc
   # files so that etcdctl and kubectl operate as expected without additional
-  # flags. This is done here because we don't want to overwrite the default
-  # .bashcrc and .profile files from the base distribution. We only want to
-  # append this to the existing files.
+  # flags. This is done here, rather than baking it into the image, because we
+  # don't want to overwrite the default .bashrc and .profile files from the
+  # base distribution. We only want to append this to the existing files.
   bash -c "(cat <<-EOF
   export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
   export ETCDCTL_API=3
