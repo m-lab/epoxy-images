@@ -108,7 +108,7 @@ sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$k8s_l
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 kubeadm join "$api_address"  --v 4  --token "$token" \
-  --discovery-token-ca-cert-hash "$ca_hash" --node-name $node_name
+  --discovery-token-ca-cert-hash "$ca_hash"
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
 kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $node_name \
