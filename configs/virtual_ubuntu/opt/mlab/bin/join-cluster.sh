@@ -107,6 +107,17 @@ token=$(echo "$join_data" | jq -r '.token')
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$k8s_labels |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
+# Set the system's hostname to the node name. By default, kubeadm uses the
+# hostname for the node name. The hostname, as defined in the instance's
+# hostname metadata field, is the FQDN. However, some machinery in the Google
+# guest package sets the system's hostname to just the first part of the FQDN.
+# Take this opportunity to set the system's hostname to whatever we think the
+# k8s node  name should be, such that kubeadm picks up the right name by
+# default. We don't want to use the kubeadm --node-name flag, because when you
+# do, kubeadm will refuse to join the node to the cluster if there is already a
+# node of that name.
+hostnamectl set-hostname $node_name
+
 kubeadm join "$api_address"  --v 4  --token "$token" \
   --discovery-token-ca-cert-hash "$ca_hash"
 
