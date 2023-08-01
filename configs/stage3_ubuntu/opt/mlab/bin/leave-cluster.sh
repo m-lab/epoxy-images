@@ -55,4 +55,4 @@ extension_v1="{\"v1\":{\"hostname\":\"${node_name}\",\"last_boot\":\"$(date --ut
 # Don't bother with any error checking on this request. This is a one-shot deal
 # that will either work, or not, just before shutdown. Hopefully it will work
 # almost all the time.
-curl --data "$extension_v1" "http://${epoxy_extension_server}:8800/v1/delete_node"
+curl --data "$extension_v1" "http://${epoxy_extension_server}:8800/v1/node/delete"
