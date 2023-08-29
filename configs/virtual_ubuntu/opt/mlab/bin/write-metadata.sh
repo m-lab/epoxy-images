@@ -47,7 +47,7 @@ echo -n "PREMIUM" > $METADATA_DIR/network-tier
 # append the unique 4 char suffix of MIG instances to the k8s node name.
 is_mig=$(
   curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
-    "${METADATA_URL}/instance/attributes/instance-template"
+    "${METADATA_URL}/attributes/instance-template"
 )
 if [[ $is_mig == "200" ]]; then
   instance_type="mig"
