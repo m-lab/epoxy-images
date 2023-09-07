@@ -50,9 +50,9 @@ is_mig=$(
     "${METADATA_URL}/attributes/instance-template"
 )
 if [[ $is_mig == "200" ]]; then
-  instance_type="mig"
+  instance_type="loadbalanced"
 else
-  instance_type="standard"
+  instance_type="standalone"
 fi
 echo -n "$instance_type" > $METADATA_DIR/instance-type
 
