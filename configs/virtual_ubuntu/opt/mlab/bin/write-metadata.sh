@@ -43,17 +43,15 @@ echo -n "PREMIUM" > $METADATA_DIR/network-tier
 # MIG instances will have an "instance-template" attribute, other VMs will not.
 # Record the HTTP status code of the request into a variable. 200 means
 # "instance-template" exists and that this is a MIG instance. 404 means it is
-# not part of a MIG. We use this below to determine whether to attempt to
-# append the unique 4 char suffix of MIG instances to the k8s node name.
+# not part of a MIG. We use this below to determine whether to flag this
+# instance as loadbalanced.
 is_mig=$(
   curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
     "${METADATA_URL}/attributes/instance-template"
 )
 if [[ $is_mig == "200" ]]; then
-  instance_type="loadbalanced"
-else
-  instance_type="standalone"
+  echo -n "true" > $METADATA_DIR/loadbalanced
 fi
-echo -n "$instance_type" > $METADATA_DIR/instance-type
 
 echo -n $(uname -r) > $METADATA_DIR/kernel-version
+
