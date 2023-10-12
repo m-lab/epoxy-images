@@ -40,4 +40,18 @@ echo -n ${machine_type##*/} > $METADATA_DIR/machine-type
 # unlikely to change this.
 echo -n "PREMIUM" > $METADATA_DIR/network-tier
 
+# MIG instances will have an "instance-template" attribute, other VMs will not.
+# Record the HTTP status code of the request into a variable. 200 means
+# "instance-template" exists and that this is a MIG instance. 404 means it is
+# not part of a MIG. We use this below to determine whether to flag this
+# instance as loadbalanced.
+is_mig=$(
+  curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
+    "${METADATA_URL}/attributes/instance-template"
+)
+if [[ $is_mig == "200" ]]; then
+  echo -n "true" > $METADATA_DIR/loadbalanced
+fi
+
 echo -n $(uname -r) > $METADATA_DIR/kernel-version
+
