@@ -40,18 +40,20 @@ echo -n ${machine_type##*/} > $METADATA_DIR/machine-type
 # unlikely to change this.
 echo -n "PREMIUM" > $METADATA_DIR/network-tier
 
-# MIG instances will have an "instance-template" attribute, other VMs will not.
+# MIG instances will have a "created-by" attribute, standalone VMs will not.
 # Record the HTTP status code of the request into a variable. 200 means
-# "instance-template" exists and that this is a MIG instance. 404 means it is
-# not part of a MIG. We use this below to determine whether to flag this
-# instance as loadbalanced.
+# "created-by" exists and therefore this is a MIG instance. Any other response
+# code means it was not created by an instance group manager and is not a MIG
+# instance.  We use this to determine whether to flag this instance as
+# loadbalanced.
+#
+# https://cloud.google.com/compute/docs/instance-groups/getting-info-about-migs#checking_if_a_vm_instance_is_part_of_a_mig
 is_mig=$(
   curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
-    "${METADATA_URL}/attributes/instance-template"
+    "${METADATA_URL}/attributes/created-by"
 )
 if [[ $is_mig == "200" ]]; then
   echo -n "true" > $METADATA_DIR/loadbalanced
 fi
 
 echo -n $(uname -r) > $METADATA_DIR/kernel-version
-
