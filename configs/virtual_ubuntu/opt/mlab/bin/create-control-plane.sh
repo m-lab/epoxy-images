@@ -273,23 +273,6 @@ function main() {
   # https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-init/#options
   sed -i -re "/listen-metrics-urls/ s|$|,http://${internal_ip}:2381|" \
     /etc/kubernetes/manifests/etcd.yaml
-
-  # Add various cluster environment variables to root's .profile and .bashrc
-  # files so that etcdctl and kubectl operate as expected without additional
-  # flags. This is done here, rather than baking it into the image, because we
-  # don't want to overwrite the default .bashrc and .profile files from the
-  # base distribution. We only want to append this to the existing files.
-  bash -c "(cat <<-EOF
-  export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
-  export ETCDCTL_API=3
-  export ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt
-  export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/peer.crt
-  export ETCDCTL_DIAL_TIMEOUT=3s
-  export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
-  export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
-  export KUBECONFIG=/etc/kubernetes/admin.conf
-EOF
-  ) | tee -a /root/.profile /root/.bashrc"
 }
 
 # Run main()
