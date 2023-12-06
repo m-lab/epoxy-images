@@ -21,9 +21,6 @@ rm -rf etcd-${ETCDCTL_VERSION}-linux-amd64
 ln -s /mnt/cluster-data/kubelet /var/lib/kubelet
 ln -s /mnt/cluster-data/kubernetes /etc/kubernetes
 
-# Set the default KUBECONFIG location
-echo -e "\nexport KUBECONFIG=/etc/kubernetes/admin.conf\n" >> /root/.bashrc
-
 # Set various etcdctl configurations
 cat <<- EOF | tee -a /root/.profile /root/.bashrc
 
@@ -33,7 +30,6 @@ cat <<- EOF | tee -a /root/.profile /root/.bashrc
 	export ETCDCTL_CERT=/etc/kubernetes/pki/etcd/peer.crt
 	export ETCDCTL_KEY=/etc/kubernetes/pki/etcd/peer.key
 	export ETCDCTL_ENDPOINTS=https://127.0.0.1:2379
-	export CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock
 	export KUBECONFIG=/etc/kubernetes/admin.conf
 EOF
 
