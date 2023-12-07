@@ -131,7 +131,11 @@ version = 2
             IoGid = 0
             IoUid = 0
             NoNewKeyring = false
-            NoPivotRoot = false
+            # Needed because our systems run in an initramfs and you cannot
+            # unmount an initramfs, which pivot_root tries to do. Apparently,
+            # this config will cause runc to use some call named MS_MOVE
+            # instead, which can be done from an initramfs.
+            NoPivotRoot = true
             Root = ""
             ShimCgroup = ""
             SystemdCgroup = true

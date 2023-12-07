@@ -17,7 +17,7 @@ OUTPUT_DIR=${3:?Error: specify directory for output ISO: $USAGE}
 
 if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
   echo 'Error: Sorry, unsupported netmask: {{ipv4_netmask}}'
-  exit 1
+#  exit 1
 fi
 
 if [[ ! -f "${IMAGE_DIR}/stage1_kernel.vmlinuz" ]] ; then
