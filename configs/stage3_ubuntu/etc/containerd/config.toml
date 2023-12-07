@@ -3,8 +3,8 @@ imports = []
 oom_score = 0
 plugin_dir = ""
 required_plugins = []
-root = "/var/lib/containerd"
-state = "/run/containerd"
+root = "/cache/containerd/root"
+state = "/cache/containerd/state"
 temp = ""
 version = 2
 
