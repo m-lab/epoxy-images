@@ -16,7 +16,12 @@ IMAGE_DIR=${2:?Error: specify input vmlinuz: $USAGE}
 OUTPUT_DIR=${3:?Error: specify directory for output ISO: $USAGE}
 
 # For the purposes of testing smaller IPv4 prefixes, allow CIDRs other than
-# /26, but only in mlab-sandbox.
+# /26, but only in mlab-sandbox for now.
+#
+# TODO(kinkade): implement actual support for prefixes smaller than /26. Our
+# goal is to be able to explicitly support prefixes smaller than /26, and the
+# conditional below doesn't actually do this, but simply doesn't prevent the
+# build from happening, which may have unexpected results.
 if [[ $PROJECT != "mlab-sandbox" ]]; then
   if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
     echo 'Error: Sorry, unsupported netmask: {{ipv4_netmask}}'
