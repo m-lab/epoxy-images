@@ -55,7 +55,7 @@ chmod +x {kubeadm,kubelet,kubectl}
 
 # Install kubelet systemd service and enable it.
 curl --silent --show-error --location \
-  "https://github.com/kubernetes/release/blob/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" \
+  "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" \
   | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service
 
 mkdir -p /etc/systemd/system/kubelet.service.d

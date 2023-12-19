@@ -174,7 +174,7 @@ chroot $BOOTSTRAP bash -c 'systemctl set-default multi-user.target'
 
 # Install the kubelet.service unit file.
 curl --silent --show-error --location \
-     "https://github.com/kubernetes/release/blob/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" \
+     "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" \
      > $BOOTSTRAP/etc/systemd/system/kubelet.service
 
 # Install kubelet.service config overrides.
