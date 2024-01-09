@@ -105,7 +105,7 @@ token=$(echo "$join_data" | jq -r '.token')
 #
 # Add an env variable to the kubelet drop-in file and then append that env
 # variable to the ExecStart line.
-echo "Environment=\"MLAB_EXTRA_ARGS='--node-ip=${internal_ip} --node-labels=${k8s_labels} '\"" \
+echo "Environment=\"MLAB_EXTRA_ARGS=--node-ip=${internal_ip} --node-labels=${k8s_labels} \"" \
   >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 sed -i '/ExecStart=\// s/$/ $MLAB_EXTRA_ARGS/' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
