@@ -21,14 +21,6 @@ k8s_node=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/instance/attributes/k8s_node
 api_load_balancer=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/attributes/api_load_balancer")
 project=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/project/project-id")
 
-# For some reason I have not figured out, on dual stack VMs the kubelet selects
-# the IPv6 address for the InternalIP field, which causes all sorts of
-# breakage. Here we pass the internal IP address of the VM as a flag to the
-# kubelet so that it assigns the right InternalIP. From what I can tell in my
-# research this has something to do with running the kubelet in a cloud
-# environment but without any cloud controller manager in the cluster.
-echo "KUBELET_EXTRA_ARGS='--node-ip=${internal_ip}'" > /etc/default/kubelet
-
 # MIG instances will have an "instance-template" attribute, other VMs will not.
 # Record the HTTP status code of the request into a variable. 200 means
 # "instance-template" exists and that this is a MIG instance. 404 means it is
@@ -103,9 +95,19 @@ api_address=$(echo "$join_data" | jq -r '.api_address')
 ca_hash=$(echo "$join_data" | jq -r '.ca_hash')
 token=$(echo "$join_data" | jq -r '.token')
 
-# Set up necessary labels for the node.
-sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$k8s_labels |g" \
-  /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+# Regarding the --node-ip flag below, for some reason I have not figured out,
+# on dual stack VMs the kubelet selects the IPv6 address for the InternalIP
+# field, which causes all sorts of breakage. Here we pass the internal IP
+# address of the VM as a flag to the kubelet so that it assigns the right
+# InternalIP. From what I can tell in my research this has something to do with
+# running the kubelet in a cloud environment but without any cloud controller
+# manager in the cluster.
+#
+# Add an env variable to the kubelet drop-in file and then append that env
+# variable to the ExecStart line.
+echo "Environment=\"MLAB_EXTRA_ARGS=--node-ip=${internal_ip} --node-labels=${k8s_labels} \"" \
+  >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sed -i '/ExecStart=\// s/$/ $MLAB_EXTRA_ARGS/' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # Set the system's hostname to the node name. By default, kubeadm uses the
 # hostname for the node name. The hostname, as defined in the instance's
@@ -125,3 +127,4 @@ kubeadm join "$api_address"  --v 4  --token "$token" \
 kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $node_name \
   flannel.alpha.coreos.com/public-ip-overwrite=$external_ip \
   --overwrite=true
+

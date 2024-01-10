@@ -53,15 +53,15 @@ cd /opt/bin
 curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod +x {kubeadm,kubelet,kubectl}
 
-# Install kubelet systemd service and enable it.
+# Install kubelet systemd service.
 curl --silent --show-error --location \
   "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" \
-  | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service
+  > /etc/systemd/system/kubelet.service
 
 mkdir -p /etc/systemd/system/kubelet.service.d
 curl --silent --show-error --location \
   "https://raw.githubusercontent.com/kubernetes/release/${K8S_TOOLING_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" \
-  | sed "s:/usr/bin:/opt/bin:g" | sudo tee /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  | sed "s:/usr/bin:/opt/bin:g" > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 # For convenience, when an operator needs to login and inspect things with crictl.
 echo -e "\nexport CONTAINER_RUNTIME_ENDPOINT=unix:///run/containerd/containerd.sock\n" >> /root/.bashrc
