@@ -120,8 +120,14 @@ sed -i '/ExecStart=\// s/$/ $MLAB_EXTRA_ARGS/' /etc/systemd/system/kubelet.servi
 # node of that name.
 hostnamectl set-hostname $node_name
 
+# This script is run by the join-cluster.service systemd unit, and it set to
+# Restart=Always. In some cases kubeadm may start to run but fail for various,
+# possibly ephemeral, reasons. When this happens, kubeadm may fail preflight
+# checks because it finds certain files already exist. For this reason we add
+# --ignore-preflight-errors=all in order to unconditionally try to join the
+# cluster as many times as this scripts gets run.
 kubeadm join "$api_address"  --v 4  --token "$token" \
-  --discovery-token-ca-cert-hash "$ca_hash"
+  --discovery-token-ca-cert-hash "$ca_hash" --ignore-preflight-errors all
 
 # https://github.com/flannel-io/flannel/blob/master/Documentation/kubernetes.md#annotations
 kubectl --kubeconfig /etc/kubernetes/kubelet.conf annotate node $node_name \
