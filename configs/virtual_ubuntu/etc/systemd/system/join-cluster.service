@@ -8,7 +8,7 @@ ConditionPathExists=!/etc/kubernetes/kubelet.conf
 ExecStart=/opt/mlab/bin/join-cluster.sh
 Restart=always
 StartLimitInterval=0
-RestartSec=10
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
