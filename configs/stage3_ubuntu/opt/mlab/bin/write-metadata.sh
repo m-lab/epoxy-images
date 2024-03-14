@@ -18,7 +18,7 @@ uname -r | tr -d '\n' > $METADATA_DIR/kernel-version
 # manages nothing. The /32 case is supposed to represent BYOS, though as this is
 # written it's not clear whether this script in this repository will even be
 # present in those container images.
-PREFIX_LEN=$(ip -family inet -json addr show dev eth0 | jq '.[0].addr_info[0].prefixlen')
+PREFIX_LEN=$(egrep -o 'epoxy.ipv4=[^ ]+' /proc/cmdline | cut -d= -f2 | cut -d, -f1 | cut -d/ -f 2)
 case "$PREFIX_LEN" in
   26)
     MANAGED="switch,machine"

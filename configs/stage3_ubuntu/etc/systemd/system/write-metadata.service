@@ -7,7 +7,7 @@ Before=setup-after-boot.service
 # hostname value to the metadata directory, then be sure this unit runs later,
 # otherwise we get some randomish looking string for the hostname. Additionally,
 # wait until the eth0 interface exists and the machine network is online.
-After=generate-eth0-config.service sys-subsystem-net-devices-eth0.device network-online.target
+After=generate-eth0-config.service
 
 [Service]
 Type=oneshot
