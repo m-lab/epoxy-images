@@ -14,10 +14,7 @@ uname -r | tr -d '\n' > $METADATA_DIR/kernel-version
 # Write out the metadata value for "managed". This will allow data users to know
 # what environment the test was run. For a "full" site M-Lab manages both the
 # machine and an upstream switch. For "minimal" deployments M-Lab only manages
-# the machine, and nothing upstream. For bring-your-own-server (BYOS) M-Lab
-# manages nothing. The /32 case is supposed to represent BYOS, though as this is
-# written it's not clear whether this script in this repository will even be
-# present in those container images.
+# the machine, and nothing upstream.
 PREFIX_LEN=$(egrep -o 'epoxy.ipv4=[^ ]+' /proc/cmdline | cut -d= -f2 | cut -d, -f1 | cut -d/ -f 2)
 case "$PREFIX_LEN" in
   26)
@@ -25,9 +22,6 @@ case "$PREFIX_LEN" in
     ;;
   28|29)
     MANAGED="machine"
-    ;;
-  32)
-    MANAGED="none"
     ;;
   *)
     echo "ERROR: cannot set MANAGED. Unknown prefix length ${PREFIX_LEN}"
