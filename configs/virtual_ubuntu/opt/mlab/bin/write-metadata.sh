@@ -63,3 +63,7 @@ echo -n ${machine_type##*/} > $METADATA_DIR/machine-type
 echo -n "PREMIUM" > $METADATA_DIR/network-tier
 
 echo -n $(uname -r) > $METADATA_DIR/kernel-version
+
+# For virtual machines this indicates that M-Lab manages only the machine and
+# none of the infrastructure upstream of it.
+echo -n "machine" > $METADATA_DIR/managed
