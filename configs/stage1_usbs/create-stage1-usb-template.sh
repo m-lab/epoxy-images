@@ -14,11 +14,6 @@ SOURCE_DIR=${1:?Please provide the source directory root: $USAGE}
 IMAGE_DIR=${2:?Error: specify input vmlinuz: $USAGE}
 OUTPUT_DIR=${3:?Error: specify directory for output USB: $USAGE}
 
-if [[ "{{ipv4_netmask}}" != "255.255.255.192" ]] ; then
-  echo 'Error: Sorry, unsupported netmask: {{ipv4_netmask}}'
-  exit 1
-fi
-
 if [[ ! -f "${IMAGE_DIR}/stage1_kernel.vmlinuz" ]] ; then
     echo 'Error: vmlinuz image not found!'
     echo "Expected: ${IMAGE_DIR}/stage1_kernel.vmlinuz"
