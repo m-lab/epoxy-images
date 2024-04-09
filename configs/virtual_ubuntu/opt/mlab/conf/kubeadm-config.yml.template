@@ -42,7 +42,6 @@ controllerManager:
     node-cidr-mask-size: "26"
     # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
     node-monitor-grace-period: 2m
-    pod-eviction-timeout: 1m
 etcd:
   local:
     dataDir: "/mnt/cluster-data/etcd"
