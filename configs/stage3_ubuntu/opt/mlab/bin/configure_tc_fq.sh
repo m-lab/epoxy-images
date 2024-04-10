@@ -20,7 +20,7 @@ function write_metric_file {
 SPEED=$(
   curl --silent --show-error --location \
     https://siteinfo.mlab-oti.measurementlab.net/v2/sites/registration.json \
-    jq -r ".[\"${HOSTNAME}\"] | .Uplink"
+    | jq -r ".[\"${HOSTNAME}\"] | .Uplink"
   )
 
 # Internally, tc stores rates as 32-bit unsigned integers in bps (bytes per
