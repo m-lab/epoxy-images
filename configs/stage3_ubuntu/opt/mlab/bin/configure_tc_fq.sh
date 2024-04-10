@@ -17,10 +17,11 @@ function write_metric_file {
   chmod 644 $METRIC_FILE
 }
 
-SITE=${HOSTNAME:6:5}
-SPEED=$(curl --silent --show-error --location \
-    https://siteinfo.mlab-oti.measurementlab.net/v1/sites/switches.json \
-    | jq -r ".${SITE}.uplink_speed")
+SPEED=$(
+  curl --silent --show-error --location \
+    https://siteinfo.mlab-oti.measurementlab.net/v2/sites/registration.json \
+    jq -r ".[\"${HOSTNAME}\"] | .Uplink"
+  )
 
 # Internally, tc stores rates as 32-bit unsigned integers in bps (bytes per
 # second).  Because of this, and to make comparisons easier later in the script,
