@@ -42,7 +42,7 @@ NODE_LABELS+="mlab/metro=${METRO},"
 NODE_LABELS+="mlab/type=physical,"
 NODE_LABELS+="mlab/project=${GCP_PROJECT},"
 NODE_LABELS+="mlab/ndt-version=production,"
-NODE_LABELS+="mlab/managed=$(cat /var/local/metadata/managed)"
+NODE_LABELS+="mlab/managed=$(cat /var/local/metadata/managed | tr ',' '-')"
 
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$NODE_LABELS |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
