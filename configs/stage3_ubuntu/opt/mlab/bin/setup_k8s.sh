@@ -28,6 +28,12 @@ MACHINE=${HOSTNAME:0:5}
 SITE=${HOSTNAME:6:5}
 METRO="${SITE/[0-9]*/}"
 
+# This value will be used to populate the node label "mlab/managed", which will
+# allow operators to differentiate betweeen "full", "minimal" and "BYOS"
+# physical sites. Since k8s does not support commas in label values, any commas
+# are converted to dashes.
+MANAGED=$(cat /var/local/metadata/managed | tr ',' '-')
+
 # Adds /opt/bin (k8s binaries) and /opt/mlab/bin (mlab binaries/scripts) to PATH.
 # Also, be 100% sure /sbin and /usr/sbin are in PATH.
 export PATH=$PATH:/sbin:/usr/sbin:/opt/bin:/opt/mlab/bin
@@ -42,7 +48,7 @@ NODE_LABELS+="mlab/metro=${METRO},"
 NODE_LABELS+="mlab/type=physical,"
 NODE_LABELS+="mlab/project=${GCP_PROJECT},"
 NODE_LABELS+="mlab/ndt-version=production,"
-NODE_LABELS+="mlab/managed=$(cat /var/local/metadata/managed | tr ',' '-')"
+NODE_LABELS+="mlab/managed=${MANAGED}"
 
 sed -ie "s|KUBELET_KUBECONFIG_ARGS=|KUBELET_KUBECONFIG_ARGS=--node-labels=$NODE_LABELS |g" \
   /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
