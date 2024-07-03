@@ -21,30 +21,36 @@ variable "source_image" {
 }
 
 source "googlecompute" "platform-cluster-instance" {
-  project_id   = var.gcp_project
-  zone         = "us-central1-c"
-  source_image = var.source_image
-  image_name   = "platform-cluster-instance-${var.image_version}"
-  ssh_username = "packer"
-  disk_size    = 100
+  project_id       = var.gcp_project
+  zone             = "us-central1-c"
+  source_image     = var.source_image
+  image_name       = "platform-cluster-instance-${var.image_version}"
+  ssh_username     = "packer"
+  disk_size        = 100
+  use_internal_ip  = true
+  omit_external_ip = true
 }
 
 source "googlecompute" "platform-cluster-internal-instance" {
-  project_id   = var.gcp_project
-  zone         = "us-central1-c"
-  source_image = var.source_image
-  image_name   = "platform-cluster-internal-instance-${var.image_version}"
-  ssh_username = "packer"
-  disk_size    = 100
+  project_id       = var.gcp_project
+  zone             = "us-central1-c"
+  source_image     = var.source_image
+  image_name       = "platform-cluster-internal-instance-${var.image_version}"
+  ssh_username     = "packer"
+  disk_size        = 100
+  use_internal_ip  = true
+  omit_external_ip = true
 }
 
 source "googlecompute" "platform-cluster-api-instance" {
-  project_id   = var.gcp_project
-  zone         = "us-central1-c"
-  source_image = var.source_image
-  image_name   = "platform-cluster-api-instance-${var.image_version}"
-  ssh_username = "packer"
-  disk_size    = 100
+  project_id       = var.gcp_project
+  zone             = "us-central1-c"
+  source_image     = var.source_image
+  image_name       = "platform-cluster-api-instance-${var.image_version}"
+  ssh_username     = "packer"
+  disk_size        = 100
+  use_internal_ip  = true
+  omit_external_ip = true
 }
 
 build {
