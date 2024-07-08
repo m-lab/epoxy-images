@@ -27,6 +27,7 @@ source "googlecompute" "platform-cluster-instance" {
   image_name   = "platform-cluster-instance-${var.image_version}"
   ssh_username = "packer"
   disk_size    = 100
+  tags         = ["cloud-build-packer"]
 }
 
 source "googlecompute" "platform-cluster-internal-instance" {
@@ -36,6 +37,7 @@ source "googlecompute" "platform-cluster-internal-instance" {
   image_name   = "platform-cluster-internal-instance-${var.image_version}"
   ssh_username = "packer"
   disk_size    = 100
+  tags         = ["cloud-build-packer"]
 }
 
 source "googlecompute" "platform-cluster-api-instance" {
@@ -45,6 +47,7 @@ source "googlecompute" "platform-cluster-api-instance" {
   image_name   = "platform-cluster-api-instance-${var.image_version}"
   ssh_username = "packer"
   disk_size    = 100
+  tags         = ["cloud-build-packer"]
 }
 
 build {
