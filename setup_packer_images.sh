@@ -35,7 +35,7 @@ fi
 
 cd packer
 packer init .
-packer build -force \
+packer build -force -debug \
   -var "gcp_project=$PROJECT" \
   -var "image_version=$version" \
   mlab.pkr.hcl
