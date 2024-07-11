@@ -14,7 +14,7 @@ options:
 steps:
 
 # packer_images.
-- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+- name: us-central1-docker.pkg.dev/mlab-sandbox/build-images/epoxy-images:1.2
   args: [
     '/workspace/builder.sh', 'packer_images'
   ]
