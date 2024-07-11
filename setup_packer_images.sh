@@ -34,6 +34,7 @@ else
 fi
 
 cd packer
+export PACKER_LOG=1
 packer init .
 packer build -force -debug \
   -var "gcp_project=$PROJECT" \
