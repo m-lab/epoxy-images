@@ -24,10 +24,12 @@ source "googlecompute" "platform-cluster-instance" {
   disk_size              = 100
   iap_tunnel_launch_wait = 60
   image_name             = "platform-cluster-instance-${var.image_version}"
+  omit_external_ip       = true
   project_id             = var.gcp_project
   source_image           = var.source_image
   ssh_username           = "packer"
   use_iap                = true
+  use_internal_ip        = true
   zone                   = "us-central1-c"
 }
 
