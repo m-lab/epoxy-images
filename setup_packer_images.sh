@@ -33,8 +33,10 @@ else
   version=${IMAGES_VERSION//./-}
 fi
 
-cd packer
+export PATH=$PATH:/google-cloud-sdk/bin
 export PACKER_LOG=1
+
+cd packer
 packer init .
 packer build -force -debug \
   -var "gcp_project=$PROJECT" \
