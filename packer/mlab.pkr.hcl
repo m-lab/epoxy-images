@@ -21,36 +21,39 @@ variable "source_image" {
 }
 
 source "googlecompute" "platform-cluster-instance" {
-  disk_size              = 100
-  iap_tunnel_launch_wait = 60
-  image_name             = "platform-cluster-instance-${var.image_version}"
-  omit_external_ip       = true
-  project_id             = var.gcp_project
-  source_image           = var.source_image
-  ssh_username           = "packer"
-  use_iap                = true
-  use_internal_ip        = true
-  zone                   = "us-central1-c"
+  disk_size        = 100
+  image_name       = "platform-cluster-instance-${var.image_version}"
+  omit_external_ip = true
+  project_id       = var.gcp_project
+  source_image     = var.source_image
+  ssh_username     = "packer"
+  use_iap          = true
+  use_internal_ip  = true
+  zone             = "us-central1-c"
 }
 
 source "googlecompute" "platform-cluster-internal-instance" {
-  disk_size    = 100
-  image_name   = "platform-cluster-internal-instance-${var.image_version}"
-  project_id   = var.gcp_project
-  source_image = var.source_image
-  ssh_username = "packer"
-  use_iap      = true
-  zone         = "us-central1-c"
+  disk_size        = 100
+  image_name       = "platform-cluster-internal-instance-${var.image_version}"
+  omit_external_ip = true
+  project_id       = var.gcp_project
+  source_image     = var.source_image
+  ssh_username     = "packer"
+  use_iap          = true
+  use_internal_ip  = true
+  zone             = "us-central1-c"
 }
 
 source "googlecompute" "platform-cluster-api-instance" {
-  disk_size    = 100
-  image_name   = "platform-cluster-api-instance-${var.image_version}"
-  project_id   = var.gcp_project
-  source_image = var.source_image
-  ssh_username = "packer"
-  use_iap      = true
-  zone         = "us-central1-c"
+  disk_size        = 100
+  image_name       = "platform-cluster-api-instance-${var.image_version}"
+  omit_external_ip = true
+  project_id       = var.gcp_project
+  source_image     = var.source_image
+  ssh_username     = "packer"
+  use_iap          = true
+  use_internal_ip  = true
+  zone             = "us-central1-c"
 }
 
 build {

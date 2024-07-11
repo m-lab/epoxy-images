@@ -34,11 +34,10 @@ else
 fi
 
 export PATH=$PATH:/google-cloud-sdk/bin
-export PACKER_LOG=1
 
 cd packer
 packer init .
-packer build -force -debug \
+packer build -force \
   -var "gcp_project=$PROJECT" \
   -var "image_version=$version" \
   mlab.pkr.hcl
