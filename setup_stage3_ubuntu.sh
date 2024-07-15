@@ -98,11 +98,12 @@ fi
 trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
-    # Add extra apt sources to install latest kernel image and headers.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
-    if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
-        chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
-    fi
+    # Add updates and security repositories to apt
+    UPDATES_REPO='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
+    chroot $BOOTSTRAP bash -c "echo '$UPDATES_REPO' >> /etc/apt/sources.list"
+    SECURITY_REPO='deb http://archive.ubuntu.com/ubuntu/ jammy-security main universe multiverse'
+    chroot $BOOTSTRAP bash -c "echo '$SECURITY_REPO' >> /etc/apt/sources.list"
+
     # Update the apt repositories.
     chroot $BOOTSTRAP apt-get update --fix-missing
 
