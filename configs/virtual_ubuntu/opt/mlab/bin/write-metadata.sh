@@ -36,6 +36,7 @@ if [[ $is_mig == "200" ]]; then
   external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/forwarded-ips/0")
   external_ipv6=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/forwarded-ipv6s/0")
 else
+  echo -n "false" > $METADATA_DIR/loadbalanced
   external_ip=$(
     curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/access-configs/0/external-ip"
   )

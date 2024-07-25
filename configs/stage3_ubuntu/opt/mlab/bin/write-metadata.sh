@@ -29,3 +29,7 @@ case "$PREFIX_LEN" in
     ;;
 esac
 echo -n "$MANAGED" > $METADATA_DIR/managed
+
+# Physical machines are not loadbalanced.
+echo -n "false" > $METADATA_DIR/loadbalanced
+
