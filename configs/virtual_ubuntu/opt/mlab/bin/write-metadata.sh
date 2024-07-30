@@ -32,6 +32,20 @@ is_mig=$(
 )
 
 if [[ $is_mig == "200" ]]; then
+  # It was discovered that there is some sort of race condition between this
+  # script and GCP fully populating VM metadata, specifically the
+  # "forwarded-ip[v6]s" values, requests for which were occasionally returning a
+  # 404, other times not. This loop just makes sure that one of those values
+  # exists before trying to read the value.
+  metadata_status=""
+  until [[ $metadata_status == "200" ]]; do
+    sleep 5
+    metadata_status=$(
+      curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
+        "${METADATA_URL}/network-interfaces/0/forwarded-ips/0" \
+        || true
+    )
+  done
   echo -n "true" > $METADATA_DIR/loadbalanced
   external_ip=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/forwarded-ips/0")
   external_ipv6=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/network-interfaces/0/forwarded-ipv6s/0")
