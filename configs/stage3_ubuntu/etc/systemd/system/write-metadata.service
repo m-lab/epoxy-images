@@ -2,6 +2,11 @@
 Description=Writes metadata to a known location
 Before=setup-after-boot.service
 
+# This unit writes data to the disk which gets mounted in various containers.
+# Be sure that this unit runs before the kubelet to be sure that no k8s
+# workloads start running before this unit has completed.
+Before=kubelet.service
+
 # generate-eth0-config.service sets the hostname of the machine to the expected
 # M-Lab DNS name for the machine. Since this write-metadata unit writes the
 # hostname value to the metadata directory, then be sure this unit runs later,
