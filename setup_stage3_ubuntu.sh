@@ -270,7 +270,7 @@ done
 
 # Install crictl.
 mkdir -p ${BOOTSTRAP}/opt/bin
-wget https://github.com/kubernetes-incubator/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
+wget https://github.com/kubernetes-sigs/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
 tar zxvf crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz -C ${BOOTSTRAP}/opt/bin/
 rm -f crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
 
@@ -278,7 +278,7 @@ rm -f crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz
 # Installation commands adapted from:
 #   https://kubernetes.io/docs/setup/independent/install-kubeadm/#installing-kubeadm-kubelet-and-kubectl
 pushd ${BOOTSTRAP}/opt/bin
-curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+curl --location --remote-name-all https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod 755 {kubeadm,kubelet,kubectl}
 popd
 
