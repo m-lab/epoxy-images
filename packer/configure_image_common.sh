@@ -50,7 +50,7 @@ curl --location "https://github.com/kubernetes-sigs/cri-tools/releases/download/
 
 # Install kubeadm, kubelet and kubectl.
 cd /opt/bin
-curl --location --remote-name-all https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/{kubelet,kubectl}
+curl --location --remote-name-all https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod +x {kubeadm,kubelet,kubectl}
 
 # Install kubelet systemd service.
