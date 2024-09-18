@@ -46,11 +46,11 @@ chmod +x /opt/cni/bin/flannel
 
 # Install crictl.
 mkdir -p /opt/bin
-curl --location "https://github.com/kubernetes-incubator/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz" | tar -C /opt/bin -xz
+curl --location "https://github.com/kubernetes-sigs/cri-tools/releases/download/${K8S_CRICTL_VERSION}/crictl-${K8S_CRICTL_VERSION}-linux-amd64.tar.gz" | tar -C /opt/bin -xz
 
 # Install kubeadm, kubelet and kubectl.
 cd /opt/bin
-curl --location --remote-name-all https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
+curl --location --remote-name-all https://dl.k8s.io/release/${K8S_VERSION}/bin/linux/amd64/{kubeadm,kubelet,kubectl}
 chmod +x {kubeadm,kubelet,kubectl}
 
 # Install kubelet systemd service.
