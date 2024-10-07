@@ -23,15 +23,12 @@ SPEED=$(
     | jq -r ".[\"${HOSTNAME}\"] | .Uplink"
   )
 
-# Internally, tc stores rates as 32-bit unsigned integers in bps (bytes per
+# Internally, tc stores rates as 32-bit unsigned integers in bps (*bytes* per
 # second).  Because of this, and to make comparisons easier later in the script,
-# we convert the "g" value to a bps value.
-if [[ "${SPEED}" == "40g" ]]; then
-  MAXRATE="5000000000"
-elif [[ "${SPEED}" == "10g" ]]; then
-  MAXRATE="1250000000"
-elif [[ "${SPEED}" == "1g" ]]; then
-  MAXRATE="125000000"
+# convert the "g" value to bytes/sec. The conditional assumes that $SPEED is
+# always some multiple of a gigabit.
+if [[ "${SPEED}" =~ ([0-9]+)g ]]; then
+  MAXRATE=$((${BASH_REMATCH[1]} * 1000000000 / 8))
 else
   echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
   write_metric_file 0
