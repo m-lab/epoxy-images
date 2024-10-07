@@ -26,7 +26,9 @@ SPEED=$(
 # Internally, tc stores rates as 32-bit unsigned integers in bps (bytes per
 # second).  Because of this, and to make comparisons easier later in the script,
 # we convert the "g" value to a bps value.
-if [[ "${SPEED}" == "10g" ]]; then
+if [[ "${SPEED}" == "40g" ]]; then
+  MAXRATE="5000000000"
+elif [[ "${SPEED}" == "10g" ]]; then
   MAXRATE="1250000000"
 elif [[ "${SPEED}" == "1g" ]]; then
   MAXRATE="125000000"
