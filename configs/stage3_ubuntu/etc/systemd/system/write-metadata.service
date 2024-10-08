@@ -7,11 +7,11 @@ Before=setup-after-boot.service
 # workloads start running before this unit has completed.
 Before=kubelet.service
 
-# generate-eth0-config.service sets the hostname of the machine to the expected
+# generate-network-config.service sets the hostname of the machine to the expected
 # M-Lab DNS name for the machine. Since this write-metadata unit writes the
 # hostname value to the metadata directory, then be sure this unit runs later,
 # otherwise we get some randomish looking string for the hostname.
-After=generate-eth0-config.service
+After=generate-network-config.service
 
 [Service]
 Type=oneshot

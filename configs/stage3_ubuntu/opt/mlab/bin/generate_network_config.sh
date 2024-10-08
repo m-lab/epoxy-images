@@ -64,11 +64,23 @@ DNS2_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $4}' )
 # Note, we cannot set the hostname via networkd. Use hostnamectl instead.
 hostnamectl set-hostname ${HOSTNAME}
 
+# For network cards with multiple interfaces, the kernel may not assign eth*
+# device names in the same order between boots. Determine which eth* interface
+# has a layer 2 link, and use it as our interface. There should only be one
+# with a link. Set the default to eth0 as a fallback.
+DEVICE="eth0"
+for i in /sys/class/net/eth*; do
+  STATE=$(cat $i/operstate)
+  if [[ $STATE == "up" ]]; then
+    DEVICE=$(basename $i)
+    break
+  fi
+done
+
 # TODO: do not hardcode /26.
-# TODO: do not hardcode eth0.
 cat > ${OUTPUT} <<EOF
 [Match]
-Name=eth0
+Name=$DEVICE
 
 [Network]
 # IPv4
