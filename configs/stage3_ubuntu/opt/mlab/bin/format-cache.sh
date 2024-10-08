@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euxo pipefail
+
 # Create cache directory in root filesystem.
 mkdir -p /cache
 
@@ -26,8 +28,8 @@ fi
 # Note: systemd translates double percent (%%) to a single percent.
 parted --align=optimal --script /dev/$DEVICE \
   mklabel gpt \
-  mkpart data xfs 0%% 90%% \
-  mkpart containerd xfs 90%% 100%%
+  mkpart data xfs 0% 90% \
+  mkpart containerd xfs 90% 100%
 
 # There is potentially a delay between parted creating partitions and those
 # partitions devices (e.g., /dev/sda1) showing in in /dev.
@@ -35,6 +37,6 @@ sleep 1
 
 # Format and label each partition.
 # Note: the labels could make the formatting conditional in the future.
-/usr/sbin/mkfs.xfs -f -L data /dev/sda1
-/usr/sbin/mkfs.xfs -f -L containerd /dev/sda2
+/usr/sbin/mkfs.xfs -f -L data /dev/${DEVICE}1
+/usr/sbin/mkfs.xfs -f -L containerd /dev/${DEVICE}2
 
