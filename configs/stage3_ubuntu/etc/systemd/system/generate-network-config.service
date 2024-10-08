@@ -4,7 +4,7 @@ Wants=network-pre.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/mlab/bin/generate_network_config.sh /etc/systemd/network/00-eth0.network
+ExecStart=/opt/mlab/bin/generate_network_config.sh /etc/systemd/network/00-mlab.network
 
 [Install]
 WantedBy=multi-user.target
