@@ -23,34 +23,14 @@ SPEED=$(
     | jq -r ".[\"${HOSTNAME}\"] | .Uplink"
   )
 
-# Internally, tc stores rates as 32-bit unsigned integers in bps (*bytes* per
-# second).  Because of this, and to make comparisons easier later in the script,
-# convert the "g" value to bytes/sec. The conditional assumes that $SPEED is
-# always some multiple of a gigabit.
-if [[ "${SPEED}" =~ ([0-9]+)g ]]; then
-  MAXRATE=$((${BASH_REMATCH[1]} * 1000000000 / 8))
-else
-  echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
-  write_metric_file 0
-  exit 1
-fi
-
-/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}bps"
+/sbin/tc qdisc replace dev eth0 root fq
 
 if [[ $? -ne 0 ]]; then
-  echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAXRATE}"
-  write_metric_file 0
-  exit 1
-fi
-
-# Even though tc's exit code was 0, be 100% sure that the configured value for
-# maxrate is what we expect.
-configured_maxrate=$(tc -json qdisc show dev eth0 | jq -r '.[0].options.maxrate')
-if [[ $configured_maxrate != $MAXRATE ]]; then
-  echo "maxrate of qdisc fq on eth0 is ${configured_maxrate}, but should be ${MAXRATE}"
+  echo "Failed to configure qdisc fq on dev eth0"
   write_metric_file 0
   exit 1
 fi
 
 write_metric_file 1
 echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+
