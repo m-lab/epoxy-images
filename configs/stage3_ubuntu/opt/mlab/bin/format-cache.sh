@@ -17,7 +17,7 @@ DEVICE=$(
 
 # A minimal sanity check that discovering the device returned a valid device
 # name.
-if ![[ $DEVICE =~ sd[a-z] ]]; then
+if ! [[ $DEVICE =~ sd[a-z] ]]; then
   echo "ERROR: failed to identify the disk device name"
   exit 1
 fi
