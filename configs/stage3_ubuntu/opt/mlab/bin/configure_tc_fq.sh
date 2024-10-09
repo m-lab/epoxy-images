@@ -17,13 +17,24 @@ function write_metric_file {
   chmod 644 $METRIC_FILE
 }
 
+# Determine the uplink speed of the site. See MAXRATE below for rationale.
 SPEED=$(
   curl --silent --show-error --location \
     https://siteinfo.mlab-oti.measurementlab.net/v2/sites/registration.json \
     | jq -r ".[\"${HOSTNAME}\"] | .Uplink"
-  )
+)
 
-/sbin/tc qdisc replace dev eth0 root fq
+# If machines are connected to the switch at a rate which is faster than the
+# uplink speed, the machines can overflow buffers in the switch, causing
+# excessive discards. Today, this is only true at the few remaining sites with
+# 1g uplinks. If the uplink is 1g set the maxrate parameter to the speed of the
+# uplink to help avoid overwhelming the switch.
+MAXRATE=""
+if [[ $SPEED == "1g" ]]; then
+  MAXRATE="maxrate 1gbit"
+fi
+
+/sbin/tc qdisc replace dev eth0 root fq $MAXRATE
 
 if [[ $? -ne 0 ]]; then
   echo "Failed to configure qdisc fq on dev eth0"
@@ -32,5 +43,5 @@ if [[ $? -ne 0 ]]; then
 fi
 
 write_metric_file 1
-echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+echo "Successfully configured qdisc fq on dev eth0"
 
