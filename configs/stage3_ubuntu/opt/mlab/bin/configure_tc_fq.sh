@@ -17,6 +17,19 @@ function write_metric_file {
   chmod 644 $METRIC_FILE
 }
 
+# For network cards with multiple interfaces, the kernel may not assign eth*
+# device names in the same order between boots. Determine which eth* interface
+# has a layer 2 link, and use it as our interface. There should only be one
+# with a link. Set the default to eth0 as a fallback.
+DEVICE="eth0"
+for i in /sys/class/net/eth*; do
+  STATE=$(cat $i/operstate)
+  if [[ $STATE == "up" ]]; then
+    DEVICE=$(basename $i)
+    break
+  fi
+done
+
 # Determine the uplink speed of the site. See MAXRATE below for rationale.
 SPEED=$(
   curl --silent --show-error --location \
@@ -34,14 +47,14 @@ if [[ $SPEED == "1g" ]]; then
   MAXRATE="maxrate 1gbit"
 fi
 
-/sbin/tc qdisc replace dev eth0 root fq $MAXRATE
+/sbin/tc qdisc replace dev $DEVICE root fq $MAXRATE
 
 if [[ $? -ne 0 ]]; then
-  echo "Failed to configure qdisc fq on dev eth0"
+  echo "Failed to configure qdisc fq on dev ${DEVICE}"
   write_metric_file 0
   exit 1
 fi
 
 write_metric_file 1
-echo "Successfully configured qdisc fq on dev eth0"
+echo "Successfully configured qdisc fq on dev ${DEVICE}"
 
