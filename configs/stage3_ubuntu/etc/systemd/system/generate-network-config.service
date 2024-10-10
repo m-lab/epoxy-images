@@ -1,5 +1,6 @@
 [Unit]
 Before=network-pre.target
+After=sysinit.target
 Wants=network-pre.target
 
 [Service]
