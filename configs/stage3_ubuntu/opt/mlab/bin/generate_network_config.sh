@@ -4,6 +4,8 @@
 # writes a networkd configuration file for the static IP to the named file.
 # generate_network_config also sets the machine hostname.
 
+set -euxo pipefail
+
 OUTPUT=${1:?Please provide the name for writing config file}
 
 # TODO: Modify ePoxy to recognize both IPv4 and IPv6 addresses when
@@ -70,9 +72,14 @@ hostnamectl set-hostname ${HOSTNAME}
 # with a link. Set the default to eth0 as a fallback.
 DEVICE="eth0"
 for i in /sys/class/net/eth*; do
-  STATE=$(cat $i/operstate)
-  if [[ $STATE == "up" ]]; then
-    DEVICE=$(basename $i)
+  NAME=$(basename $i)
+  # The kernel does not populate many of the files in /sys/class/net/<device>
+  # with values until _after_ the device is up. Unconditionally attempt to
+  # bring each device up before trying to read the carrier file.
+  ip link set up dev $NAME
+  CARRIER=$(cat $i/carrier)
+  if [[ $CARRIER == "1" ]]; then
+    DEVICE=$NAME
     break
   fi
 done
