@@ -17,40 +17,44 @@ function write_metric_file {
   chmod 644 $METRIC_FILE
 }
 
+# For network cards with multiple interfaces, the kernel may not assign eth*
+# device names in the same order between boots. Determine which eth* interface
+# has a layer 2 link, and use it as our interface. There should only be one
+# with a link. Set the default to eth0 as a fallback.
+DEVICE="eth0"
+for i in /sys/class/net/eth*; do
+  STATE=$(cat $i/operstate)
+  if [[ $STATE == "up" ]]; then
+    DEVICE=$(basename $i)
+    break
+  fi
+done
+
+# Determine the uplink speed of the site. See MAXRATE below for rationale.
 SPEED=$(
   curl --silent --show-error --location \
     https://siteinfo.mlab-oti.measurementlab.net/v2/sites/registration.json \
     | jq -r ".[\"${HOSTNAME}\"] | .Uplink"
-  )
+)
 
-# Internally, tc stores rates as 32-bit unsigned integers in bps (*bytes* per
-# second).  Because of this, and to make comparisons easier later in the script,
-# convert the "g" value to bytes/sec. The conditional assumes that $SPEED is
-# always some multiple of a gigabit.
-if [[ "${SPEED}" =~ ([0-9]+)g ]]; then
-  MAXRATE=$((${BASH_REMATCH[1]} * 1000000000 / 8))
-else
-  echo "Unknown uplink speed '${SPEED}'. Not configuring default qdisc for eth0."
-  write_metric_file 0
-  exit 1
+# If machines are connected to the switch at a rate which is faster than the
+# uplink speed, the machines can overflow buffers in the switch, causing
+# excessive discards. Today, this is only true at the few remaining sites with
+# 1g uplinks. If the uplink is 1g set the maxrate parameter to the speed of the
+# uplink to help avoid overwhelming the switch.
+MAXRATE=""
+if [[ $SPEED == "1g" ]]; then
+  MAXRATE="maxrate 1gbit"
 fi
 
-/sbin/tc qdisc replace dev eth0 root fq maxrate "${MAXRATE}bps"
+/sbin/tc qdisc replace dev $DEVICE root fq $MAXRATE
 
 if [[ $? -ne 0 ]]; then
-  echo "Failed to configure qdisc fq on dev eth0 with max rate of: ${MAXRATE}"
-  write_metric_file 0
-  exit 1
-fi
-
-# Even though tc's exit code was 0, be 100% sure that the configured value for
-# maxrate is what we expect.
-configured_maxrate=$(tc -json qdisc show dev eth0 | jq -r '.[0].options.maxrate')
-if [[ $configured_maxrate != $MAXRATE ]]; then
-  echo "maxrate of qdisc fq on eth0 is ${configured_maxrate}, but should be ${MAXRATE}"
+  echo "Failed to configure qdisc fq on dev ${DEVICE}"
   write_metric_file 0
   exit 1
 fi
 
 write_metric_file 1
-echo "Set maxrate for qdisc fq on dev eth0 to: ${MAXRATE}"
+echo "Successfully configured qdisc fq on dev ${DEVICE}"
+
