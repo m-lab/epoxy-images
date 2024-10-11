@@ -66,6 +66,16 @@ DNS2_IPv6=$( echo $FIELDS_IPv6 | awk -F, '{print $4}' )
 # Note, we cannot set the hostname via networkd. Use hostnamectl instead.
 hostnamectl set-hostname ${HOSTNAME}
 
+# Don't continue until ethN devices exist in /sys/class/net.
+ETH_DEVICES=""
+until [[ $ETH_DEVICES == "true" ]]; do
+  sleep 1
+  ls /sys/class/net/eth* &> /dev/null
+  if [[ $? == 0 ]]; then
+    ETH_DEVICES="true"
+  fi
+done
+
 # For network cards with multiple interfaces, the kernel may not assign eth*
 # device names in the same order between boots. Determine which eth* interface
 # has a layer 2 link, and use it as our interface. There should only be one
