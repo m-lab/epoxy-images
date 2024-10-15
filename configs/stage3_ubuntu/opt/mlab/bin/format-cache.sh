@@ -8,6 +8,14 @@ mkdir -p /cache
 # Clear any remaining LVM configs from prior installations.
 dmsetup remove_all --force
 
+# From the lsblk man page:
+#     Note that lsblk might be executed in time when udev does not have
+#     all information about recently added or modified devices yet. In
+#     this case it is recommended to use udevadm settle before lsblk to
+#     synchronize with udev.
+# https://man7.org/linux/man-pages/man8/lsblk.8.html
+udevadm settle
+
 # Determine which sd* device we should use. Eliminate all hotplug device types,
 # and then select the first disk that is greater than 250GB.
 DEVICE=$(
