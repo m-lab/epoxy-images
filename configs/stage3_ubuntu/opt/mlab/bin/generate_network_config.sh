@@ -88,7 +88,7 @@ for i in /sys/class/net/eth*; do
   # bring each device up before trying to read the carrier file. Sleep briefly
   # to give the kernel time to populate the directory.
   ip link set up dev $NAME
-  sleep 1
+  sleep 2
   CARRIER=$(cat $i/carrier)
   if [[ $CARRIER == "1" ]]; then
     DEVICE=$NAME
