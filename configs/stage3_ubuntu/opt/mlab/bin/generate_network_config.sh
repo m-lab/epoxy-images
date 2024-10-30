@@ -4,7 +4,7 @@
 # writes a networkd configuration file for the static IP to the named file.
 # generate_network_config also sets the machine hostname.
 
-set -euxo pipefail
+set -ux
 
 OUTPUT=${1:?Please provide the name for writing config file}
 

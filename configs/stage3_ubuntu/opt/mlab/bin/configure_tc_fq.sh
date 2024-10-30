@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ux
+
 # This script writes out a Prometheus metric file which will be collected by the
 # node_exporter textfile collector. Make sure that METRIC_DIR exists.
 METRIC_DIR=/cache/data/node-exporter
@@ -23,8 +25,8 @@ function write_metric_file {
 # with a link. Set the default to eth0 as a fallback.
 DEVICE="eth0"
 for i in /sys/class/net/eth*; do
-  STATE=$(cat $i/operstate)
-  if [[ $STATE == "up" ]]; then
+  CARRIER=$(cat $i/carrier)
+  if [[ $CARRIER == "1" ]]; then
     DEVICE=$(basename $i)
     break
   fi
