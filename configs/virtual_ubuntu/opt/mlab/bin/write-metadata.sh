@@ -82,3 +82,8 @@ echo -n $(uname -r) > $METADATA_DIR/kernel-version
 # For virtual machines this indicates that M-Lab manages only the machine and
 # none of the infrastructure upstream of it.
 echo -n "machine" > $METADATA_DIR/managed
+
+# Store the 3-letter IATA code. This may be used, for example, by M-Lab
+# Autojoin VMs.
+echo $HOSTNAME | sed -rn 's|.+([a-z]{3})[0-9t]{2}.+|\1|p' > $METADATA/iata-code
+
