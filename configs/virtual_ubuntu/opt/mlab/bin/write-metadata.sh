@@ -16,27 +16,14 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 mkdir -p $METADATA_DIR
 
-# MIG instances will have a "created-by" attribute, standalone VMs will not.
-# Record the HTTP status code of the request into a variable. 200 means
-# "created-by" exists and therefore this is a MIG instance. Any other response
-# code means it was not created by an instance group manager and is not a MIG
-# instance.  This value is used to determine whether to flag this instance as
-# loadbalanced or not. Additionally, it is used to determine which external IP
-# addresses should be recorded, those of the VM or the ones associated with a
-# load balancer.
-#
-# https://cloud.google.com/compute/docs/instance-groups/getting-info-about-migs#checking_if_a_vm_instance_is_part_of_a_mig
-is_mig=$(
-  curl "${CURL_FLAGS[@]}" --output /dev/null --write-out "%{http_code}" \
-    "${METADATA_URL}/attributes/created-by"
-)
+loadbalanced=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/attributes/loadbalanced")
+echo -n ${loadbalanced} > $METADATA_DIR/loadbalanced
 
-if [[ $is_mig == "200" ]]; then
-  # It was discovered that there is some sort of race condition between this
-  # script and GCP fully populating VM metadata, specifically the
-  # "forwarded-ip[v6]s" values, requests for which were occasionally returning a
-  # 404, other times not. This loop just makes sure that one of those values
-  # exists before trying to read the value.
+if [[ $loadbalanced == "true" ]]; then
+  # It sometimes takes a while for GCE to fully populating VM metadata,
+  # specifically the "forwarded-ip[v6]s" values, requests for which were
+  # occasionally returning a 404, other times not. This loop just makes sure
+  # that one of those values exists before trying to read the value.
   metadata_status=""
   until [[ $metadata_status == "200" ]]; do
     sleep 5
@@ -82,3 +69,8 @@ echo -n $(uname -r) > $METADATA_DIR/kernel-version
 # For virtual machines this indicates that M-Lab manages only the machine and
 # none of the infrastructure upstream of it.
 echo -n "machine" > $METADATA_DIR/managed
+
+# Store the 3-letter IATA code. This may be used, for example, by M-Lab
+# Autojoin VMs.
+echo $HOSTNAME | sed -rn 's|.+([a-z]{3})[0-9t]{2}.+|\1|p' > $METADATA_DIR/iata-code
+
