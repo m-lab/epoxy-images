@@ -16,6 +16,9 @@ CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
 
 mkdir -p $METADATA_DIR
 
+probability=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/attributes/probability")
+echo -n ${probability} > $METADATA_DIR/probability
+
 loadbalanced=$(curl "${CURL_FLAGS[@]}" "${METADATA_URL}/attributes/loadbalanced")
 echo -n ${loadbalanced} > $METADATA_DIR/loadbalanced
 
