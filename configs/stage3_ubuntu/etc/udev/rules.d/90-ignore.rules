@@ -1,0 +1,2 @@
+KERNEL=="sr0",SUBSYSTEM=="block",OPTIONS==”ignore_device”
+
