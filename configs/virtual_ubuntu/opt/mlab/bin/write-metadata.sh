@@ -75,5 +75,5 @@ echo -n "machine" > $METADATA_DIR/managed
 
 # Store the 3-letter IATA code. This may be used, for example, by M-Lab
 # Autojoin VMs.
-echo $HOSTNAME | sed -rn 's|.+([a-z]{3})[0-9t]{2}.+|\1|p' > $METADATA_DIR/iata-code
+echo -n $HOSTNAME | sed -rn 's|.+([a-z]{3})[0-9t]{2}.+|\1|p' > $METADATA_DIR/iata-code
 
