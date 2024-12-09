@@ -1,2 +1,2 @@
-KERNEL=="sr0",SUBSYSTEM=="block",OPTIONS==”ignore_device”
+KERNEL=="sr0", SUBSYSTEM=="block", ENV{UDISKS_IGNORE}="1"
 
