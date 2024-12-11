@@ -1,2 +1,0 @@
-KERNEL=="sr0", SUBSYSTEM=="block", ENV{UDISKS_IGNORE}="1"
-
