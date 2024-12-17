@@ -88,7 +88,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
-      --components=main,universe,multiverse --arch amd64 jammy $BOOTSTRAP
+      --components=main,universe,multiverse --arch amd64 noble $BOOTSTRAP
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
@@ -241,6 +241,7 @@ popd
 ################################################################################
 # Install the CNI binaries.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
+chown root:root ${BOOTSTRAP}/opt/cni/bin
 curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
