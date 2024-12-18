@@ -101,9 +101,9 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add updates and security repositories to apt
-    UPDATES_REPO='deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_RELEASE-updates main universe multiverse'
+    UPDATES_REPO="deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_RELEASE}-updates main universe multiverse"
     chroot $BOOTSTRAP bash -c "echo '$UPDATES_REPO' >> /etc/apt/sources.list"
-    SECURITY_REPO='deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_RELEASE-security main universe multiverse'
+    SECURITY_REPO="deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_RELEASE}-security main universe multiverse"
     chroot $BOOTSTRAP bash -c "echo '$SECURITY_REPO' >> /etc/apt/sources.list"
 
     # Update the apt repositories.
