@@ -203,7 +203,6 @@ chroot $BOOTSTRAP systemctl disable docker.socket
 # containerd socket and auto configure the kubelet to use that socket for the
 # CRI.
 chroot $BOOTSTRAP systemctl mask docker.service
-chroot $BOOTSTRAP systemctl disable ondemand.service
 
 ################################################################################
 # SSH
