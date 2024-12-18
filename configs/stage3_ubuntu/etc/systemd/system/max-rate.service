@@ -1,6 +1,6 @@
 [Unit]
 Description=Determines ndt-server max-rate for this node
-After=nss-lookup.target
+After=nss-lookup.target generate-network-config.service
 Before=setup-after-boot.service
 
 [Service]
