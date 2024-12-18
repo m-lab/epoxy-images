@@ -29,6 +29,8 @@ BOOTSTRAP="${BUILD_DIR}/initramfs_${CONFIG_NAME}"
 OUTPUT_KERNEL="${BUILD_DIR}/stage3_kernel_ubuntu.vmlinuz"
 OUTPUT_INITRAM="${BUILD_DIR}/stage3_initramfs_ubuntu.cpio.gz"
 
+UBUNTU_RELEASE="noble" # 24.04
+
 ##############################################################################
 # Functions
 ##############################################################################
@@ -88,7 +90,7 @@ if ! test -f $BOOTSTRAP/build.date ; then
 
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
-      --components=main,universe,multiverse --arch amd64 noble $BOOTSTRAP
+      --components=main,universe,multiverse --arch amd64 $UBUNTU_RELEASE $BOOTSTRAP
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
@@ -99,9 +101,9 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add updates and security repositories to apt
-    UPDATES_REPO='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
+    UPDATES_REPO='deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_RELEASE-updates main universe multiverse'
     chroot $BOOTSTRAP bash -c "echo '$UPDATES_REPO' >> /etc/apt/sources.list"
-    SECURITY_REPO='deb http://archive.ubuntu.com/ubuntu/ jammy-security main universe multiverse'
+    SECURITY_REPO='deb http://archive.ubuntu.com/ubuntu/ $UBUNTU_RELEASE-security main universe multiverse'
     chroot $BOOTSTRAP bash -c "echo '$SECURITY_REPO' >> /etc/apt/sources.list"
 
     # Update the apt repositories.
