@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# setup_stage3_ubuntu.sh builds an initram image based on the Ubuntu Focal
-# (20.04) OS with all package upgraded to their latest versions, that includes
+# setup_stage3_ubuntu.sh builds an initram image based on the Ubuntu Noble
+# (24.04) OS with all packages upgraded to their latest versions, that includes
 # M-Lab configs and scripts, epoxy_client and k8s-related binaries
 #
 # Example:
@@ -242,7 +242,7 @@ popd
 ################################################################################
 # Install the CNI binaries.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
-chown root:root ${BOOTSTRAP}/opt/cni/bin
+chroot $BOOTSTRAP bash -c 'chown root:root /opt/cni/bin'
 curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
