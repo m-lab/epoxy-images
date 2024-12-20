@@ -242,7 +242,9 @@ popd
 ################################################################################
 # Install the CNI binaries.
 mkdir -p ${BOOTSTRAP}/opt/cni/bin
+ls -l $BOOTSTRAP/opt/cni
 chroot $BOOTSTRAP bash -c 'chown root:root /opt/cni/bin'
+ls -l $BOOTSTRAP/opt/cni
 curl --location "https://github.com/containernetworking/plugins/releases/download/${K8S_CNI_VERSION}/cni-plugins-linux-amd64-${K8S_CNI_VERSION}.tgz" \
   | tar --directory=${BOOTSTRAP}/opt/cni/bin -xz
 
@@ -255,12 +257,15 @@ curl --location "https://github.com/flannel-io/cni-plugin/releases/download/${K8
   > flannel
 GOPATH=${TMPDIR} CGO_ENABLED=0 go install -ldflags '-w -s' github.com/m-lab/index2ip@v1.2.0
 GOPATH=${TMPDIR} CGO_ENABLED=0 go install -ldflags '-w -s' github.com/m-lab/cni-plugins/netctl@v1.0.0
+ls -l $BOOTSTRAP/opt/cni
 cp ${TMPDIR}/multus-cni_${MULTUS_CNI_VERSION}_linux_amd64/multus ${BOOTSTRAP}/opt/cni/bin/multus
 cp ${TMPDIR}/bin/index2ip ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/bin/netctl ${BOOTSTRAP}/opt/cni/bin
 cp ${TMPDIR}/flannel ${BOOTSTRAP}/opt/cni/bin
+ls -l $BOOTSTRAP/opt/cni
 chmod 755 ${BOOTSTRAP}/opt/cni/bin/*
 rm -Rf ${TMPDIR}
+ls -l $BOOTSTRAP/opt/cni
 
 # Make all the shims so that network plugins can be debugged.
 pushd ${BOOTSTRAP}/opt/shimcni/bin
@@ -286,6 +291,8 @@ popd
 
 # The default kubelet.service.d/10-kubeadm.conf looks for kubelet at /usr/bin.
 ln --symbolic --force /opt/bin/kubelet $BOOTSTRAP/usr/bin/kubelet
+
+ls -l $BOOTSTRAP/opt/cni
 
 ################################################################################
 # Add epoxy client to initramfs
