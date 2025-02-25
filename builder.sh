@@ -43,7 +43,7 @@ function stage3_coreos() {
   umask 0022
   ${SOURCE_DIR}/setup_stage3_coreos.sh \
       "${SOURCE_DIR}/configs/${target}" \
-      /go/bin/epoxy_client \
+      /root/go/bin/epoxy_client \
       http://stable.release.core-os.net/amd64-usr/${version}/coreos_production_pxe.vmlinuz \
       http://stable.release.core-os.net/amd64-usr/${version}/coreos_production_pxe_image.cpio.gz \
       "${artifacts}/coreos_custom_pxe_image.cpio.gz" &> ${SOURCE_DIR}/coreos.log \
@@ -63,7 +63,7 @@ function stage3_update() {
   echo 'Starting stage3_update build'
   ${SOURCE_DIR}/setup_stage3_update.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_update.log \
+      /root/go/bin/epoxy_client &> ${SOURCE_DIR}/stage3_update.log \
   || (
       tail -100 ${SOURCE_DIR}/stage3_update.log && false
   )
@@ -80,7 +80,7 @@ function stage1_minimal() {
   echo 'Starting stage1_minimal build'
   ${SOURCE_DIR}/setup_stage1_minimal.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client
+      /root/go/bin/epoxy_client
 
   rm -rf ${builddir}
 }
@@ -94,7 +94,7 @@ function stage3_ubuntu() {
   echo 'Starting stage3_ubuntu build'
   ${SOURCE_DIR}/setup_stage3_ubuntu.sh \
       ${builddir} ${artifacts} ${SOURCE_DIR}/configs/${target} \
-      /go/bin/epoxy_client
+      /root/go/bin/epoxy_client
 
   rm -rf ${builddir}
 }
