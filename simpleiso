@@ -92,7 +92,7 @@ set timeout=5
 set color_highlight=black/light-magenta
 
 menuentry 'linux: ${ISO_NAME}' {
-    linuxefi  /vmlinuz $boot_params
+    linux /vmlinuz $boot_params
     $initramfs_config_efi
 }
 EOF
@@ -121,7 +121,7 @@ function make_bootefi_img() {
 
   # Make the grub efi boot loader image.
   grub-mkimage -o ${tmp}/bootx64.efi -p / -O x86_64-efi fat iso9660 part_gpt \
-      part_msdos normal boot linux linuxefi efinet lsefi lsefisystab lsefimmap \
+      part_msdos normal boot linux efinet lsefi lsefisystab lsefimmap \
       configfile loopback chain efifwsetup efi_gop efi_uga ls search \
       search_label search_fs_uuid search_fs_file gfxterm gfxterm_background \
       gfxterm_menu test all_video loadenv exfat ext2 ntfs udf

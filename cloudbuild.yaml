@@ -18,13 +18,13 @@ availableSecrets:
 
 steps:
 # stage1 minimal kernel & initram using stock ubuntu kernel.
-- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+- name: us-central1-docker.pkg.dev/$PROJECT_ID/build-images/epoxy-images:1.2
   args: [
     '/workspace/builder.sh', 'stage1_minimal'
   ]
 
 # stage3_ubuntu images.
-- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+- name: us-central1-docker.pkg.dev/$PROJECT_ID/build-images/epoxy-images:1.2
   entrypoint: /bin/bash
   args:
   - '-c'
@@ -33,7 +33,7 @@ steps:
   - SSH_HOST_CA_KEY
 
 # stage3_update images.
-- name: gcr.io/$PROJECT_ID/epoxy-images:1.0
+- name: us-central1-docker.pkg.dev/$PROJECT_ID/build-images/epoxy-images:1.2
   args: [
     '/workspace/builder.sh', 'stage3_update'
   ]
