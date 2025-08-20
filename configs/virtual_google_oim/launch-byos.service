@@ -1,0 +1,16 @@
+[Unit]
+Description=Launch the M-Lab BYOS containers
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=mlab
+Group=mlab
+WorkingDirectory=/home/mlab
+RemainAfterExit=yes
+ExecStart=/opt/mlab/bin/launch-byos.sh
+ExecStop=/bin/bash -c "docker compose --profile ndt --env file /home/mlab/env --file /home/mlab/docker-compose.yml down"
+
+[Install]
+WantedBy=multi-user.target
