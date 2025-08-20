@@ -44,7 +44,7 @@ build {
 
   provisioner "file" {
     sources = [
-      "../configs/virtual_google_oim
+      "../configs/virtual_google_oim"
     ]
     destination = "/tmp"
   }
