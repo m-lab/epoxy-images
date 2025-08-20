@@ -1,5 +1,5 @@
 [Unit]
-Description=Launch the M-Lab BYOS containers
+Description=Launch the M-Lab Autonode containers
 After=docker.service
 Requires=docker.service
 
@@ -9,7 +9,7 @@ User=mlab
 Group=mlab
 WorkingDirectory=/home/mlab
 RemainAfterExit=yes
-ExecStart=/opt/mlab/bin/launch-byos.sh
+ExecStart=/opt/mlab/bin/launch-autonode.sh
 ExecStop=/bin/bash -c "docker compose --profile ndt --env file /home/mlab/env --file /home/mlab/docker-compose.yml down"
 
 [Install]

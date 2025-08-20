@@ -7,9 +7,6 @@
 
 set -euxo pipefail
 
-METADATA_URL="http://metadata.google.internal/computeMetadata/v1/instance"
-CURL_FLAGS=(--header "Metadata-Flavor: Google" --silent)
-
 # Update the apt package index and install any needed packages.
 apt update
 apt install --yes \
@@ -35,10 +32,9 @@ adduser mlab docker
 mkdir -p /opt/mlab/bin/
 
 # Copy necessary files to correct locations
-cp /tmp/virtual_google_oim/docker-compose.yml /home/mlab/
-cp /tmp/virtual_google_oim/launch-byos.sh /opt/mlab/bin/
-cp /tmp/virtual_google_oim/launch-byos.service /etc/systemd/system/
+cp /tmp/virtual_google_oim/launch-autonode.sh /opt/mlab/bin/
+cp /tmp/virtual_google_oim/launch-autonode.service /etc/systemd/system/
 
-# Enable launch-byos.service
+# Enable launch-autonode.service
 systemctl daemon-reload
-systemctl enable launch-byos.service
+systemctl enable launch-autonode.service
