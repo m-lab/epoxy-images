@@ -44,7 +44,7 @@ build {
 
   provisioner "file" {
     sources = [
-      "../configs/virtual_google_oim"
+      "../configs/virtual_google_oim",
     ]
     destination = "/tmp"
   }
@@ -55,13 +55,13 @@ build {
   # https://developer.hashicorp.com/packer/docs/debugging#issues-installing-ubuntu-packages
   provisioner "shell" {
     inline = [
-      "cloud-init status --wait"
+      "cloud-init status --wait",
     ]
   }
 
   provisioner "shell" {
     environment_vars = [
-      "PROJECT=${var.gcp_project}"
+      "PROJECT=${var.gcp_project}",
       "API_KEY=${var.api_key}"
     ]
     script = "configure_oim_vm.sh"
