@@ -6,6 +6,7 @@ options:
     - 'PROJECT=$PROJECT_ID'
     - 'IMAGES_VERSION=$_IMAGES_VERSION'
     - 'ARTIFACTS=/workspace/output'
+    - 'GOOGLE_OIM_AUTOJOIN_API_KEY=${_GOOGLE_OIM_AUTOJOIN_API_KEY}'
 
 ############################################################################
 # BUILD PACKER IMAGES
@@ -15,10 +16,6 @@ steps:
 
 # packer_images.
 - name: us-central1-docker.pkg.dev/mlab-sandbox/build-images/epoxy-images:1.2
-  env: [
-    'GOOGLE_OIM_AUTOJOIN_API_KEY=${_GOOGLE_OIM_AUTOJOIN_API_KEY}'
-  ]
   args: [
-    '/workspace/builder.sh', 'packer_images'
+    '/workspace/builder.sh', 'packer_images_oim'
   ]
-
