@@ -28,6 +28,9 @@ echo "tcp_bbr" >> /etc/modules
 adduser mlab --gecos "M-Lab User" --disabled-login
 adduser mlab docker
 
+# Copy the Autojoin API key into a file in mlab's home directory
+echo "${API_KEY}" > /home/mlab/api_key
+
 # Make an M-Lab bin directory
 mkdir -p /opt/mlab/bin/
 
