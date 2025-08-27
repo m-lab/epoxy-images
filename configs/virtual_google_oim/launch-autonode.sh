@@ -27,9 +27,9 @@ sed -e "s|{{API_KEY}}|$API_KEY|" \
     -e "s|{{PROBABILITY}}|$PROBABILITY|" \
     -e "s|{{IPV4}}|$IPV4|" \
     -e "s|{{IPV6}}|$IPV6|" \
-    /tmp/virtual_google_oim/env.template \
-    > /home/mlab/env
+    /opt/mlab/conf/env.template \
+    > /home/mlab/.env
 
 # Launch all the M-Lab containers
 cd /home/mlab
-docker compose --profile ndt --env-file env up
+docker compose --profile ndt up --detach
