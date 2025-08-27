@@ -44,7 +44,7 @@ build {
 
   provisioner "shell" {
     inline = [
-      "mkdir -p /opt/mlab/conf",
+      "sudo mkdir -p /opt/mlab/conf",
     ]
   }
 
