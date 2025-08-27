@@ -31,12 +31,14 @@ adduser mlab docker
 # Copy the Autojoin API key into a file in mlab's home directory
 echo "${API_KEY}" > /home/mlab/api_key
 
-# Make an M-Lab bin directory
+# Make an M-Lab dirs in /opt
 mkdir -p /opt/mlab/bin/
+mkdir -p /opt/mlab/conf/
 
 # Copy necessary files to correct locations
 cp /tmp/virtual_google_oim/launch-autonode.sh /opt/mlab/bin/
 cp /tmp/virtual_google_oim/launch-autonode.service /etc/systemd/system/
+cp /tmp/virtual_google_oim/env.template /opt/mlab/conf/
 
 # Enable launch-autonode.service
 systemctl daemon-reload

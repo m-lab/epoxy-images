@@ -42,17 +42,11 @@ build {
     "source.googlecompute.google-oim-instance",
   ]
 
-  provisioner "shell" {
-    inline = [
-      "sudo mkdir -p /opt/mlab/conf",
-    ]
-  }
-
   provisioner "file" {
     sources = [
-      "../configs/virtual_google_oim/",
+      "../configs/virtual_google_oim",
     ]
-    destination = "/opt/mlab/conf"
+    destination = "/tmp"
   }
 
   # Builds were randomly failing because apt was unable to find packages that
