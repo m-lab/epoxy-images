@@ -9,13 +9,13 @@
 export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json"
 
 # K8S component versions
-export K8S_VERSION=v1.28.14
-export K8S_CNI_VERSION=v1.5.1
-export K8S_CRICTL_VERSION=v1.28.0
+export K8S_VERSION=v1.29.15
+export K8S_CNI_VERSION=v1.8.0
+export K8S_CRICTL_VERSION=v1.29.0
 # v0.9.1 of the official CNI plugins release stopped including flannel, so we
 # must now install it manually.
-export K8S_FLANNELCNI_VERSION=v1.5.1-flannel3
-export K8S_TOOLING_VERSION=v0.17.7
+export K8S_FLANNELCNI_VERSION=v1.7.1-flannel2
+export K8S_TOOLING_VERSION=v0.18.0
 
 # stage3 mlxupdate
 export MFT_VERSION=4.22.0-96
@@ -27,4 +27,4 @@ export MLXROM_VERSION=3.4.818
 export MULTUS_CNI_VERSION=4.1.0
 
 # etcdctl version
-export ETCDCTL_VERSION=v3.5.15
+export ETCDCTL_VERSION=v3.5.16
