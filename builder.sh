@@ -104,6 +104,11 @@ function packer_images() {
   ${SOURCE_DIR}/setup_packer_images.sh
 }
 
+function packer_images_oim() {
+  echo 'Starting packer_Google OIM images build'
+  ${SOURCE_DIR}/setup_packer_google_oim_images.sh
+}
+
 function stage1_isos() {
   local target=${TARGET:?Please specify a target configuration name}
   local project=${PROJECT:?Please specify the PROJECT}
@@ -137,6 +142,9 @@ case "${TARGET}" in
       ;;
   packer_images)
       packer_images
+      ;;
+  packer_images_oim)
+      packer_images_oim
       ;;
   stage3_update)
       stage3_update
