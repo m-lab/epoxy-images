@@ -1,4 +1,4 @@
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
 nodeRegistration:
   name: "{{MACHINE_NAME}}"
@@ -10,7 +10,7 @@ localAPIEndpoint:
   bindPort: 6443
 certificateKey: "{{CERT_KEY}}"
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: JoinConfiguration
 discovery:
   bootstrapToken:
@@ -18,7 +18,6 @@ discovery:
     token: {{TOKEN}}
     caCertHashes:
     - "{{CA_CERT_HASH}}"
-  timeout: 15m0s
 controlPlane:
   certificateKey: "{{CERT_KEY}}"
   localAPIEndpoint:
@@ -28,8 +27,10 @@ nodeRegistration:
   name: "{{MACHINE_NAME}}"
   kubeletExtraArgs:
     container-runtime-endpoint: "unix:///run/containerd/containerd.sock"
+timeouts:
+  discovery: 15m0s
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 kubernetesVersion: {{K8S_VERSION}}
 apiServer:
@@ -39,9 +40,11 @@ apiServer:
 controlPlaneEndpoint: {{API_LOAD_BALANCER}}:6443
 controllerManager:
   extraArgs:
-    node-cidr-mask-size: "26"
-    # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
-    node-monitor-grace-period: 2m
+  - name: node-cidr-mask-size
+    value: "26"
+  # https://github.com/kubernetes-sigs/kubespray/blob/master/docs/kubernetes-reliability.md#medium-update-and-average-reaction
+  - name: node-monitor-grace-period
+    value: 2m
 etcd:
   local:
     dataDir: "/mnt/cluster-data/etcd"
