@@ -6,6 +6,8 @@ Before=setup-after-boot.service
 [Service]
 Type=oneshot
 ExecStart=/opt/mlab/bin/max-rate.sh
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
