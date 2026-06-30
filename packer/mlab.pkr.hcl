@@ -20,6 +20,12 @@ variable "source_image" {
   type = string
 }
 
+variable "zone" {
+  default = "us-central1-c"
+  description = "GCE zone for the temporary Packer builder VM. Overridden per-attempt by the zone-fallback loop in setup_packer_images.sh (see packer/zone_fallback.sh), which retries other zones on ZONE_RESOURCE_POOL_EXHAUSTED."
+  type = string
+}
+
 source "googlecompute" "platform-cluster-instance" {
   disk_size        = 100
   image_name       = "platform-cluster-instance-${var.image_version}"
@@ -28,7 +34,7 @@ source "googlecompute" "platform-cluster-instance" {
   ssh_username     = "packer"
   use_iap          = true
   use_internal_ip  = true
-  zone             = "us-central1-c"
+  zone             = var.zone
 }
 
 source "googlecompute" "platform-cluster-internal-instance" {
@@ -39,7 +45,7 @@ source "googlecompute" "platform-cluster-internal-instance" {
   ssh_username     = "packer"
   use_iap          = true
   use_internal_ip  = true
-  zone             = "us-central1-c"
+  zone             = var.zone
 }
 
 source "googlecompute" "platform-cluster-api-instance" {
@@ -50,7 +56,7 @@ source "googlecompute" "platform-cluster-api-instance" {
   ssh_username     = "packer"
   use_iap          = true
   use_internal_ip  = true
-  zone             = "us-central1-c"
+  zone             = var.zone
 }
 
 build {
