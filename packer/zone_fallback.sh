@@ -36,8 +36,11 @@ packer_build_with_zone_fallback() {
       return 0
     fi
 
-    if grep -q "ZONE_RESOURCE_POOL_EXHAUSTED" "${build_log}"; then
-      echo "=== Zone ${zone} has no capacity (ZONE_RESOURCE_POOL_EXHAUSTED); trying the next zone ==="
+    # Packer surfaces zone capacity exhaustion as the human-readable GCE message
+    # "does not have enough resources available", not the raw
+    # ZONE_RESOURCE_POOL_EXHAUSTED error code. Match either, case-insensitively.
+    if grep -qiE "does not have enough resources|ZONE_RESOURCE_POOL_EXHAUSTED" "${build_log}"; then
+      echo "=== Zone ${zone} has no capacity; trying the next zone ==="
       rm -f "${build_log}"
       continue
     fi
