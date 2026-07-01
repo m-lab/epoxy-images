@@ -26,6 +26,12 @@ variable "api_key" {
   type = string
 }
 
+variable "zone" {
+  default = "us-central1-c"
+  description = "GCE zone for the temporary Packer builder VM. Overridden per-attempt by the zone-fallback loop in setup_packer_google_oim_images.sh (see packer/zone_fallback.sh), which retries other zones on ZONE_RESOURCE_POOL_EXHAUSTED."
+  type = string
+}
+
 source "googlecompute" "google-oim-instance" {
   disk_size        = 100
   image_name       = "google-oim-instance-${var.version}"
@@ -34,7 +40,7 @@ source "googlecompute" "google-oim-instance" {
   ssh_username     = "packer"
   use_iap          = true
   use_internal_ip  = true
-  zone             = "us-central1-f"
+  zone             = var.zone
 }
 
 build {
