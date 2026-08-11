@@ -146,9 +146,11 @@ mount_proc_and_sys $BOOTSTRAP
     rm -f $BOOTSTRAP/boot/vmlinuz*
     rm -f $BOOTSTRAP/boot/initrd*
 
-umount_proc_and_sys $BOOTSTRAP
-trap '' EXIT
-
+# NOTE: /proc and /sys stay mounted for the chroot commands in the sections
+# below. Since 26.04, coreutils are the Rust-based uutils implementation, and
+# those binaries abort when /proc is not mounted (rustix reads
+# /proc/self/auxv at startup). Both get unmounted before the initramfs is
+# packed, else find would traverse them.
 
 ################################################################################
 # System / Users / M-Lab
@@ -299,6 +301,11 @@ ln --symbolic --force /opt/bin/kubelet $BOOTSTRAP/usr/bin/kubelet
 # Add epoxy client to initramfs
 ################################################################################
 install -D -m 755 ${EPOXY_CLIENT} ${BOOTSTRAP}/usr/bin/epoxy_client
+
+# All chroot commands are done: unmount /proc and /sys before packing the
+# initramfs.
+umount_proc_and_sys $BOOTSTRAP
+trap '' EXIT
 
 # Build the initramfs from the bootstrap filesystem.
 pushd ${BOOTSTRAP}
