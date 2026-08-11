@@ -99,7 +99,7 @@ build {
       "PROJECT=${var.gcp_project}"
     ]
     script = "configure_image_common.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 
   #
@@ -112,7 +112,7 @@ build {
       "PROJECT=${var.gcp_project}"
     ]
     script = "configure_image.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 
   #
@@ -125,7 +125,7 @@ build {
       "PROJECT=${var.gcp_project}"
     ]
     script = "configure_image_internal.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 
   #
@@ -138,6 +138,6 @@ build {
       "PROJECT=${var.gcp_project}"
     ]
     script = "configure_image_api.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 }
