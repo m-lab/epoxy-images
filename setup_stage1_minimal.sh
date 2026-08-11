@@ -101,12 +101,18 @@ mount_proc_and_sys $BOOTSTRAP
 
     # Remove unnecessary packages to save space.
 
+    # NOTE: since 26.04 linux-firmware is an empty metapackage depending on
+    # ~20 split linux-firmware-* packages (~650MB), so match the whole family
+    # by regex. firmware-sof-signed gets pulled in alongside them and is
+    # likewise unneeded. The kernel image package does not depend on any
+    # firmware package.
     chroot $BOOTSTRAP apt-get remove -y \
         linux-headers-generic \
         linux-generic \
         linux-headers-${KERNEL_VERSION} \
         linux-headers-${KERNEL_VERSION%%-generic} \
-        linux-firmware \
+        ^linux-firmware \
+        firmware-sof-signed \
         python3 \
         grub-pc \
         grub-common \

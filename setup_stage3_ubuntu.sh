@@ -125,11 +125,17 @@ mount_proc_and_sys $BOOTSTRAP
     chroot $BOOTSTRAP apt-get install --yes ipmitool
 
     # Remove unnecessary packages to save space.
+    # NOTE: since 26.04 linux-firmware is an empty metapackage depending on
+    # ~20 split linux-firmware-* packages (~650MB), so match the whole family
+    # by regex. firmware-sof-signed gets pulled in alongside them and is
+    # likewise unneeded. The kernel image package does not depend on any
+    # firmware package.
     chroot $BOOTSTRAP apt-get remove --yes \
         linux-headers-generic \
         linux-generic \
         ^linux-headers \
-        linux-firmware
+        ^linux-firmware \
+        firmware-sof-signed
 
     chroot $BOOTSTRAP apt-get autoremove --yes
     chroot $BOOTSTRAP apt-get clean --yes
