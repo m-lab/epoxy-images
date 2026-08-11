@@ -71,8 +71,21 @@ if ! test -f $BOOTSTRAP/build.date ; then
     fi
 
     # Create 'minbase' bootstrap fs.
-    debootstrap --variant=minbase --include "${PACKAGES}" \
-       --components=main,universe,multiverse --arch amd64 ${UBUNTU_RELEASE} $BOOTSTRAP
+    # NOTE: debootstrap downloads each package exactly once with no retry, so
+    # a single transient archive failure aborts the whole build. Retry the
+    # bootstrap a few times before giving up.
+    for attempt in 1 2 3; do
+      if debootstrap --variant=minbase --include "${PACKAGES}" \
+          --components=main,universe,multiverse --arch amd64 ${UBUNTU_RELEASE} $BOOTSTRAP; then
+        break
+      fi
+      if [[ $attempt -eq 3 ]]; then
+        echo "debootstrap failed after ${attempt} attempts"
+        exit 1
+      fi
+      rm -rf $BOOTSTRAP
+      sleep 30
+    done
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
