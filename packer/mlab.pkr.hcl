@@ -15,7 +15,7 @@ variable "image_version" {
 }
 
 variable "source_image" {
-  default = "ubuntu-minimal-2204-jammy-v20221122"
+  default = "ubuntu-minimal-2604-resolute-amd64-v20260723"
   description = "The source/base image for generate custom images"
   type = string
 }

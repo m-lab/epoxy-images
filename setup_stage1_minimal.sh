@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# setup_stage1_minimal.sh builds an initram image based on the Ubuntu Focal
-# (20.04) OS, that includes epoxy_client and configuration suitable for a
-# stage1 boot. With this image it ispossible to create UEFI or BIOS boot media
-# for USB or CD.
+# setup_stage1_minimal.sh builds an initram image based on the Ubuntu release
+# named in $UBUNTU_RELEASE (see config.sh), that includes epoxy_client and
+# configuration suitable for a stage1 boot. With this image it is possible to
+# create UEFI or BIOS boot media for USB or CD.
 # Example:
 #   ./setup_stage1_minimal.sh /build /workspace/output configs/stage1_minimal \
 #       output/epoxy_client
@@ -63,9 +63,16 @@ if ! test -f $BOOTSTRAP/build.date ; then
       cat ${CONFIG_DIR}/extra.packages | xargs echo | tr ' ' ','
     )
 
+    # The build image's debootstrap may predate $UBUNTU_RELEASE, in which case
+    # it won't have a script for it. Every Ubuntu release script is just a
+    # symlink to the generic "gutsy" script, so create the symlink if missing.
+    if [[ ! -e /usr/share/debootstrap/scripts/${UBUNTU_RELEASE} ]]; then
+        ln -s gutsy /usr/share/debootstrap/scripts/${UBUNTU_RELEASE}
+    fi
+
     # Create 'minbase' bootstrap fs.
     debootstrap --variant=minbase --include "${PACKAGES}" \
-       --components=main,universe,multiverse --arch amd64 jammy $BOOTSTRAP
+       --components=main,universe,multiverse --arch amd64 ${UBUNTU_RELEASE} $BOOTSTRAP
 
     # Mark the build complete.
     date --iso-8601=seconds --utc > $BOOTSTRAP/build.date
@@ -76,7 +83,7 @@ trap "umount_proc_and_sys $BOOTSTRAP" EXIT
 
 mount_proc_and_sys $BOOTSTRAP
     # Add extra apt sources to install latest kernel image and headers.
-    LINE='deb http://archive.ubuntu.com/ubuntu/ jammy-updates main universe multiverse'
+    LINE="deb http://archive.ubuntu.com/ubuntu/ ${UBUNTU_RELEASE}-updates main universe multiverse"
     if ! grep -q "$LINE" $BOOTSTRAP/etc/apt/sources.list ; then
         chroot $BOOTSTRAP bash -c "echo '$LINE' >> /etc/apt/sources.list"
     fi
