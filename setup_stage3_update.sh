@@ -1,9 +1,17 @@
 #!/bin/bash
 #
-# setup_stage3_update.sh builds an initram filesystem based on the Ubuntu
-# Focal Fossa OS, that includes the Mellanox Firmware Tools and requisite kernel
+# setup_stage3_update.sh builds an initram filesystem based on Ubuntu 22.04
+# (jammy), that includes the Mellanox Firmware Tools and requisite kernel
 # modules. With this image it is possible to flash a new ROM to a Mellanox NIC,
 # or to run any arbitrary script for updating a node.
+#
+# NOTE: unlike the other images, this one is intentionally pinned to jammy
+# rather than $UBUNTU_RELEASE. MFT 4.22.x is the last release which supports
+# the ConnectX-3 NICs deployed in the fleet, and its DKMS kernel module does
+# not build against the 6.x kernels of later Ubuntu releases. To move this
+# image to a newer release, the flashing scripts in configs/stage3_update would
+# need to migrate from MFT to the open-source mstflint package in the Ubuntu
+# archive.
 #
 # Example:
 #   ./setup_stage3_update.sh /build config/stage3_update

@@ -8,6 +8,11 @@
 
 export SITES="https://siteinfo.${PROJECT}.measurementlab.net/v2/sites/sites.json"
 
+# The Ubuntu release (codename) used for the stage1_minimal and stage3_ubuntu
+# images. NOTE: stage3_update is pinned to an older release (see
+# setup_stage3_update.sh for details), and does not use this value.
+export UBUNTU_RELEASE=resolute
+
 # K8S component versions
 export K8S_VERSION=v1.34.4
 export K8S_CNI_VERSION=v1.9.0
