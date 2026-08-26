@@ -7,7 +7,12 @@ tcp_bbr
 # Support for NICs in older R620 machines.
 tg3
 
-# Support access envelope ip6table operations.
+# Support access envelope iptable/ip6table operations. The access image uses
+# the legacy iptables backend, and since Ubuntu 26.04 (kernel 7.0) nothing on
+# the host loads the legacy modules implicitly, so load them explicitly.
+ip_tables
+iptable_filter
+ip6_tables
 ip6table_filter
 
 # Modules needed by containerd/runc
