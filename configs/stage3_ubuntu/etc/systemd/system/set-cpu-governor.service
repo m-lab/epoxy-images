@@ -1,0 +1,10 @@
+[Unit]
+Description=Sets the CPU scaling governor to performance for all CPUs
+After=cache-data.mount multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mlab/bin/set_cpu_governor.sh
+
+[Install]
+WantedBy=multi-user.target
