@@ -27,7 +27,7 @@ variable "zone" {
 }
 
 source "googlecompute" "platform-cluster-instance" {
-  disk_size        = 100
+  disk_size        = 50
   image_name       = "platform-cluster-instance-${var.image_version}"
   project_id       = var.gcp_project
   source_image     = var.source_image
@@ -38,7 +38,7 @@ source "googlecompute" "platform-cluster-instance" {
 }
 
 source "googlecompute" "platform-cluster-internal-instance" {
-  disk_size        = 100
+  disk_size        = 50
   image_name       = "platform-cluster-internal-instance-${var.image_version}"
   project_id       = var.gcp_project
   source_image     = var.source_image
@@ -49,7 +49,7 @@ source "googlecompute" "platform-cluster-internal-instance" {
 }
 
 source "googlecompute" "platform-cluster-api-instance" {
-  disk_size        = 100
+  disk_size        = 50
   image_name       = "platform-cluster-api-instance-${var.image_version}"
   project_id       = var.gcp_project
   source_image     = var.source_image
