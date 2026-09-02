@@ -113,7 +113,7 @@ EOF
 # config, then the we would be left with "DNS=", which apparently overrides the
 # previous IPv4 DNS settings, leaving a machine with no configured nameservers,
 # and thus no name resolution.
-if [[ -n $FIELDS_IPv6 ]]; then
+if [[ -n ${FIELDS_IPv6:-} ]]; then
   cat >> $OUTPUT <<EOF
 
 # IPv6
