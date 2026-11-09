@@ -6,7 +6,12 @@ ConditionPathExists=!/etc/kubernetes/kubelet.conf
 
 [Service]
 ExecStart=/opt/mlab/bin/join-cluster.sh
-Restart=always
+# Retry only when the script fails. With Restart=always the unit was restarted
+# after every successful run too, and because systemd does not re-evaluate
+# ConditionPathExists on automatic restarts, the script ran in a loop for the
+# life of the VM, appending to the kubelet drop-in on every pass until the
+# kubelet could no longer exec ("Argument list too long") on the next reboot.
+Restart=on-failure
 StartLimitInterval=0
 RestartSec=30
 
