@@ -15,7 +15,7 @@ variable "version" {
 }
 
 variable "source_image" {
-  default = "ubuntu-minimal-2404-noble-amd64-v20250818"
+  default = "ubuntu-minimal-2604-resolute-amd64-v20261107"
   description = "The source/base image for generate custom images"
   type = string
 }
@@ -71,6 +71,6 @@ build {
       "API_KEY=${var.api_key}"
     ]
     script = "configure_oim_vm.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 }

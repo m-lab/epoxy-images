@@ -7,19 +7,27 @@
 
 set -euxo pipefail
 
-# Update the apt package index and install any needed packages.
-apt update
-apt install --yes \
-  apt-transport-https \
-  ca-certificates \
-  curl \
-  software-properties-common
+# Don't let apt prompt for anything, since there is no one to answer.
+export DEBIAN_FRONTEND=noninteractive
 
-# Install Docker
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
-add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` stable"
+# Update the apt package index, bring every package in the base image
+# (including the kernel) up to date, and install any needed packages.
 apt update
-apt install --yes docker-ce
+apt full-upgrade --yes
+apt install --yes \
+  ca-certificates \
+  curl
+
+# Install Docker. apt-key no longer exists in recent Ubuntu releases, so the
+# repository signing key goes in a keyring file referenced by the source entry.
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+source /etc/os-release
+echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${VERSION_CODENAME} stable" \
+  > /etc/apt/sources.list.d/docker.list
+apt update
+apt install --yes docker-ce docker-compose-plugin
 
 # Make sure that the BBR kernel module gets loaded on boot
 echo "tcp_bbr" >> /etc/modules
