@@ -71,6 +71,6 @@ build {
       "API_KEY=${var.api_key}"
     ]
     script = "configure_oim_vm.sh"
-    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash {{ .Path }}"
+    execute_command = "chmod +x {{ .Path }}; sudo env {{ .Vars }} bash {{ .Path }}"
   }
 }
