@@ -18,10 +18,15 @@ if [[ -f $REBOOT_SENTINEL_FILE ]]; then
 fi
 
 # Unattended-upgrades (and manual apt upgrades) create this file when an
-# installed package, typically a kernel, needs a reboot to take effect. Unlike
-# physical machines, VMs keep their disk across boots, so a new kernel sits
-# unused until something reboots the VM. Flag the node so that Kured does it.
-if [[ -f /var/run/reboot-required ]]; then
+# installed package, typically a kernel, needs a reboot to take effect. VMs
+# keep their disk across boots, so a new kernel sits unused until something
+# reboots the VM. Flag the node so that Kured does it.
+#
+# This must only happen on VMs. Physical machines boot a static image over the
+# network, so a reboot discards the upgrade, unattended-upgrades installs it
+# again, the file reappears, and the machine would reboot roughly daily until
+# a new image is deployed.
+if systemd-detect-virt --quiet --vm && [[ -f /var/run/reboot-required ]]; then
   echo "Found /var/run/reboot-required. Flagging node for reboot..."
   touch "$REBOOT_SENTINEL_FILE"
   exit
