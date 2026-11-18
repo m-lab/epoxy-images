@@ -104,10 +104,16 @@ token=$(echo "$join_data" | jq -r '.token')
 # manager in the cluster.
 #
 # Add an env variable to the kubelet drop-in file and then append that env
-# variable to the ExecStart line.
+# variable to the ExecStart line. This must be idempotent: the script may run
+# more than once, so replace any existing MLAB_EXTRA_ARGS line rather than
+# appending another, and only add the variable to ExecStart if it isn't there.
+kubelet_dropin=/etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+sed -i '/^Environment="MLAB_EXTRA_ARGS=/d' "$kubelet_dropin"
 echo "Environment=\"MLAB_EXTRA_ARGS=--node-ip=${internal_ip} --node-labels=${k8s_labels} \"" \
-  >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-sed -i '/ExecStart=\// s/$/ $MLAB_EXTRA_ARGS/' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+  >> "$kubelet_dropin"
+if ! grep -q 'ExecStart=.*\$MLAB_EXTRA_ARGS' "$kubelet_dropin"; then
+  sed -i '/^ExecStart=\// s/$/ $MLAB_EXTRA_ARGS/' "$kubelet_dropin"
+fi
 
 # Set the system's hostname to the node name. By default, kubeadm uses the
 # hostname for the node name. The hostname, as defined in the instance's

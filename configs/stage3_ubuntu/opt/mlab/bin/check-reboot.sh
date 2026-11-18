@@ -17,6 +17,21 @@ if [[ -f $REBOOT_SENTINEL_FILE ]]; then
   exit
 fi
 
+# Unattended-upgrades (and manual apt upgrades) create this file when an
+# installed package, typically a kernel, needs a reboot to take effect. VMs
+# keep their disk across boots, so a new kernel sits unused until something
+# reboots the VM. Flag the node so that Kured does it.
+#
+# This must only happen on VMs. Physical machines boot a static image over the
+# network, so a reboot discards the upgrade, unattended-upgrades installs it
+# again, the file reappears, and the machine would reboot roughly daily until
+# a new image is deployed.
+if systemd-detect-virt --quiet --vm && [[ -f /var/run/reboot-required ]]; then
+  echo "Found /var/run/reboot-required. Flagging node for reboot..."
+  touch "$REBOOT_SENTINEL_FILE"
+  exit
+fi
+
 # The first field in /proc/uptime is the machine's uptime in seconds. Here we
 # convert that to days to make things easier to understand for people.
 days_up=$(awk '{print int($1 / 60 / 60/ 24)}' /proc/uptime)
